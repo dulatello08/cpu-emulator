@@ -1,12 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -O2
+CFLAGS = -Wall -Wextra -Werror -O2 -I. -g
 
-all: main
+all: emulator
 
-main: main.c
-	$(CC) $(CFLAGS) main.c -o main
+emulator: main.o emulator.o
+	$(CC) $(CFLAGS) $^ -o emulator
+
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c -o main.o
+
+emulator.o: emulator.c
+	$(CC) $(CFLAGS) -c emulator.c -o emulator.o
 
 clean:
-	rm -f main
+	rm -f *.o emulator
 
 .PHONY: all clean

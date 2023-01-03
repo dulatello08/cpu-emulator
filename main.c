@@ -1,6 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "main.h"
+
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+
+void swap_endianness(uint16_t* array, size_t length) {
+    for (size_t i = 0; i < length; i++) {
+        array[i] = ((array[i] >> 8) & 0xff) | ((array[i] & 0xff) << 8);
+    }
+}
+
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+
+void swap_endianness(uint16_t* array, size_t length) {
+    // No need to swap endianness on big-endian systems
+}
+
+#endif
 
 int main(int argc, char *argv[]) {
     int c;
@@ -33,12 +51,52 @@ int main(int argc, char *argv[]) {
     }
 
     if (help_flag) {
-        printf("Usage: myprogram [--input <file>] [--help]\n");
+        printf("Usage: emulator [-i <file>] [-i]\n");
         return 0;
     }
 
     if (input_file != NULL) {
         printf("Input file: %s\n", input_file);
+
+        FILE *fp = fopen(input_file, "rb");
+        if (fp == NULL) {
+            // Failed to open the file, return an error
+            printf("Failed to open input file");
+            return -1;
+        }
+
+        // Move the file pointer to the end of the file
+        fseek(fp, 0, SEEK_END);
+
+        // Get the size of the file in bytes
+        long size = ftell(fp);
+
+        // Calculate the number of 16-bit words in the file
+        u_int64_t num_words = size / 2;
+
+        if (num_words != 255) {
+            // File has the wrong size, return an error
+            printf("File does not contain 255 16-bit words\n");
+            printf("It contains %lu of 16-bit words", num_words);
+            fclose(fp);
+            return -1;
+        }
+        uint16_t *program_memory;
+        program_memory = malloc(255*sizeof(uint16_t));
+        fseek(fp, 0, SEEK_SET);
+        // Read the words from the file
+        size_t num_read = fread(program_memory, sizeof(uint16_t), 255, fp);
+        if (num_read != 255) {
+            // Failed to read the expected number of words, return an error
+            free(program_memory);
+            fclose(fp);
+            return -1;
+        }
+        swap_endianness(program_memory, 255);
+
+        start(program_memory);
+        // File has the correct size, close the file and return success
+        fclose(fp);
     }
 
     return 0;
