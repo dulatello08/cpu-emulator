@@ -2,23 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "main.h"
-
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-
-void swap_endianness(uint16_t* array, size_t length) {
-    for (size_t i = 0; i < length; i++) {
-        array[i] = ((array[i] >> 8) & 0xff) | ((array[i] & 0xff) << 8);
-    }
-}
-
-#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-
-void swap_endianness(uint16_t* array, size_t length) {
-    // No need to swap endianness on big-endian systems
-}
-
-#endif
+#include <endian.h>
+#include <arpa/inet.h>
 
 int main(int argc, char *argv[]) {
     int c;
@@ -92,7 +77,8 @@ int main(int argc, char *argv[]) {
             fclose(fp);
             return -1;
         }
-        swap_endianness(program_memory, 255);
+        *program_memory = ntohs(*program_memory);
+        *program_memory = htobe16(*program_memory);
 
         start(program_memory);
         // File has the correct size, close the file and return success
