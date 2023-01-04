@@ -219,9 +219,9 @@ int start(uint16_t *program_memory) {
                     state.pc = operand2;
                 }
                 break;
-            // Branch to value specified in operand2 if overflow flag was set.
+            // Branch to value specified in operand2 if overflow flag was not set.
             case 0x0E:
-                if (state.v_flag) {
+                if (!state.v_flag) {
                     state.pc = operand2;
                 }
                 break;
