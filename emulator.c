@@ -91,10 +91,6 @@ int start(uint16_t *program_memory) {
         bool operand1 = state.program_memory[state.pc] & 0x80;
         uint8_t operand2 = state.program_memory[state.pc] >> 8;
         printf("Program counter: %d\n", state.pc);
-        printf("16-bit Word: %016b\n", state.program_memory[state.pc]);
-        printf("Opcode: %07b\n", opcode);
-        printf("Operand 1: %01b\n", operand1);
-        printf("Operand 2: %08b\n\n", operand2);
         switch(opcode) {
             // Do nothing
             case 0x00:
@@ -227,11 +223,11 @@ int start(uint16_t *program_memory) {
                 break;
             // Halt
             case 0x0F:
-                printf("Halt at state of program counter: %d", state.pc);
+                printf("Halt at state of program counter: %d\n", state.pc);
                 return 0;
             // SIGILL
             default:
-                printf("SIGILL: at state of program counter: %d", state.pc);
+                printf("SIGILL: at state of program counter: %d\n", state.pc);
                 return 0;
         }
         state.pc++;
