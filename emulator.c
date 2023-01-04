@@ -202,8 +202,8 @@ int start(uint16_t *program_memory) {
                 break;
             // Push the value in the data memory at the specified address onto a stack
             case 0x0A:
-                push(&state.ssr, state.reg1[operand1 ? 1: 0]);
-                printf("%d\n", state.data_memory[operand2]);
+                push(&state.ssr, state.reg[operand1 ? 1: 0]);
+                printf("%d\n", state.reg[operand1 ? 1: 0]);
                 break;
             // Pop a value from the stack and store it in the data memory at the specified address
             case 0x0B:
