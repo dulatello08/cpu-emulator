@@ -23,4 +23,6 @@
 | 0x11   | BRN         | Branch to value specified in operand 2                                                                              |
 | 0x12   | BRZ         | Branch to value specified in operand 2 if zero flag was set                                                         |
 | 0x13   | BRO         | Branch to value specified in operand 2 if overflow flag was not set                                                  |
-| 0x14   | HLT         | Halt                                                                                                                |
+| 0x14   | BRR         | Branch to value specified in operand2 if register at operand 1 equals to opposite register                                                                                                                |
+| 0x15   | HLT         | Halt                                                                                                                |
+ 

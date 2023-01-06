@@ -33,6 +33,7 @@ struct CPUState {
     // ALU Flags register
     volatile bool z_flag;
     volatile bool v_flag;
+    volatile bool ascii_flag;
 };
 
 uint8_t count_leading_zeros(uint8_t x) {
@@ -77,6 +78,7 @@ int start(uint16_t *program_memory) {
     state.reg[1] = 0x00;
     state.v_flag = false;
     state.z_flag = false;
+    state.ascii_flag = false;
 
     state.data_memory = malloc(DATA_MEMORY*sizeof(uint8_t));
     memset( (void *)state.data_memory, 0, DATA_MEMORY*sizeof(uint8_t));
@@ -97,13 +99,13 @@ int start(uint16_t *program_memory) {
                 break;
             // Add operand2 to the value in the specified register
             case 0x01:
-                if (state.reg[operand1 ? 1: 0] > UINT8_MAX - operand2) {
+                if (state.reg[operand1] > UINT8_MAX - operand2) {
                     state.v_flag = true;
-                    state.reg[operand1 ? 1: 0] = 0xFF;
+                    state.reg[operand1] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand1 ? 1: 0] += operand2;
-                    if (state.reg[operand1 ? 1: 0] == 0) {
+                    state.reg[operand1] += operand2;
+                    if (state.reg[operand1] == 0) {
                         state.z_flag = true;
                     }
                     else {
@@ -113,12 +115,12 @@ int start(uint16_t *program_memory) {
                 break;
             // Subtract operand2 from the value in the specified register
             case 0x02:
-                if (state.reg[operand1 ? 1: 0] < operand2) {
+                if (state.reg[operand1] < operand2) {
                     state.v_flag = true;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand1 ? 1: 0] -= operand2;
-                    if (state.reg[operand1 ? 1: 0] == 0) {
+                    state.reg[operand1] -= operand2;
+                    if (state.reg[operand1] == 0) {
                         state.z_flag = true;
                     }
                     else {
@@ -128,13 +130,13 @@ int start(uint16_t *program_memory) {
                 break;
             // Multiply the value in the specified register by operand2
             case 0x03:
-                if(state.reg[operand1 ? 1: 0] * operand1 > UINT8_MAX) {
+                if(state.reg[operand1] * operand2 > UINT8_MAX) {
                     state.v_flag = true;
-                    state.reg[operand1 ? 1: 0] = 0xFF;
+                    state.reg[operand1] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand1 ? 1: 0] *= operand2;
-                    if (state.reg[operand1 ? 1: 0] == 0) {
+                    state.reg[operand1] *= operand2;
+                    if (state.reg[operand1] == 0) {
                         state.z_flag = true;
                     }
                     else {
@@ -144,8 +146,8 @@ int start(uint16_t *program_memory) {
                 break;
             // Count the number of leading zeros in operand2 and store the result in the specified register
             case 0x04:
-                state.reg[operand1 ? 1: 0] = count_leading_zeros(operand2);
-                if (state.reg[operand1 ? 1: 0] == 0) {
+                state.reg[operand1] = count_leading_zeros(operand2);
+                if (state.reg[operand1] == 0) {
                     state.z_flag = true;
                 }
                 else {
@@ -154,13 +156,13 @@ int start(uint16_t *program_memory) {
                 break;
             // Add the value in the data memory at the specified address to the value in the specified register
             case 0x05:
-                if (state.reg[operand1 ? 1: 0] > UINT8_MAX - state.data_memory[operand2]) {
+                if (state.reg[operand1] > UINT8_MAX - state.data_memory[operand2]) {
                     state.v_flag = true;
-                    state.reg[operand1 ? 1: 0] = 0xFF;
+                    state.reg[operand1] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand1 ? 1: 0] += state.data_memory[operand2];
-                    if (state.reg[operand1 ? 1: 0] == 0) {
+                    state.reg[operand1] += state.data_memory[operand2];
+                    if (state.reg[operand1] == 0) {
                         state.z_flag = true;
                     }
                     else {
@@ -170,13 +172,80 @@ int start(uint16_t *program_memory) {
                 break;
             // Subtract the value in the data memory at the specified address from the value in the specified register
             case 0x06:
-                if (state.reg[operand1 ? 1: 0] < state.data_memory[operand2]) {
+                if (state.reg[operand1] < state.data_memory[operand2]) {
                     state.v_flag = true;
-                    state.reg[operand1 ? 1: 0] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand1 ? 1: 0] -= state.data_memory[operand2];
-                    if (state.reg[operand1 ? 1: 0] == 0) {
+                    state.reg[operand1] -= state.data_memory[operand2];
+                    if (state.reg[operand1] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
+                }
+                break;
+            // Load an ASCII character from operand 2 into the specified the specified register
+            case 0x07:
+                state.reg[operand1] = operand2;
+                state.ascii_flag = true;
+
+            // Increment the memory address specified in operand 2 by the value in the register specified in operand 1
+            case 0x08:
+                if (state.data_memory[operand2] > UINT8_MAX - state.reg[operand1]) {
+                    state.v_flag = true;
+                    state.data_memory[operand2] = 0xFF;
+                } else {
+                    state.v_flag = false;
+                    state.data_memory[operand2] += state.reg[operand1];
+                    if (state.data_memory[operand2] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
+                }
+                break;
+            // Subtract the value in the specified register from the value in the data memory at the specified address
+            case 0x09:
+                if (state.data_memory[operand2] < state.reg[operand1]) {
+                    state.v_flag = true;
+                } else {
+                    state.v_flag = false;
+                    state.data_memory[operand2] -= state.reg[operand1];
+                    if (state.data_memory[operand2] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
+                }
+                break;
+
+            case 0x0A:
+                if(state.reg[operand1] * state.data_memory[operand2] > UINT8_MAX) {
+                    state.v_flag = true;
+                    state.reg[operand1] = 0xFF;
+                } else {
+                    state.v_flag = false;
+                    state.reg[operand1] *= state.data_memory[operand2];
+                    if (state.reg[operand1] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
+                }
+                break;         
+            // Multiply the value in the data memory at the specified address by the value in the specified register and store the result the specified register
+            case 0x0B:
+                if(state.data_memory[operand2] * state.reg[operand1] > UINT8_MAX) {
+                    state.v_flag = true;
+                    state.data_memory[operand2] = 0xFF;
+                } else {
+                    state.v_flag = false;
+                    state.data_memory[operand2] *= state.reg[operand1];
+                    if (state.data_memory[operand2] == 0) {
                         state.z_flag = true;
                     }
                     else {
@@ -185,44 +254,56 @@ int start(uint16_t *program_memory) {
                 }
                 break;
             // Store operand2 in the specified register
-            case 0x07:
-                state.reg[operand1 ? 1: 0 ] = operand2;
+            case 0x0C:
+                state.reg[operand1] = operand2;
                 break;
             // Store the value in the specified register in the data memory at the specified address
-            case 0x08:
-                state.data_memory[operand2] = state.reg[operand1 ? 1: 0];
+            case 0x0D:
+                state.data_memory[operand2] = state.reg[operand1];
                 break;
             // Load the value in the data memory at the specified address into the specified register
-            case 0x09:
-                state.reg[operand1 ? 1: 0] = state.data_memory[operand2];
+            case 0x0E:
+                state.reg[operand1] = state.data_memory[operand2];
                 break;
             // Push the value in the data memory at the specified address onto a stack
-            case 0x0A:
-                push(&state.ssr, state.reg[operand1 ? 1: 0]);
-                printf("%d\n", state.reg[operand1 ? 1: 0]);
+            case 0x0F:
+                push(&state.ssr, state.reg[operand1]);
+                if(state.ascii_flag){
+                    char output = (char) state.reg[operand1];
+                    printf("%c", output);
+                    state.ascii_flag=false;
+                } else {
+                    printf("%d\n", state.reg[operand1]);
+                }
                 break;
             // Pop a value from the stack and store it in the data memory at the specified address
-            case 0x0B:
+            case 0x10:
                 state.data_memory[operand2] = pop(&state.ssr);
                 break;
             // Branch to value specified in operand 2
-            case 0x0C:
+            case 0x11:
                 state.pc = operand2;
                 break;
             // Branch to value specified in operand2 if zero flag was set
-            case 0x0D:
+            case 0x12:
                 if (state.z_flag) {
                     state.pc = operand2;
                 }
                 break;
             // Branch to value specified in operand2 if overflow flag was not set.
-            case 0x0E:
+            case 0x13:
                 if (!state.v_flag) {
                     state.pc = operand2;
                 }
                 break;
+            // Branch to value specified in operand2 if register at operand 1 equals to opposite register
+            case 0x14:
+                if(state.reg[operand1]==state.reg[operand1 ? 0: 1]) {
+                    state.pc=operand2;
+                }
+                break;
             // Halt
-            case 0x0F:
+            case 0x15:
                 printf("Halt at state of program counter: %d\n", state.pc);
                 return 0;
             // SIGILL
