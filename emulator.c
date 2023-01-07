@@ -189,6 +189,7 @@ int start(uint16_t *program_memory) {
             case 0x07:
                 state.reg[operand1] = operand2;
                 state.ascii_flag = true;
+                break;
 
             // Increment the memory address specified in operand 2 by the value in the register specified in operand 1
             case 0x08:
