@@ -11,7 +11,7 @@
 |     SBM     |  0x05  | Store difference of memory address at operand2 and register Rn in register Rd                                                       | SMB Rd, Rn, Operand2  |
 |     MLM     |  0x06  | Multiply register Rn by memory address at operand 2 and store in register Rd                                                        | MLM Rd, Rn, Operand2  |
 |     ADR     |  0x07  | Store sum of registers Rd and Rn in memory address at operand 2                                                                     |                       |
-|     SBR     |  0x08  | Store sum of registers Rd and Rn in memory address at operand 2                                                                     |                       |
+|     SBR     |  0x08  | Store difference of registers Rd and Rn in memory address at operand 2                                                                     |                       |
 |     MLR     |  0x09  | Multiply registers Rd and Rn and store in memory address at operand 2                                                               |                       |
 |     CLZ     |  0x0A  | Count the number of leading zeros at register Rn and store at Rd                                                                    |                       |
 |     STO     |  0x0B  | Store operand 2 in the operand Rd                                                                                                   |                       |

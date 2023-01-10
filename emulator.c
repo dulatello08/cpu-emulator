@@ -34,7 +34,6 @@ struct CPUState {
     // ALU Flags register
     volatile bool z_flag;
     volatile bool v_flag;
-    volatile bool ascii_flag;
 };
 
 uint8_t count_leading_zeros(uint8_t x) {
@@ -70,7 +69,7 @@ uint8_t pop(volatile ShiftStack *stack) {
     return value;
 }
 
-int start(uint16_t *program_memory) {
+int start(uint16_t *program_memory, uint8_t *flash_memory) {
     struct CPUState state = {
             .ssr = {.top = -1},
     };
@@ -80,7 +79,7 @@ int start(uint16_t *program_memory) {
     state.v_flag = false;
     state.z_flag = false;
 
-    state.flash_memory = calloc(DATA_MEMORY, sizeof(uint8_t));
+    state.flash_memory = flash_memory;
     state.data_memory = calloc(DATA_MEMORY, sizeof(uint8_t));
     state.program_memory = program_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
@@ -100,7 +99,7 @@ int start(uint16_t *program_memory) {
                 break;
             // Add operand 2 to the value in the operand Rd
             case 0x01:
-                if (state.reg[operand_rd] > UINT8_MAX - operand2) {
+                if (state.reg[operand_rd] + operand2 > UINT8_MAX) {
                     state.v_flag = true;
                     state.reg[operand_rd] = 0xFF;
                 } else {
@@ -116,8 +115,9 @@ int start(uint16_t *program_memory) {
                 break;
             // Subtract operand 2 from the value in the operand Rd
             case 0x02:
-                if (state.reg[operand_rd] < operand2) {
+                if (state.reg[operand_rd] > UINT8_MAX - operand2) {
                     state.v_flag = true;
+                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
                     state.reg[operand_rd] -= operand2;
@@ -131,9 +131,8 @@ int start(uint16_t *program_memory) {
                 break;
             // Multiply the value in the operand Rd by operand 2
             case 0x03:
-                if(state.reg[operand_rd] * operand2 > UINT8_MAX) {
+                if (state.reg[operand_rd] * operand2 > UINT8_MAX) {
                     state.v_flag = true;
-                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
                     state.reg[operand_rd] *= operand2;
@@ -147,22 +146,26 @@ int start(uint16_t *program_memory) {
                 break;
             // Store sum of memory address at operand 2 and register Rn in register Rd
             case 0x04:
-                state.reg[operand_rd] = count_leading_zeros(operand2);
-                if (state.reg[operand_rd] == 0) {
-                    state.z_flag = true;
-                }
-                else {
-                    state.z_flag = false;
+                if (state.data_memory[operand2] + state.reg[operand_rn] > UINT8_MAX) {
+                    state.v_flag = true;
+                } else {
+                    state.v_flag = false;
+                    state.reg[operand_rd] = state.data_memory[operand2] + state.reg[operand_rn];
+                    if (state.reg[operand_rd] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
                 }
                 break;
             // Store difference of memory address at operand2 and register Rn in register Rd
             case 0x05:
-                if (state.reg[operand_rd] > UINT8_MAX - state.data_memory[operand2]) {
+                if (state.reg[operand_rd] > UINT8_MAX - state.reg[operand_rn]) {
                     state.v_flag = true;
-                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand_rd] += state.data_memory[operand2];
+                    state.reg[operand_rd] = state.data_memory[operand2] - state.reg[operand_rn];
                     if (state.reg[operand_rd] == 0) {
                         state.z_flag = true;
                     }
@@ -173,11 +176,11 @@ int start(uint16_t *program_memory) {
                 break;
             // Multiply register Rn by memory address at operand 2 and store in register Rd
             case 0x06:
-                if (state.reg[operand_rd] < state.data_memory[operand2]) {
+                if (state.data_memory[operand2] * state.reg[operand_rn] > UINT8_MAX) {
                     state.v_flag = true;
                 } else {
                     state.v_flag = false;
-                    state.reg[operand_rd] -= state.data_memory[operand2];
+                    state.reg[operand_rd] = state.data_memory[operand2] * state.reg[operand_rn];
                     if (state.reg[operand_rd] == 0) {
                         state.z_flag = true;
                     }
@@ -188,18 +191,27 @@ int start(uint16_t *program_memory) {
                 break;
             // Store sum of registers Rd and Rn in memory address at operand 2
             case 0x07:
-                state.reg[operand_rd] = operand2;
-                state.ascii_flag = true;
-                break;
-
-            // Store sum of registers Rd and Rn in memory address at operand 2
-            case 0x08:
-                if (state.data_memory[operand2] > UINT8_MAX - state.reg[operand_rd]) {
+                if (state.reg[operand_rd] + state.reg[operand_rn] > UINT8_MAX) {
                     state.v_flag = true;
-                    state.data_memory[operand2] = 0xFF;
+                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
-                    state.data_memory[operand2] += state.reg[operand_rd];
+                    state.data_memory[operand2] = state.reg[operand_rd] + state.reg[operand_rn];
+                    if (state.data_memory[operand2] == 0) {
+                        state.z_flag = true;
+                    }
+                    else {
+                        state.z_flag = false;
+                    }
+                }
+                break;
+            // Store difference of registers Rd and Rn in memory address at operand 2
+            case 0x08:
+                if (state.reg[operand_rd] > UINT8_MAX - state.reg[operand_rn]) {
+                    state.v_flag = true;
+                } else {
+                    state.v_flag = false;
+                    state.data_memory[operand2] = state.reg[operand_rd] - state.reg[operand_rn];
                     if (state.data_memory[operand2] == 0) {
                         state.z_flag = true;
                     }
@@ -210,11 +222,11 @@ int start(uint16_t *program_memory) {
                 break;
             // Multiply registers Rd and Rn and store in memory address at operand 2
             case 0x09:
-                if (state.data_memory[operand2] < state.reg[operand_rd]) {
+                if (state.reg[operand_rd] * state.reg[operand_rn] > UINT8_MAX) {
                     state.v_flag = true;
                 } else {
                     state.v_flag = false;
-                    state.data_memory[operand2] -= state.reg[operand_rd];
+                    state.data_memory[operand2] = state.reg[operand_rd] * state.reg[operand_rn];
                     if (state.data_memory[operand2] == 0) {
                         state.z_flag = true;
                     }
@@ -223,64 +235,76 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
+
             // Count the number of leading zeros at register Rn and store at Rd
             case 0x0A:
-                if(state.reg[operand_rd] * state.data_memory[operand2] > UINT8_MAX) {
-                    state.v_flag = true;
-                    state.reg[operand_rd] = 0xFF;
-                } else {
-                    state.v_flag = false;
-                    state.reg[operand_rd] *= state.data_memory[operand2];
-                    if (state.reg[operand_rd] == 0) {
-                        state.z_flag = true;
-                    }
-                    else {
-                        state.z_flag = false;
-                    }
+                state.reg[operand_rd] = count_leading_zeros(state.reg[operand_rn]);
+                if (state.reg[operand_rd] == 0) {
+                    state.z_flag = true;
                 }
-                break;         
+                else {
+                    state.z_flag = false;
+                }
+                break;
             // Store operand 2 in the operand Rd
             case 0x0B:
-                if(state.data_memory[operand2] * state.reg[operand_rd] > UINT8_MAX) {
-                    state.v_flag = true;
-                    state.data_memory[operand2] = 0xFF;
-                } else {
-                    state.v_flag = false;
-                    state.data_memory[operand2] *= state.reg[operand_rd];
-                    if (state.data_memory[operand2] == 0) {
-                        state.z_flag = true;
-                    }
-                    else {
-                        state.z_flag = false;
-                    }
-                }
+                state.reg[operand_rd] = operand2;
                 break;
             // Store the value in the register Rd in the data memory at the operand 2
             case 0x0C:
-                state.reg[operand_rd] = operand2;
-                break;
+                state.data_memory[operand2] = state.reg[operand_rd];
+                break;         
             // Load the value in the memory at the address in operand 2 into the register Rd
             case 0x0D:
-                state.data_memory[operand2] = state.reg[operand_rd];
+                state.reg[operand_rd] = state.data_memory[operand2];
                 break;
             // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
-                state.reg[operand_rd] = state.data_memory[operand2];
+                push(&state.ssr, state.reg[operand_rd]);
                 break;
             // Pop a value from the stack and store it in the register Rd
             case 0x0F:
-                push(&state.ssr, state.reg[operand_rd]);
-                if(state.ascii_flag){
-                    char output = (char) state.reg[operand_rd];
-                    printf("%c", output);
-                    state.ascii_flag=false;
-                } else {
-                    printf("%d\n", state.reg[operand_rd]);
+                state.reg[operand_rd] = pop(&state.ssr);
+                break;
+            //Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator)
+            case 0x10:
+                {
+                    for (int i = state.reg[operand_rd]; state.data_memory[i]!=0x80; i++) {
+                        printf("%c", state.data_memory[i]);
+                    }
+                }
+                break;
+            // Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd
+            case 0x11:;
+                {
+                    uint8_t *temp = calloc(state.reg[operand_rd]-state.reg[operand_rn], sizeof(uint8_t));
+                    int i = 0;
+                    while(i < state.reg[operand_rd]-state.reg[operand_rn]) {
+                        temp[i] = state.data_memory[operand_rd+i];
+                        i++;
+                    }
+                    while(i!=0) {
+                        state.flash_memory[operand2+i] = temp[i];
+                        i--;
+                    }
+                    free(temp);
                 }
                 break;
             // Read data memory and store in non-volatile memory using addresses from registers Rd and Rn, starting at address in Operand 2
-            case 0x12:
-                state.data_memory[operand2] = pop(&state.ssr);
+            case 0x12:;
+                {
+                    uint8_t *temp = calloc(state.reg[operand_rd]-state.reg[operand_rn], sizeof(uint8_t));
+                    int i = 0;
+                    while(i < state.reg[operand_rd]-state.reg[operand_rn]) {
+                        temp[i] = state.data_memory[operand_rd+i];
+                        i++;
+                    }
+                    while(i!=0) {
+                        state.flash_memory[operand2+i] = temp[i];
+                        i--;
+                    }
+                    free(temp);
+                }
                 break;
             // Branch to value specified in operand 2
             case 0x13:
