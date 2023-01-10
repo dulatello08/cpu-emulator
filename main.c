@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
     int c;
     int help_flag = 0;
     char *input_file = NULL;
-
-    while ((c = getopt(argc, argv, "hi:")) != -1) {
+    char *flash_file = NULL;
+    while ((c = getopt(argc, argv, "him:")) != -1) {
         switch (c) {
             case 'h':
                 help_flag = 1;
@@ -18,8 +18,10 @@ int main(int argc, char *argv[]) {
             case 'i':
                 input_file = optarg;
                 break;
+            case 'm':
+                flash_file = optarg;
             case '?':
-                if (optopt == 'i') {
+                if (optopt == 'i' || optopt == 'm') {
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 } else {
                     fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
