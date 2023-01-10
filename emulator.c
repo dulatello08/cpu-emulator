@@ -5,7 +5,7 @@
 #include "main.h"
 #include <string.h>
 
-#define DATA_MEMORY 255
+#define DATA_MEMORY 256
 #define STACK_SIZE 4
 
 
@@ -34,6 +34,7 @@ struct CPUState {
     // ALU Flags register
     volatile bool z_flag;
     volatile bool v_flag;
+    volatile bool ascii_flag;
 };
 
 uint8_t count_leading_zeros(uint8_t x) {
@@ -97,7 +98,7 @@ int start(uint16_t *program_memory) {
             // Do nothing
             case 0x00:
                 break;
-            // Add operand2 to the value in the specified register
+            // Add operand 2 to the value in the operand Rd
             case 0x01:
                 if (state.reg[operand_rd] > UINT8_MAX - operand2) {
                     state.v_flag = true;
@@ -113,7 +114,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Subtract operand2 from the value in the specified register
+            // Subtract operand 2 from the value in the operand Rd
             case 0x02:
                 if (state.reg[operand_rd] < operand2) {
                     state.v_flag = true;
@@ -128,7 +129,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Multiply the value in the specified register by operand2
+            // Multiply the value in the operand Rd by operand 2
             case 0x03:
                 if(state.reg[operand_rd] * operand2 > UINT8_MAX) {
                     state.v_flag = true;
@@ -144,7 +145,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Count the number of leading zeros in operand2 and store the result in the specified register
+            // Store sum of memory address at operand 2 and register Rn in register Rd
             case 0x04:
                 state.reg[operand_rd] = count_leading_zeros(operand2);
                 if (state.reg[operand_rd] == 0) {
@@ -154,7 +155,7 @@ int start(uint16_t *program_memory) {
                     state.z_flag = false;
                 }
                 break;
-            // Add the value in the data memory at the specified address to the value in the specified register
+            // Store difference of memory address at operand2 and register Rn in register Rd
             case 0x05:
                 if (state.reg[operand_rd] > UINT8_MAX - state.data_memory[operand2]) {
                     state.v_flag = true;
@@ -170,7 +171,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Subtract the value in the data memory at the specified address from the value in the specified register
+            // Multiply register Rn by memory address at operand 2 and store in register Rd
             case 0x06:
                 if (state.reg[operand_rd] < state.data_memory[operand2]) {
                     state.v_flag = true;
@@ -185,13 +186,13 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Load an ASCII character from operand 2 into the specified the specified register
+            // Store sum of registers Rd and Rn in memory address at operand 2
             case 0x07:
                 state.reg[operand_rd] = operand2;
                 state.ascii_flag = true;
                 break;
 
-            // Increment the memory address specified in operand 2 by the value in the register specified in operand 1
+            // Store sum of registers Rd and Rn in memory address at operand 2
             case 0x08:
                 if (state.data_memory[operand2] > UINT8_MAX - state.reg[operand_rd]) {
                     state.v_flag = true;
@@ -207,7 +208,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Subtract the value in the specified register from the value in the data memory at the specified address
+            // Multiply registers Rd and Rn and store in memory address at operand 2
             case 0x09:
                 if (state.data_memory[operand2] < state.reg[operand_rd]) {
                     state.v_flag = true;
@@ -222,7 +223,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-
+            // Count the number of leading zeros at register Rn and store at Rd
             case 0x0A:
                 if(state.reg[operand_rd] * state.data_memory[operand2] > UINT8_MAX) {
                     state.v_flag = true;
@@ -238,7 +239,7 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;         
-            // Multiply the value in the data memory at the specified address by the value in the specified register and store the result the specified register
+            // Store operand 2 in the operand Rd
             case 0x0B:
                 if(state.data_memory[operand2] * state.reg[operand_rd] > UINT8_MAX) {
                     state.v_flag = true;
@@ -254,19 +255,19 @@ int start(uint16_t *program_memory) {
                     }
                 }
                 break;
-            // Store operand2 in the specified register
+            // Store the value in the register Rd in the data memory at the operand 2
             case 0x0C:
                 state.reg[operand_rd] = operand2;
                 break;
-            // Store the value in the specified register in the data memory at the specified address
+            // Load the value in the memory at the address in operand 2 into the register Rd
             case 0x0D:
                 state.data_memory[operand2] = state.reg[operand_rd];
                 break;
-            // Load the value in the data memory at the specified address into the specified register
+            // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
                 state.reg[operand_rd] = state.data_memory[operand2];
                 break;
-            // Push the value in the data memory at the specified address onto a stack
+            // Pop a value from the stack and store it in the register Rd
             case 0x0F:
                 push(&state.ssr, state.reg[operand_rd]);
                 if(state.ascii_flag){
