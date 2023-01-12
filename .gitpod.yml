@@ -6,3 +6,8 @@ tasks:
   - init: make
 
 
+# example .gitpod.yml from https://github.com/gitpod-io/demo-multi-repo-frontend
+additionalRepositories:
+  - url: https://gitlab.com/dulatello08/cpu-assembler
+    # checkoutLocation is relative to /workspaces
+    checkoutLocation: assembler
