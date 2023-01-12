@@ -88,11 +88,14 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
     }
     printf("Starting emulator\n");
     while(state.pc!=0xFF) {
-        uint8_t opcode = state.program_memory[state.pc] & 0x6F;
-        bool operand_rd = state.program_memory[state.pc] & 0x70;
-        bool operand_rn = state.program_memory[state.pc] & 0x80;
-        uint8_t operand2 = state.program_memory[state.pc] >> 8;
-        printf("Program counter: %d\n", state.pc);
+        uint8_t opcode = state.program_memory[state.pc] & 0x3F; 
+        bool operand_rd = (state.program_memory[state.pc] >> 6) & 0x01;
+        bool operand_rn = (state.program_memory[state.pc] >> 7) & 0x01;
+        uint8_t operand2 = (state.program_memory[state.pc] >> 8) & 0xFF;
+        /*printf("Opcode: %x\n", opcode);
+        printf("Operand Rd: %x\n", operand_rd);
+        printf("Operand Rn: %x\n", operand_rn);
+        printf("Operand 2: %x\n\n", operand2);*/
         switch(opcode) {
             // Do nothing
             case 0x00:
@@ -261,6 +264,7 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
             // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
                 push(&state.ssr, state.reg[operand_rd]);
+                printf("%d\n", state.reg[operand_rd]);
                 break;
             // Pop a value from the stack and store it in the register Rd
             case 0x0F:
@@ -316,9 +320,9 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
                     state.pc = operand2;
                 }
                 break;
-            // Branch to value specified in operand2 if overflow flag was set.
+            // Branch to value specified in operand2 if overflow flag was not set.
             case 0x15:
-                if (state.v_flag) {
+                if (!state.v_flag) {
                     state.pc = operand2;
                 }
                 break;
@@ -335,6 +339,7 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
             // SIGILL
             default:
                 printf("SIGILL: at state of program counter: %d\n", state.pc);
+                printf("Instruction: %x was called\n", opcode);
                 return 0;
         }
         state.pc++;
