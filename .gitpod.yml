@@ -10,4 +10,4 @@ tasks:
 additionalRepositories:
   - url: https://gitlab.com/dulatello08/cpu-assembler
     # checkoutLocation is relative to /workspaces
-    checkoutLocation: assembler
+    checkoutLocation: cpu-assembler
