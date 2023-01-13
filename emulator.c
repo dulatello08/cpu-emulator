@@ -272,15 +272,18 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
                 break;
             //Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator)
             case 0x10:
-                {
-                    for (int i = state.reg[operand_rd]; state.data_memory[i]!=0x80; i++) {
-                        printf("%c", state.data_memory[i]);
+                {   
+                    printf("Data memory dump %x\n", state.data_memory[state.reg[operand_rd]+1]);
+                    int i = state.reg[operand_rd];
+                    while (state.data_memory[i]!=0x80) {
+                        printf("%c", (char)state.data_memory[i]);
+                        i++;
                     }
                 }
                 break;
             // Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd
             case 0x11:;
-                {
+                {   printf("RDM, %d", state.reg[operand_rd]-state.reg[operand_rn]);
                     uint8_t *temp = calloc(state.reg[operand_rd]-state.reg[operand_rn], sizeof(uint8_t));
                     int i = 0;
                     while(i < state.reg[operand_rd]-state.reg[operand_rn]) {
