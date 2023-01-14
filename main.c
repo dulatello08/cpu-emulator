@@ -1,18 +1,23 @@
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include "main.h"
-#include <endian.h>
-#include <arpa/inet.h>
 
-int main(int argc, char *argv[]) {
+#define EXPECTED_PROGRAM_WORDS 255
+#define EXPECTED_FLASH_WORDS 255
+
+int help_flag = 0;
+
+void print_usage() {
+    printf("Usage: program -i <input file> -m <flash file>\n");
+}
+
+int main(int argc, char **argv) {
     int c;
-    int help_flag = 0;
     char *input_file = NULL;
     char *flash_file = NULL;
-    while ((c = getopt(argc, argv, "hm:i:")) != -1) {
+
+    while ((c = getopt(argc, argv, "hi:m:")) != -1) {
         switch (c) {
             case 'h':
                 help_flag = 1;
@@ -27,107 +32,107 @@ int main(int argc, char *argv[]) {
                 if (optopt == 'i' || optopt == 'm') {
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 } else {
-                    fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+                    fprintf(stderr, "Unknown option -%c.\n", optopt);
                 }
                 return 1;
             default:
-                abort();
+                fprintf(stderr, "Error: Unknown option -%c.\n", optopt);
+                return 1;
         }
-    }
-
-    if (help_flag && input_file != NULL) {
-        fprintf(stderr, "Error: Cannot specify both --help and --input.\n");
-        return 1;
     }
 
     if (help_flag) {
-        printf("Usage: emulator [-i <file>] [-i]\n");
+        print_usage();
         return 0;
     }
 
-    if (input_file != NULL) {
-        printf("Input program file: %s\n", input_file);
-        FILE *fpi = fopen(input_file, "rb");
-        if (fpi == NULL) {
-            // Failed to open the file, return an error
-            printf("Failed to open input program");
-            return -1;
-        }
-
-        // Move the file pointer to the end of the file
-        fseek(fpi, 0, SEEK_END);
-
-        // Get the size of the file in bytes
-        long size = ftell(fpi);
-
-        // Calculate the number of 16-bit words in the file
-        u_int64_t num_words = size / 2;
-
-        if (num_words != 255) {
-            // File has the wrong size, return an error
-            printf("File does not contain 255 16-bit words\n");
-            printf("It contains%lu of 16-bit words", num_words);
-            fclose(fpi);
-            return -1;
-        }
-        uint8_t *flash_memory = NULL;
-        if(flash_file!=NULL) {
-            printf("Input flash file: %s\n", flash_file);
-            FILE *fpf = fopen(flash_file, "rb");
-            if (fpf == NULL) {
-                // Failed to open the file, return an error
-                printf("Failed to open input flash\n");
-                return -1;
-            }
-
-            // Move the file pointer to the end of the file
-            fseek(fpf, 0, SEEK_END);
-
-            // Get the size of the file in bytes
-            long sizeF = ftell(fpf);
-
-            // Calculate the number of 8-bit words in the file
-            u_int64_t num_wordsF = sizeF;
-
-            if (num_wordsF != 255) {
-                // File has the wrong size, return an error
-                printf("File does not contain 255 8-bit words\n");
-                printf("It contains %lu of 8-bit words", num_wordsF);
-                fclose(fpf);
-                return -1;
-            }
-            
-            flash_memory = calloc(255, sizeof(uint8_t));
-            fseek(fpf, 0, SEEK_SET);
-            // Read the words from the file
-            size_t num_read = fread(flash_memory, sizeof(uint8_t), 255, fpf);
-            if (num_read != 255) {
-                printf("Failed to read 255 bytes from flash\n");
-                // Failed to read the expected number of words, return an error
-                free(flash_memory);
-                fclose(fpf);
-                return -1;
-            }
-        }
-        
-        uint16_t *program_memory;
-        program_memory = calloc(255, sizeof(uint16_t));
-        fseek(fpi, 0, SEEK_SET);
-        // Read the words from the file
-        size_t num_read = fread(program_memory, sizeof(uint16_t), 255, fpi);
-        if (num_read != 255) {
-            printf("Failed to read 255 16-bit words from program\n");
-            // Failed to read the expected number of words, return an error
-            free(program_memory);
-            fclose(fpi);
-            return -1;
-        }
-        *program_memory = ntohs(*program_memory);
-        *program_memory = htobe16(*program_memory);
-        start(program_memory, flash_memory);
-        // File has the correct size, close the file and return success
-        fclose(fpi);
+    if (input_file == NULL) {
+        fprintf(stderr, "Error: input file not specified.\n");
+        return 1;
     }
 
+    FILE *fpi = fopen(input_file, "rb");
+    if (fpi == NULL) {
+        fprintf(stderr, "Error: Failed to open input program file.\n");
+        return 1;
+    }
+
+    fseek(fpi, 0, SEEK_END);
+    long size = ftell(fpi);
+
+    if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint16_t)) {
+        fprintf(stderr, "Error: Input program file does not contain %d 16-bit words.\n", EXPECTED_PROGRAM_WORDS);
+        fclose(fpi);
+        return 1;
+    }
+
+    uint16_t *program_memory = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint16_t));
+    if (program_memory == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
+        fclose(fpi);
+        return 1;
+    }
+
+    fseek(fpi, 0, SEEK_SET);
+    size_t num_read = fread(program_memory, sizeof(uint16_t), EXPECTED_PROGRAM_WORDS, fpi);
+    if (num_read != EXPECTED_PROGRAM_WORDS) {
+        fprintf(stderr, "Error: Failed to read %d 16-bit words from input program file.\n", EXPECTED_PROGRAM_WORDS);
+        free(program_memory);
+        fclose(fpi);
+        return 1;
+    }
+
+    fclose(fpi);
+
+    if (flash_file == NULL) {
+        fprintf(stderr, "Error: flash file not specified.\n");
+        return 1;
+    }
+
+    FILE *fpf = fopen(flash_file, "r+b");
+    if (fpf == NULL) {
+        fprintf(stderr, "Error: Failed to open input flash file.\n");
+        return 1;
+    }
+
+    fseek(fpf, 0, SEEK_END);
+    size = ftell(fpf);
+
+    if (size != EXPECTED_FLASH_WORDS) {
+        fprintf(stderr, "Error: Input flash file does not contain %d 8-bit words.\n", EXPECTED_FLASH_WORDS);
+        fclose(fpf);
+        return 1;
+    }
+
+    uint8_t *flash_memory = calloc(EXPECTED_FLASH_WORDS, sizeof(uint8_t));
+    if (flash_memory == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for flash memory.\n");
+        fclose(fpf);
+        return 1;
+    }
+
+    fseek(fpf, 0, SEEK_SET);
+    num_read = fread(flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
+    if (num_read != EXPECTED_FLASH_WORDS) {
+        fprintf(stderr, "Error: Failed to read %d 8-bit words from input flash file.\n", EXPECTED_FLASH_WORDS);
+        free(flash_memory);
+        fclose(fpf);
+        return 1;
+    }
+
+
+    start(program_memory, flash_memory);
+    fseek(fpf, 0, SEEK_SET);
+    size_t num_written = fwrite(flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
+    if (num_written != EXPECTED_FLASH_WORDS) {
+        fprintf(stderr, "Error: Failed to write %d 8-bit words to output flash file.\n", EXPECTED_FLASH_WORDS);
+        free(program_memory);
+        free(flash_memory);
+        return 1;
+    }
+
+    fclose(fpf);
+    free(program_memory);
+    free(flash_memory);
     return 0;
 }

@@ -4,4 +4,4 @@
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
 
-int start(uint16_t *program_memory, uint8_t *flash_memory);
+int start(const uint16_t *program_memory, uint8_t *flash_memory);

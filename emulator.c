@@ -18,22 +18,21 @@ typedef struct {
 
 struct CPUState {
     // Program counter
-    volatile uint8_t pc;
+    uint8_t pc;
 
     // General-purpose registers
-    volatile uint8_t reg[2];
+     uint8_t reg[2];
 
     // Memory
-    volatile uint16_t *program_memory;
-    volatile uint8_t *data_memory;
-    volatile uint8_t *flash_memory;
+     uint16_t *program_memory;
+     uint8_t *data_memory;
 
     // Stack shift register
-    volatile ShiftStack ssr;
+     ShiftStack ssr;
 
     // ALU Flags register
-    volatile bool z_flag;
-    volatile bool v_flag;
+     bool z_flag;
+     bool v_flag;
 };
 
 uint8_t count_leading_zeros(uint8_t x) {
@@ -47,7 +46,7 @@ uint8_t count_leading_zeros(uint8_t x) {
     return 8 - count;
 }
 
-void push(volatile ShiftStack *stack, uint8_t value) {
+void push( ShiftStack *stack, uint8_t value) {
     if (stack->top == STACK_SIZE - 1) {
         // Shift all values in the stack down one position
         for (int i = 0; i < STACK_SIZE - 1; i++) {
@@ -59,7 +58,7 @@ void push(volatile ShiftStack *stack, uint8_t value) {
     stack->data[stack->top] = value;
 }
 
-uint8_t pop(volatile ShiftStack *stack) {
+uint8_t pop( ShiftStack *stack) {
     if (stack->top == -1) {
         // Stack is empty, return 0
         return 0;
@@ -69,7 +68,7 @@ uint8_t pop(volatile ShiftStack *stack) {
     return value;
 }
 
-int start(uint16_t *program_memory, uint8_t *flash_memory) {
+int start(const uint16_t *program_memory, uint8_t *flash_memory) {
     struct CPUState state = {
             .ssr = {.top = -1},
     };
@@ -79,9 +78,8 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
     state.v_flag = false;
     state.z_flag = false;
 
-    state.flash_memory = flash_memory;
     state.data_memory = calloc(DATA_MEMORY, sizeof(uint8_t));
-    state.program_memory = program_memory;
+    state.program_memory = (uint16_t *) &*program_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
@@ -272,45 +270,39 @@ int start(uint16_t *program_memory, uint8_t *flash_memory) {
                 break;
             //Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator)
             case 0x10:
-                {   
-                    printf("Data memory dump %x\n", state.data_memory[state.reg[operand_rd]+1]);
+                {
                     int i = state.reg[operand_rd];
-                    while (state.data_memory[i]!=0x80) {
+                    while (state.data_memory[i+2]!=0x80) {
                         printf("%c", (char)state.data_memory[i]);
                         i++;
                     }
+                    printf("%c\n", (char)state.data_memory[i]);
                 }
                 break;
             // Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd
-            case 0x11:;
-                {   printf("RDM, %d", state.reg[operand_rd]-state.reg[operand_rn]);
-                    uint8_t *temp = calloc(state.reg[operand_rd]-state.reg[operand_rn], sizeof(uint8_t));
-                    int i = 0;
-                    while(i < state.reg[operand_rd]-state.reg[operand_rn]) {
-                        temp[i] = state.data_memory[operand_rd+i];
-                        i++;
+            case 0x11:
+                {
+                    uint8_t* temp;
+                    uint8_t size = state.reg[operand_rd] - state.reg[operand_rn];
+                    if(size > 0) {
+                        temp = (uint8_t*) calloc(size, sizeof(uint8_t));
+                        memcpy(temp, (void*)&flash_memory[state.reg[operand_rn]], size);
+                        memcpy((void*)&state.data_memory[operand2], temp, size);
+                        free(temp);
                     }
-                    while(i!=0) {
-                        state.flash_memory[operand2+i] = temp[i];
-                        i--;
-                    }
-                    free(temp);
                 }
                 break;
             // Read data memory and store in non-volatile memory using addresses from registers Rd and Rn, starting at address in Operand 2
-            case 0x12:;
+            case 0x12:
                 {
-                    uint8_t *temp = calloc(state.reg[operand_rd]-state.reg[operand_rn], sizeof(uint8_t));
-                    int i = 0;
-                    while(i < state.reg[operand_rd]-state.reg[operand_rn]) {
-                        temp[i] = state.data_memory[operand_rd+i];
-                        i++;
+                    uint8_t* temp;
+                    uint8_t size = state.reg[operand_rd] - state.reg[operand_rn];
+                    if(size > 0) {
+                        temp = (uint8_t *) calloc(size, sizeof(uint8_t));
+                        memcpy(temp, (void *) &state.data_memory[state.reg[operand_rn]], size);
+                        memcpy((void *) &flash_memory[operand2], temp, size);
+                        free(temp);
                     }
-                    while(i!=0) {
-                        state.flash_memory[operand2+i] = temp[i];
-                        i--;
-                    }
-                    free(temp);
                 }
                 break;
             // Branch to value specified in operand 2

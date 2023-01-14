@@ -11,7 +11,7 @@
 |     SBM     |  0x05  | Store difference of memory address at operand2 and register Rn in register Rd                                                       | SMB Rd, Rn, Operand2  |
 |     MLM     |  0x06  | Multiply register Rn by memory address at operand 2 and store in register Rd                                                        | MLM Rd, Rn, Operand2  |
 |     ADR     |  0x07  | Store sum of registers Rd and Rn in memory address at operand 2                                                                     |                       |
-|     SBR     |  0x08  | Store difference of registers Rd and Rn in memory address at operand 2                                                                     |                       |
+|     SBR     |  0x08  | Store sum of registers Rd and Rn in memory address at operand 2                                                                     |                       |
 |     MLR     |  0x09  | Multiply registers Rd and Rn and store in memory address at operand 2                                                               |                       |
 |     CLZ     |  0x0A  | Count the number of leading zeros at register Rn and store at Rd                                                                    |                       |
 |     STO     |  0x0B  | Store operand 2 in the operand Rd                                                                                                   |                       |
@@ -24,6 +24,6 @@
 |     RNM     |  0x12  | Read data memory and store in non-volatile memory using addresses from registers Rd and Rn, starting at address in Operand 2        | RNM Rd, Rn, Operand 2 |
 |     BRN     |  0x13  | Branch to value specified in operand 2                                                                                              |                       |
 |     BRZ     |  0x14  | Branch to value specified in operand 2 if zero flag was set                                                                         |                       |
-|     BRO     |  0x15  | Branch to value specified in operand 2 if overflow flag was set                                                                 |                       |
+|     BRO     |  0x15  | Branch to value specified in operand 2 if overflow flag was not set                                                                 |                       |
 |     BRR     |  0x16  | Branch to value specified in operand2 if register Rd equals to Rn register                                                          |                       |
 |     HLT     |  0x17  | Halt                                                                                                                                |                       |

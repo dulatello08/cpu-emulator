@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -O2 -I. -g
+CFLAGS = -Wall -Wextra -Werror -O2 -I. -g -O0
 
 all: emulator
 
