@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include "main.h"
 
 #define EXPECTED_PROGRAM_WORDS 255
@@ -119,9 +116,19 @@ int main(int argc, char **argv) {
         fclose(fpf);
         return 1;
     }
+    pid_t pid = fork();
+    if(pid == 0) {
+        start(program_memory, flash_memory);
+        exit(0);
+    } else {
+        char input[100];
+        for (int i=0; i++, i==50;) {
+            printf("Enter a command: ");
+            fgets(input, 100, stdin);
+            printf("\nCommand you entered: %s", input);
+        }
+    }
 
-
-    start(program_memory, flash_memory);
     fseek(fpf, 0, SEEK_SET);
     size_t num_written = fwrite(flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
     if (num_written != EXPECTED_FLASH_WORDS) {
