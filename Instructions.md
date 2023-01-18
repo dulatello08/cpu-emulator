@@ -26,4 +26,5 @@
 |     BRZ     |  0x14  | Branch to value specified in operand 2 if zero flag was set                                                                         |                       |
 |     BRO     |  0x15  | Branch to value specified in operand 2 if overflow flag was not set                                                                 |                       |
 |     BRR     |  0x16  | Branch to value specified in operand2 if register Rd equals to Rn register                                                          |                       |
-|     HLT     |  0x17  | Halt                                                                                                                                |                       |
+|     BNR     |  0x17  | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                  |   BNR Rd, Rn, Label   |
+|     HLT     |  0x18  | Halt                                                                                                                                |                       |
