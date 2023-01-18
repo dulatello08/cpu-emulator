@@ -1,11 +1,5 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include "main.h"
-#include <string.h>
 
-#define DATA_MEMORY 256
 #define STACK_SIZE 4
 
 
@@ -68,7 +62,7 @@ uint8_t pop( ShiftStack *stack) {
     return value;
 }
 
-int start(const uint16_t *program_memory, uint8_t *flash_memory) {
+int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory) {
     struct CPUState state = {
             .ssr = {.top = -1},
     };
@@ -78,14 +72,14 @@ int start(const uint16_t *program_memory, uint8_t *flash_memory) {
     state.v_flag = false;
     state.z_flag = false;
 
-    state.data_memory = calloc(DATA_MEMORY, sizeof(uint8_t));
+    state.data_memory = data_memory;
     state.program_memory = (uint16_t *) &*program_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
     }
     printf("Starting emulator\n");
-    while(state.pc!=0xFF) {
+    while(state.pc!=0xFF) {   
         uint8_t opcode = state.program_memory[state.pc] & 0x3F; 
         bool operand_rd = (state.program_memory[state.pc] >> 6) & 0x01;
         bool operand_rn = (state.program_memory[state.pc] >> 7) & 0x01;

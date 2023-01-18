@@ -116,19 +116,27 @@ int main(int argc, char **argv) {
         fclose(fpf);
         return 1;
     }
+    uint8_t *shared_data_memory = mmap(NULL, DATA_MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     pid_t pid = fork();
     if(pid == 0) {
-        start(program_memory, flash_memory);
+        start(program_memory, shared_data_memory, flash_memory);
         exit(0);
     } else {
-        char input[100];
-        for (int i=0; i++, i==50;) {
-            printf("Enter a command: ");
-            fgets(input, 100, stdin);
-            printf("\nCommand you entered: %s", input);
+        char input[3];
+        int status;
+        while(waitpid(pid, &status, WNOHANG) == 0) {
+            printf("Input a hexadecimal byte: ");
+            fgets(input, 3, stdin);
+            char *endptr;
+            unsigned long value = strtoul(input, &endptr, 16);
+            if (*endptr != '\n' || value > 0xff) {
+                printf("Error: Invalid hexadecimal byte\n");
+            } else {
+                shared_data_memory[254] = (uint8_t)value;
+            }
         }
     }
-
+    munmap(shared_data_memory, DATA_MEMORY);
     fseek(fpf, 0, SEEK_SET);
     size_t num_written = fwrite(flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
     if (num_written != EXPECTED_FLASH_WORDS) {

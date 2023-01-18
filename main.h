@@ -8,5 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/mman.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <stdbool.h>
+#define DATA_MEMORY 256
 
-int start(const uint16_t *program_memory, uint8_t *flash_memory);
+int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
