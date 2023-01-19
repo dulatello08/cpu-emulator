@@ -73,7 +73,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
     state.z_flag = false;
 
     state.data_memory = data_memory;
-    state.program_memory = (uint16_t *) &*program_memory;
+    state.program_memory = program_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
