@@ -63,7 +63,8 @@ int main() {
                 shared_data_memory[254] = (uint8_t)value;
             }
         } else if (strcmp(input, "free\n") == 0) {
-            printf("Freeing emulator memory...");
+            printf("Freeing emulator memory...\n");
+            memset(shared_data_memory, 0, DATA_MEMORY);
         } else if (strcmp(input, "exit\n") == 0) {
             printf("Exiting emulator...\n");
             break;

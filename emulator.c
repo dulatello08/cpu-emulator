@@ -256,7 +256,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
             // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
                 push(&state.ssr, state.reg[operand_rd]);
-                printf("%d\n", state.reg[operand_rd]);
+                printf("%02x\n", state.reg[operand_rd]);
                 break;
             // Pop a value from the stack and store it in the register Rd
             case 0x0F:
