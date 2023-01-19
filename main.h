@@ -18,5 +18,5 @@
 #define MAX_INPUT_LENGTH 1024
 
 int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
-void load_program(char *program_file, uint16_t *program_memory);
-void load_flash(char *flash_file, FILE *fpf, uint8_t *flash_memory);
+void load_program(char *program_file, uint16_t **program_memory);
+void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);

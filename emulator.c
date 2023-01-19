@@ -323,7 +323,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
             case 0x17:
-                if(state.reg[operand_rd]==state.reg[operand_rn]) {
+                if(state.reg[operand_rd]!=state.reg[operand_rn]) {
                     state.pc=operand2;
                 }
                 break;
