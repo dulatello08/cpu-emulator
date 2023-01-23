@@ -73,7 +73,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
     state.z_flag = false;
 
     state.data_memory = data_memory;
-    state.program_memory = (uint16_t *) &*program_memory;
+    state.program_memory = (uint16_t *)program_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
@@ -110,9 +110,8 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Subtract operand 2 from the value in the operand Rd
             case 0x02:
-                if (state.reg[operand_rd] > UINT8_MAX - operand2) {
+                if (state.reg[operand_rd] > operand2) {
                     state.v_flag = true;
-                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
                     state.reg[operand_rd] -= operand2;
@@ -256,7 +255,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
             // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
                 push(&state.ssr, state.reg[operand_rd]);
-                printf("%d\n", state.reg[operand_rd]);
+                printf("%02x\n", state.reg[operand_rd]);
                 break;
             // Pop a value from the stack and store it in the register Rd
             case 0x0F:
@@ -323,7 +322,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
             case 0x17:
-                if(state.reg[operand_rd]==state.reg[operand_rn]) {
+                if(state.reg[operand_rd]!=state.reg[operand_rn]) {
                     state.pc=operand2;
                 }
                 break;

@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -O2 -I. -g -O0
+CFLAGS = -Wall -Wextra -Werror -I. -g -O0
 
 all: emulator
 
-emulator: main.o emulator.o
+emulator: main.o emulator.o utilities.o
 	$(CC) $(CFLAGS) $^ -o emulator
 
 main.o: main.c
@@ -11,6 +11,9 @@ main.o: main.c
 
 emulator.o: emulator.c
 	$(CC) $(CFLAGS) -c emulator.c -o emulator.o
+
+utilities.o: utilities.c
+	$(CC) $(CFLAGS) -c utilities.c -o utilities.o
 
 clean:
 	rm -f *.o emulator

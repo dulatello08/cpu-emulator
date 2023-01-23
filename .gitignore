@@ -1,4 +1,1 @@
-/emulator
-/emulator.o
-/main.o
-.idea
+*.o
