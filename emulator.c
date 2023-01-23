@@ -110,9 +110,8 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Subtract operand 2 from the value in the operand Rd
             case 0x02:
-                if (state.reg[operand_rd] > UINT8_MAX - operand2) {
+                if (state.reg[operand_rd] > operand2) {
                     state.v_flag = true;
-                    state.reg[operand_rd] = 0xFF;
                 } else {
                     state.v_flag = false;
                     state.reg[operand_rd] -= operand2;
