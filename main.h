@@ -44,23 +44,27 @@ typedef struct {
 
     // Multitask
     bool scheduler;
+    bool cpu_mode;
 } CPUState;
 
-struct Task {
+typedef struct {
     uint8_t task_id; // unique id of the task
     uint8_t priority; // priority of the task
     uint8_t *stack_pointer; // pointer to the task's stack
     uint8_t *program_counter; // pointer to the task's program counter
-    struct CPUState *cpu_state; // pointer to the task's CPU state
-};
+    CPUState *cpu_state; // pointer to the task's CPU state
+} Task;
 
-struct TaskQueue {
-    struct Task **tasks; // array of pointers to tasks
+typedef struct {
+    Task **tasks; // array of pointers to tasks
     uint8_t size; // number of tasks in the queue
     uint8_t head; // index of the next task to be executed
-};
+} TaskQueue;
 
 int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
 void load_program(char *program_file, uint16_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 bool execute_instruction(CPUState *state, uint8_t *flash_memory);
+void create_task(TaskQueue *task_queue);
+void round_robin(TaskQueue *task_queue);
+void yield_task(TaskQueue *task_queue);
