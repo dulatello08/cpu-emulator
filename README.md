@@ -10,15 +10,15 @@ Memory manipulation and access
 # Requirements
 A C compiler (such as GCC or Clang)
 Make (optional, but recommended for building)
-#Building and Running
+# Building and Running
 To build the emulator, navigate to the root directory of the project and run make. This will create an executable file called emulator.
 
 To run the emulator, execute the emulator executable with the path to a file containing 8-bit machine code as an argument. For example:
 
 Copy code
-./emulator path/to/machine/code/file
+./emulator -p program.m -m flash_file.m
 # Documentation
-Detailed documentation for the emulator can be found in the docs directory. This documentation includes information on the instruction set supported by the emulator, as well as the structure and function of the emulator itself.
+Detailed documentation for the emulator can be found in the wiki.
 
 # Contributing
 We welcome contributions to the 8-bit CPU emulator! If you have an idea for a new feature or a bug fix, please open an issue or submit a pull request.
