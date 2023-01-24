@@ -18,17 +18,13 @@
 #define MAX_INPUT_LENGTH 1024
 #define STACK_SIZE 4
 
-int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
-void load_program(char *program_file, uint16_t **program_memory);
-void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
-
 typedef struct {
     uint8_t data[STACK_SIZE];
     int top;
 } ShiftStack;
 
 
-struct CPUState {
+typedef struct {
     // Program counter
     uint8_t pc;
 
@@ -45,7 +41,10 @@ struct CPUState {
     // ALU Flags register
     bool z_flag;
     bool v_flag;
-};
+
+    // Multitask
+    bool scheduler;
+} CPUState;
 
 struct Task {
     uint8_t task_id; // unique id of the task
@@ -60,3 +59,8 @@ struct TaskQueue {
     uint8_t size; // number of tasks in the queue
     uint8_t head; // index of the next task to be executed
 };
+
+int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+void load_program(char *program_file, uint16_t **program_memory);
+void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
+bool execute_instruction(CPUState *state, uint8_t *flash_memory);
