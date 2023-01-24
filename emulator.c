@@ -110,7 +110,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Subtract operand 2 from the value in the operand Rd
             case 0x02:
-                if (state.reg[operand_rd] > operand2) {
+                if (state.reg[operand_rd] < operand2) {
                     state.v_flag = true;
                 } else {
                     state.v_flag = false;
@@ -246,6 +246,9 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
                 break;
             // Store the value in the register Rd in the data memory at the operand 2
             case 0x0C:
+                if (operand2 == 255) {
+
+                }
                 state.data_memory[operand2] = state.reg[operand_rd];
                 break;         
             // Load the value in the memory at the address in operand 2 into the register Rd
@@ -255,7 +258,6 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
             // Push the value in the register Rn at the specified address onto a stack
             case 0x0E:
                 push(&state.ssr, state.reg[operand_rd]);
-                printf("%02x\n", state.reg[operand_rd]);
                 break;
             // Pop a value from the stack and store it in the register Rd
             case 0x0F:

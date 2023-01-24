@@ -11,13 +11,35 @@ void print_usage() {
     printf("exit - exit the program\n");
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    char *program_file = NULL, *flash_file = NULL;
     char input[MAX_INPUT_LENGTH];
     uint16_t *program_memory = NULL;
     uint8_t *flash_memory = NULL;
     FILE *fpf = NULL;
     int input_len;
     uint8_t *shared_data_memory = mmap(NULL, DATA_MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--program") == 0) {
+            if (i + 1 < argc) {
+                program_file = argv[i + 1];
+                i++;
+            }
+        } else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--flash") == 0) {
+            if (i + 1 < argc) {
+                flash_file = argv[i + 1];
+                i++;
+            }
+        }
+    }
+
+    if (program_file) {
+        load_program(program_file, &program_memory);
+    }
+
+    if (flash_file) {
+        load_flash(flash_file, fpf, &flash_memory);
+    }
     while(1) {
         printf(">> ");
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
