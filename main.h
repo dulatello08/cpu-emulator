@@ -12,11 +12,15 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <sys/types.h>
+
 #define DATA_MEMORY 256
 #define EXPECTED_PROGRAM_WORDS 255
 #define EXPECTED_FLASH_WORDS 255
 #define MAX_INPUT_LENGTH 1024
-#define STACK_SIZE 4
+#define STACK_SIZE 8
+#define TASK_PARALLEL 4
 
 typedef struct {
     uint8_t data[STACK_SIZE];
@@ -48,11 +52,9 @@ typedef struct {
 } CPUState;
 
 typedef struct {
-    uint8_t task_id; // unique id of the task
+    uint8_t pid; // unique id of the process
     uint8_t priority; // priority of the task
-    uint8_t *stack_pointer; // pointer to the task's stack
     uint8_t *program_counter; // pointer to the task's program counter
-    CPUState *cpu_state; // pointer to the task's CPU state
 } Task;
 
 typedef struct {
@@ -65,6 +67,9 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
 void load_program(char *program_file, uint16_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 bool execute_instruction(CPUState *state, uint8_t *flash_memory);
+
+void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
 void create_task(TaskQueue *task_queue);
 void round_robin(TaskQueue *task_queue);
-void yield_task(TaskQueue *task_queue);
+void yield_task(TaskQueue *task_queue, uint8_t pid);
+void kill_task(TaskQueue *task_queue, uint8_t pid);

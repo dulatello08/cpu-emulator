@@ -11,7 +11,7 @@ uint8_t count_leading_zeros(uint8_t x) {
     return 8 - count;
 }
 
-void push( ShiftStack *stack, uint8_t value) {
+void push(ShiftStack *stack, uint8_t value) {
     if (stack->top == STACK_SIZE - 1) {
         // Shift all values in the stack down one position
         for (int i = 0; i < STACK_SIZE - 1; i++) {
