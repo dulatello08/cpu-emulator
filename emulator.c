@@ -1,5 +1,34 @@
 #include "main.h"
 
+#define STACK_SIZE 4
+
+
+
+typedef struct {
+    uint8_t data[STACK_SIZE];
+    int top;
+} ShiftStack;
+
+
+struct CPUState {
+    // Program counter
+    uint8_t pc;
+
+    // General-purpose registers
+     uint8_t reg[2];
+
+    // Memory
+     uint16_t *program_memory;
+     uint8_t *data_memory;
+
+    // Stack shift register
+     ShiftStack ssr;
+
+    // ALU Flags register
+     bool z_flag;
+     bool v_flag;
+};
+
 uint8_t count_leading_zeros(uint8_t x) {
     uint8_t count = 0;
 
@@ -50,7 +79,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
         return 1;
     }
     printf("Starting emulator\n");
-    while(state.pc!=0xFF) {
+    while(state.pc!=0xFF) {   
         uint8_t opcode = state.program_memory[state.pc] & 0x3F; 
         bool operand_rd = (state.program_memory[state.pc] >> 6) & 0x01;
         bool operand_rn = (state.program_memory[state.pc] >> 7) & 0x01;
@@ -218,7 +247,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
             // Store the value in the register Rd in the data memory at the operand 2
             case 0x0C:
                 if (operand2 == 255) {
-                    printf("%02x\n", state.reg[operand_rd]);
+
                 }
                 state.data_memory[operand2] = state.reg[operand_rd];
                 break;         
@@ -234,12 +263,16 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
             case 0x0F:
                 state.reg[operand_rd] = pop(&state.ssr);
                 break;
-            // Move data from one memory address to other, source: Rd, destination: Operand2, print if destination 0xFF
+            //Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator)
             case 0x10:
-                if (operand2 == 255) {
-                    printf("%02x\n", state.reg[operand_rd]);
+                {
+                    int i = state.reg[operand_rd];
+                    while (state.data_memory[i+2]!=0x80) {
+                        printf("%c", (char)state.data_memory[i]);
+                        i++;
+                    }
+                    printf("%c\n", (char)state.data_memory[i]);
                 }
-                state.data_memory[operand2] = state.data_memory[state.reg[operand_rd]];
                 break;
             // Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd
             case 0x11:
