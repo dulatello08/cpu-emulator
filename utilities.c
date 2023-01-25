@@ -82,8 +82,8 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
     fclose(fpf);
 }
 
-void create_uint16_array(const uint8_t *original_array, uint16_t *new_array, int start_index, int size) {
+void create_uint16_array(const uint8_t **original_array, uint16_t *new_array, int start_index, int size) {
     for (int i = start_index; i < size; i += 2) {
-        new_array[i / 2] = (original_array[i] << 8) | original_array[i + 1];
+        new_array[i / 2] = (*original_array[i] << 8) | *original_array[i + 1];
     }
 }

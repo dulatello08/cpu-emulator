@@ -1,4 +1,5 @@
 #include "main.h"
+#include <stdint.h>
 
 void push_task(TaskQueue *task_queue, Task *task) {
     if (task_queue->size == TASK_PARALLEL - 1) {
@@ -19,15 +20,16 @@ void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter){
     free(kernel_task);
 }
 
-uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point) {
+uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point) {
     // Find the next available PID
     uint8_t pid = task_queue->tasks[task_queue->size]->pid + 1;
 
     // Allocate memory for the new task
     Task *new_task = calloc(1, sizeof(Task));
     new_task->pid = pid;
-    new_task->priority = 0; // Default priority
+    new_task->priority = 1; // Default priority
     memcpy(new_task->program_counter, &entry_point, sizeof(uint8_t));
+    create_uint16_array(&data_memory, new_task->program_memory, entry_point, DATA_MEMORY-entry_point);
 
     // Insert the task into the task queue
     push_task(task_queue, new_task);
@@ -41,7 +43,7 @@ int cmp_tasks_by_priority(const void *a, const void *b) {
     return task1->priority - task2->priority;
 }
 
-void schedule(TaskQueue *task_queue) {
+void schedule(TaskQueue *task_queue, CPUState *state, uint8_t *flash_memory) {
     /*
     Find the next highest priority task that is ready to run
     calculate time slice for each task based on their priority
@@ -64,32 +66,35 @@ void schedule(TaskQueue *task_queue) {
     /*
     Increase the time running of the current task
     */
-    task_queue->tasks[task_queue->head]->time_running++;
-    /*
-    Check if the current task has exceeded its time slice
-    */
-    if (task_queue->tasks[task_queue->head]->time_running >= task_queue->tasks[task_queue->head]->time_slice) {
-        /*
-        Move the current task to the end of the queue
-        */
-        Task *current_task = task_queue->tasks[task_queue->head];
-        for (int i = task_queue->head; i < task_queue->size - 1; i++) {
-            task_queue->tasks[i] = task_queue->tasks[i + 1];
-        }
-        current_task->time_running = 0;
-        task_queue->tasks[task_queue->size - 1] = current_task;
-        /*
-        Set the head of the task queue to the next task
-        */
+    while(task_queue->size>0) {
+        execute_sch_instruction(state, task_queue->tasks[task_queue->head]->program_memory, task_queue->tasks[task_queue]->program_counter, flash_memory);
         task_queue->tasks[task_queue->head]->time_running++;
+        /*
+        Check if the current task has exceeded its time slice
+        */
         if (task_queue->tasks[task_queue->head]->time_running >= task_queue->tasks[task_queue->head]->time_slice) {
-            current_task = task_queue->tasks[task_queue->head];
+            /*
+            Move the current task to the end of the queue
+            */
+            Task *current_task = task_queue->tasks[task_queue->head];
             for (int i = task_queue->head; i < task_queue->size - 1; i++) {
                 task_queue->tasks[i] = task_queue->tasks[i + 1];
             }
             current_task->time_running = 0;
             task_queue->tasks[task_queue->size - 1] = current_task;
-            task_queue->head = 0;
+            /*
+            Set the head of the task queue to the next task
+            */
+            task_queue->tasks[task_queue->head]->time_running++;
+            if (task_queue->tasks[task_queue->head]->time_running >= task_queue->tasks[task_queue->head]->time_slice) {
+                current_task = task_queue->tasks[task_queue->head];
+                for (int i = task_queue->head; i < task_queue->size - 1; i++) {
+                    task_queue->tasks[i] = task_queue->tasks[i + 1];
+                }
+                current_task->time_running = 0;
+                task_queue->tasks[task_queue->size - 1] = current_task;
+                task_queue->head = 0;
+            }
         }
     }
 }
@@ -138,4 +143,3 @@ void kill_task(TaskQueue *task_queue, uint8_t pid) {
     }
     printf("Task with PID %d has been killed.\n", pid);
 }
-

@@ -59,11 +59,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
         }
     }
     if (state.scheduler) {
-        while (1) {
-            schedule(state.task_queue);
-            printf("Current task: %d", state.task_queue->head);
-            execute_sch_instruction(&state, state.task_queue->tasks[state.task_queue->head]->program_counter, state.task_queue->tasks[state.task_queue->head]->program_memory, flash_memory);
-        }
+       schedule(state.task_queue);
     }
     return 0;
 }
