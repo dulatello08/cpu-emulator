@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -Werror -I. -g -O0
 
 all: emulator
 
-emulator: main.o emulator.o utilities.o scheduler.o
+emulator: main.o emulator.o utilities.o scheduler.o execute_instructions.o
 	$(CC) $(CFLAGS) $^ -o emulator
 
 main.o: main.c
@@ -17,6 +17,9 @@ utilities.o: utilities.c
 
 scheduler.o: scheduler.c
 	$(CC) $(CFLAGS) -c scheduler.c -o scheduler.o
+
+execute_instructions.o: execute_instructions.c
+	$(CC) $(CFLAGS) -c execute_instructions.c -o execute_instructions.o
 
 clean:
 	rm -f *.o emulator

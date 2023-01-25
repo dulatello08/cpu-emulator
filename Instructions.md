@@ -32,8 +32,6 @@
 |     SCH     |  0x1A  | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop |         SCH          |
 |     SWT     |  0x1B  | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                          |     SWT Operand2     |
 |     KIL     |  0x1C  | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                  |     KIL Operand2     |
-|     WTG     |  0x1E  | Wait for a specific event, takes an argument of event id. Block the current task and wait for that event to occur                                          |     WTG Operand2     |
-|     EVT     |  0x1F  | Trigger a specific event, takes an argument of event id. Unblock all the tasks that were blocked by the event with the specified id                        |     EVT Operand2     |
 
 # Memory Map
 
