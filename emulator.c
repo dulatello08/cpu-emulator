@@ -50,7 +50,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
         return 1;
     }
     printf("Starting emulator\n");
-    while (state.pc == EXPECTED_PROGRAM_WORDS) {
+    while (state.pc < EXPECTED_PROGRAM_WORDS) {
         if (!state.scheduler) {
             execute_instruction(&state, flash_memory);
             state.pc++;
