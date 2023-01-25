@@ -268,6 +268,7 @@ bool execute_sch_instruction(CPUState *state, uint8_t *program_counter, const ui
         // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
         case 0x1C:
             kill_task(state->task_queue, state->reg[operand_rd]);
+            break;
         // SIGILL
         default:
             printf("SIGILL: at state of program counter: %d\n", *program_counter);
@@ -537,6 +538,7 @@ bool execute_instruction(CPUState *state, uint8_t *flash_memory) {
         // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
         case 0x1C:
             kill_task(state->task_queue, state->reg[operand_rd]);
+            break;
         // SIGILL
         default:
             printf("SIGILL: at state of program counter: %d\n", state->pc);
