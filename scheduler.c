@@ -2,12 +2,11 @@
 #include <stdint.h>
 
 void push_task(TaskQueue *task_queue, Task *task) {
-    if (task_queue->size < TASK_PARALLEL - 1) {
-        // Shift all values in the stack down one position
-        for (int i = 0; i < TASK_PARALLEL - 1; i++) {
-            task_queue->tasks[i] = task_queue->tasks[i + 1];
+    if (task_queue->size < TASK_PARALLEL) {
+        for (int i = task_queue->size; i > 0; i--) {
+            task_queue->tasks[i] = task_queue->tasks[i - 1];
         }
-        memcpy(&(task_queue->tasks[TASK_PARALLEL]), task, sizeof(Task));
+        memcpy(&task_queue->tasks[0], task, sizeof(Task));
         task_queue->size++;
     }
 }
