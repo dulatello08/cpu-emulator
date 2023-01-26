@@ -255,7 +255,7 @@ bool execute_sch_instruction(CPUState *state, uint8_t *program_counter, const ui
             return true;
         // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
         case 0x19:
-            state->reg[operand_rd] = create_task(state->task_queue, operand2);
+            state->reg[operand_rd] = create_task(state->task_queue, state->data_memory, operand2);
             break;
         // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case 0x1A:
@@ -525,11 +525,12 @@ bool execute_instruction(CPUState *state, uint8_t *flash_memory) {
             return true;
         // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
         case 0x19:
-            state->reg[operand_rd] = create_task(state->task_queue, operand2);
+            state->reg[operand_rd] = create_task(state->task_queue, state->data_memory, operand2);
             break;
         // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case 0x1A:
             initialize_scheduler(state->task_queue, &state->pc);
+            state->scheduler = true;
             break;
         // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
         case 0x1B:

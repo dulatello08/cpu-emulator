@@ -2,12 +2,13 @@
 #include <stdint.h>
 
 void push_task(TaskQueue *task_queue, Task *task) {
-    if (task_queue->size == TASK_PARALLEL - 1) {
+    if (task_queue->size < TASK_PARALLEL - 1) {
         // Shift all values in the stack down one position
         for (int i = 0; i < TASK_PARALLEL - 1; i++) {
             task_queue->tasks[i] = task_queue->tasks[i + 1];
         }
         memcpy(&(task_queue->tasks[TASK_PARALLEL]), task, sizeof(Task));
+        task_queue->size++;
     }
 }
 
@@ -16,6 +17,7 @@ void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter){
     kernel_task->pid = 0;
     kernel_task->priority = 10;
     kernel_task->program_counter = program_counter;
+    task_queue->tasks = calloc(TASK_PARALLEL, sizeof(Task));
     push_task(task_queue, kernel_task);
     free(kernel_task);
 }
@@ -29,7 +31,7 @@ uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_p
     new_task->pid = pid;
     new_task->priority = 1; // Default priority
     memcpy(new_task->program_counter, &entry_point, sizeof(uint8_t));
-    create_uint16_array(&data_memory, new_task->program_memory, entry_point, DATA_MEMORY-entry_point);
+    create_uint16_array((const uint8_t **) &data_memory, new_task->program_memory, entry_point, DATA_MEMORY-entry_point);
 
     // Insert the task into the task queue
     push_task(task_queue, new_task);
@@ -43,7 +45,8 @@ int cmp_tasks_by_priority(const void *a, const void *b) {
     return task1->priority - task2->priority;
 }
 
-void schedule(TaskQueue *task_queue, CPUState *state, uint8_t *flash_memory) {
+void schedule(CPUState *state, uint8_t *flash_memory) {
+    TaskQueue *task_queue = state->task_queue;
     /*
     Find the next highest priority task that is ready to run
     calculate time slice for each task based on their priority
@@ -67,7 +70,7 @@ void schedule(TaskQueue *task_queue, CPUState *state, uint8_t *flash_memory) {
     Increase the time running of the current task
     */
     while(task_queue->size>0) {
-        execute_sch_instruction(state, task_queue->tasks[task_queue->head]->program_memory, task_queue->tasks[task_queue]->program_counter, flash_memory);
+        execute_sch_instruction(state, task_queue->tasks[task_queue->head]->program_counter, task_queue->tasks[task_queue->head]->program_memory, flash_memory);
         task_queue->tasks[task_queue->head]->time_running++;
         /*
         Check if the current task has exceeded its time slice

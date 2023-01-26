@@ -45,6 +45,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
     state.scheduler = false;
     state.data_memory = data_memory;
     state.program_memory = (uint16_t *)program_memory;
+    state.task_queue = calloc(1, sizeof(TaskQueue));
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
@@ -59,7 +60,7 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
         }
     }
     if (state.scheduler) {
-       schedule(state.task_queue);
+       schedule(&state, flash_memory);
     }
     return 0;
 }

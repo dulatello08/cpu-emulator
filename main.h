@@ -83,6 +83,6 @@ void create_uint16_array(const uint8_t **original_array, uint16_t *new_array, in
 bool execute_sch_instruction(CPUState *state, uint8_t *program_counter, const uint16_t *program_memory, uint8_t *flash_memory);
 void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
 uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point);
-void schedule(TaskQueue *task_queue, CPUState *state, uint8_t *flash_memory);
+void schedule(CPUState *state, uint8_t *flash_memory);
 void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);

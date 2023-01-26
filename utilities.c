@@ -57,7 +57,7 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
     fseek(fpf, 0, SEEK_END);
     long size = ftell(fpf);
 
-    if (size != EXPECTED_FLASH_WORDS) {
+    if (size != EXPECTED_FLASH_WORDS * sizeof(uint16_t)) {
         fprintf(stderr, "Error: Input flash file does not contain %d 8-bit words.\n", EXPECTED_FLASH_WORDS);
         fclose(fpf);
         return;
