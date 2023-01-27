@@ -3,10 +3,17 @@
 
 void push_task(TaskQueue *task_queue, Task *task) {
     if (task_queue->size < TASK_PARALLEL) {
-        for (int i = task_queue->size; i > 0; i--) {
-            task_queue->tasks[i] = task_queue->tasks[i - 1];
+        for (int i = task_queue->size - 1; i > 0; i--) {
+            task_queue->tasks[0][i] = task_queue->tasks[0][i - 1];
         }
-        memcpy(&task_queue->tasks[0], task, sizeof(Task));
+        task_queue->tasks[0]->pid = task->pid;
+        task_queue->tasks[0]->priority = task->priority;
+        task_queue->tasks[0]->program_counter = task->program_counter;
+        task_queue->tasks[0]->status = task->status;
+        task_queue->tasks[0]->time_slice = task->time_slice;
+        task_queue->tasks[0]->time_running = task->time_running;
+        task_queue->tasks[0]->program_memory = calloc(task_queue->size, sizeof(uint16_t));
+        memcpy(task_queue->tasks[0]->program_memory, task->program_memory, sizeof(uint16_t)*task_queue->size);
         task_queue->size++;
     }
 }
@@ -16,9 +23,7 @@ void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter){
     kernel_task->pid = 0;
     kernel_task->priority = 10;
     kernel_task->program_counter = program_counter;
-    task_queue->tasks = calloc(TASK_PARALLEL, sizeof(Task));
     push_task(task_queue, kernel_task);
-    free(kernel_task);
 }
 
 uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point) {

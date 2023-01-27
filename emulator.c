@@ -46,6 +46,8 @@ int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_m
     state.data_memory = data_memory;
     state.program_memory = (uint16_t *)program_memory;
     state.task_queue = calloc(1, sizeof(TaskQueue));
+    state.task_queue->tasks = calloc(1, sizeof(Task*));
+    state.task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     if (state.program_memory == NULL || state.data_memory == NULL) {
         // Handle allocation failure
         return 1;
