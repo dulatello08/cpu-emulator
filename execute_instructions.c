@@ -7,6 +7,7 @@
 bool execute_instruction(CPUState *state) {
     uint8_t opcode = state->program_memory[state->pc];
     // might be unused
+    uint8_t operand1 = state->program_memory[state->pc+1];
     uint8_t operand_rd = (state->program_memory[state->pc+1] >> 4) & 0xF;
     uint8_t operand_rn = state->program_memory[state->pc+1] & 0xF;
     uint8_t operand2 = state->program_memory[state->pc+2];
