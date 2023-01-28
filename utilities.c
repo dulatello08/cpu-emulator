@@ -16,13 +16,13 @@ void load_program(char *program_file, uint16_t **program_memory) {
     fseek(fpi, 0, SEEK_END);
     long size = ftell(fpi);
 
-    if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint16_t)) {
+    if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint8_t)) {
         fprintf(stderr, "Error: Input program file does not contain %d 16-bit words.\n", EXPECTED_PROGRAM_WORDS);
         fclose(fpi);
         return;
     }
 
-    *program_memory = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint16_t));
+    *program_memory = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
     if (*program_memory == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
         fclose(fpi);
@@ -30,7 +30,7 @@ void load_program(char *program_file, uint16_t **program_memory) {
     }
 
     fseek(fpi, 0, SEEK_SET);
-    size_t num_read = fread(*program_memory, sizeof(uint16_t), EXPECTED_PROGRAM_WORDS, fpi);
+    size_t num_read = fread(*program_memory, sizeof(uint8_t), EXPECTED_PROGRAM_WORDS, fpi);
     if (num_read != EXPECTED_PROGRAM_WORDS)
     {
         fprintf(stderr, "Error: Failed to read %d 16-bit words from input program file.\n", EXPECTED_PROGRAM_WORDS);

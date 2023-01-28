@@ -16,7 +16,40 @@
 #define EXPECTED_PROGRAM_WORDS 255
 #define EXPECTED_FLASH_WORDS 255
 #define MAX_INPUT_LENGTH 1024
+#define STACK_SIZE 8
 
-int start(const uint16_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+typedef struct {
+    uint8_t data[STACK_SIZE];
+    int top;
+} ShiftStack;
+
+
+typedef struct {
+    // Program counter
+    uint8_t pc;
+
+    // General-purpose registers
+    uint8_t reg[2];
+
+    // Memory
+    uint8_t *program_memory;
+    uint8_t *data_memory;
+    uint8_t *flash_memory;
+
+    // Stack shift register
+    ShiftStack ssr;
+
+    // ALU Flags register
+    bool z_flag;
+    bool v_flag;
+} CPUState;
+
+int start(uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
 void load_program(char *program_file, uint16_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
+
+uint8_t count_leading_zeros(uint8_t x);
+void push(ShiftStack *stack, uint8_t value);
+uint8_t pop( ShiftStack *stack);
+
+bool execute_instruction(CPUState *state);

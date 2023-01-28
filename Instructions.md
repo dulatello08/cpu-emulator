@@ -20,7 +20,7 @@
 |     PSH     |  0x0E  | Push the value in the register Rn at the specified address onto a stack                                                             |                       |
 |     POP     |  0x0F  | Pop a value from the stack and store it in the register Rd                                                                          |                       |
 |     PRT     |  0x10  | Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator) |        PRT Rn         |
-|     RDM     |  0x11  | Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd                 | RDM Rd, Rn, Operand2  |
+|     RDM     |  0x11  | Read flash memory to data memory                                                                                                    | RDM Rd, Rn, Operand2  |
 |     RNM     |  0x12  | Read data memory and store in non-volatile memory using addresses from registers Rd and Rn, starting at address in Operand 2        | RNM Rd, Rn, Operand 2 |
 |     BRN     |  0x13  | Branch to value specified in operand 2                                                                                              |                       |
 |     BRZ     |  0x14  | Branch to value specified in operand 2 if zero flag was set                                                                         |                       |
