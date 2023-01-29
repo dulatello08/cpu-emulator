@@ -17,133 +17,40 @@ bool execute_instruction(CPUState *state) {
             break;
         // Add operand 2 to the value in the operand Rd
         case 0x01:
-            if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
-                state->v_flag = true;
-                state->reg[operand_rd] = 0xFF;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] += operand2;
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            add(state, operand_rd, operand_rn, operand2, 0);
             break;
         // Subtract operand 2 from the value in the operand Rd
         case 0x02:
-            if (state->reg[operand_rd] < operand2) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] -= operand2;
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            subtract(state, operand_rd, operand_rn, operand2, 0);
             break;
         // Multiply the value in the operand Rd by operand 2
         case 0x03:
-            if (state->reg[operand_rd] * operand2 > UINT8_MAX) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] *= operand2;
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            multiply(state, operand_rd, operand_rn, operand2, 0);
             break;
         // Store sum of memory address at operand 2 and register Rn in register Rd
         case 0x04:
-            if (state->data_memory[operand2] + state->reg[operand_rn] > UINT8_MAX) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] = state->data_memory[operand2] + state->reg[operand_rn];
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            add(state, operand_rd, operand_rn, operand2, 1);
             break;
         // Store difference of memory address at operand2 and register Rn in register Rd
         case 0x05:
-            if (state->reg[operand_rd] > UINT8_MAX - state->reg[operand_rn]) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] = state->data_memory[operand2] - state->reg[operand_rn];
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            subtract(state, operand_rd, operand_rn, operand2, 1);
             break;
         // Multiply register Rn by memory address at operand 2 and store in register Rd
         case 0x06:
-            if (state->data_memory[operand2] * state->reg[operand_rn] > UINT8_MAX) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->reg[operand_rd] = state->data_memory[operand2] * state->reg[operand_rn];
-                if (state->reg[operand_rd] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            multiply(state, operand_rd, operand_rn, operand2, 1);
             break;
         // Store sum of registers Rd and Rn in memory address at operand 2
         case 0x07:
-            if (state->reg[operand_rd] + state->reg[operand_rn] > UINT8_MAX) {
-                state->v_flag = true;
-                state->reg[operand_rd] = 0xFF;
-            } else {
-                state->v_flag = false;
-                state->data_memory[operand2] = state->reg[operand_rd] + state->reg[operand_rn];
-                if (state->data_memory[operand2] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            add(state, operand_rd, operand_rn, operand2, 2);
             break;
         // Store difference of registers Rd and Rn in memory address at operand 2
         case 0x08:
-            if (state->reg[operand_rd] > UINT8_MAX - state->reg[operand_rn]) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->data_memory[operand2] = state->reg[operand_rd] - state->reg[operand_rn];
-                if (state->data_memory[operand2] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            subtract(state, operand_rd, operand_rn, operand2, 2);
             break;
         // Multiply registers Rd and Rn and store in memory address at operand 2
         case 0x09:
-            if (state->reg[operand_rd] * state->reg[operand_rn] > UINT8_MAX) {
-                state->v_flag = true;
-            } else {
-                state->v_flag = false;
-                state->data_memory[operand2] = state->reg[operand_rd] * state->reg[operand_rn];
-                if (state->data_memory[operand2] == 0) {
-                    state->z_flag = true;
-                } else {
-                    state->z_flag = false;
-                }
-            }
+            multiply(state, operand_rd, operand_rn, operand2, 2);
             break;
-
         // Count the number of leading zeros at register Rn and store at Rd
         case 0x0A:
             state->reg[operand_rd] = count_leading_zeros(state->reg[operand_rn]);
@@ -245,5 +152,6 @@ bool execute_instruction(CPUState *state) {
             printf("Instruction: %x was called\n", opcode);
             return true;
     }
+    increment_pc(state, opcode);
     return false;
 }

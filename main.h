@@ -13,8 +13,8 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #define DATA_MEMORY 256
-#define EXPECTED_PROGRAM_WORDS 255
-#define EXPECTED_FLASH_WORDS 255
+#define EXPECTED_PROGRAM_WORDS 256
+#define EXPECTED_FLASH_WORDS 256
 #define MAX_INPUT_LENGTH 1024
 #define STACK_SIZE 8
 
@@ -79,3 +79,8 @@ void push(ShiftStack *stack, uint8_t value);
 uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
+void increment_pc(CPUState *state, int opcode);
+
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);

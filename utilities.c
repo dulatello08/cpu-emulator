@@ -85,36 +85,163 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
 void increment_pc(CPUState *state, int opcode) {
     switch (opcode) {
         case OP_NOP:
+        case OP_POP:
+        case OP_PRT:
+        case OP_BRN:
+        case OP_BRZ:
+        case OP_BRO:
             state->pc++;
             break;
-        case OP_ADD | OP_SUB | OP_MUL:
-            state->pc += 2;
-            break;
-        case OP_ADM | OP_SBM | OP_MLM | OP_ADR | OP_SBR | OP_MLR:
-            state->pc += 3;
-            break;
+        case OP_ADD:
+        case OP_SUB:
+        case OP_MUL:
+        case OP_STO:
+        case OP_STM:
+        case OP_LDM:
+        case OP_PSH:
         case OP_CLZ:
             state->pc += 2;
             break;
-        case OP_STO | OP_STM | OP_LDM | OP_PSH:
-            state->pc += 2;
-            break;
-        case OP_POP | OP_PRT:
-            state->pc++;
-            break;
-        case OP_RDM | OP_RNM:
-            state->pc += 3;
-            break;
-        case OP_BRN | OP_BRZ | OP_BRO:
-            state->pc++;
-            break;
-        case OP_BRR | OP_BNR:
+        case OP_ADM:
+        case OP_SBM:
+        case OP_MLM:
+        case OP_ADR:
+        case OP_SBR:
+        case OP_MLR:
+        case OP_RDM:
+        case OP_RNM:
+        case OP_BRR:
+        case OP_BNR:
             state->pc += 3;
             break;
         case OP_HLT:
             break;
         default:
-            printf("Error: invalid opcode\n");
+            fprintf(stderr, "Error: invalid opcode\n");
             break;
+    }
+}
+
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
+    if (mode==0) {
+        if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
+            state->v_flag = true;
+            state->reg[operand_rd] = 0xFF;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] += operand2;
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==1) {
+        if (state->data_memory[operand2] + state->reg[operand_rn] > UINT8_MAX) {
+            state->v_flag = true;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] = state->data_memory[operand2] + state->reg[operand_rn];
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==2) {
+        if (state->reg[operand_rd] + state->reg[operand_rn] > UINT8_MAX) {
+            state->v_flag = true;
+            state->reg[operand_rd] = 0xFF;
+        } else {
+            state->v_flag = false;
+            state->data_memory[operand2] = state->reg[operand_rd] + state->reg[operand_rn];
+            if (state->data_memory[operand2] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    }
+}
+
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
+    if (mode==0) {
+        if (state->reg[operand_rd] < operand2) {
+            state->v_flag = true;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] -= operand2;
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==1) {
+        if (state->data_memory[operand2] < state->reg[operand_rn]) {
+            state->v_flag = true;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] = state->data_memory[operand2] - state->reg[operand_rn];
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==2) {
+        if (state->reg[operand_rd] < state->reg[operand_rn]) {
+            state->v_flag = true;
+        } else {
+            state->v_flag = false;
+            state->data_memory[operand2] = state->reg[operand_rd] - state->reg[operand_rn];
+            if (state->data_memory[operand2] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    }
+}
+
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
+    if (mode==0) {
+        if (state->reg[operand_rd] * operand2 > UINT8_MAX) {
+            state->v_flag = true;
+            state->reg[operand_rd] = 0xFF;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] *= operand2;
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==1) {
+        if (state->data_memory[operand2] * state->reg[operand_rn] > UINT8_MAX) {
+            state->v_flag = true;
+        } else {
+            state->v_flag = false;
+            state->reg[operand_rd] = state->data_memory[operand2] * state->reg[operand_rn];
+            if (state->reg[operand_rd] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
+    } else if (mode==2) {
+        if (state->reg[operand_rd] * state->reg[operand_rn] > UINT8_MAX) {
+            state->v_flag = true;
+            state->reg[operand_rd] = 0xFF;
+        } else {
+            state->v_flag = false;
+            state->data_memory[operand2] = state->reg[operand_rd] * state->reg[operand_rn];
+            if (state->data_memory[operand2] == 0) {
+                state->z_flag = true;
+            } else {
+                state->z_flag = false;
+            }
+        }
     }
 }
