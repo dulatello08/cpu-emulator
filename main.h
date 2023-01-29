@@ -55,10 +55,10 @@ typedef struct {
     uint8_t pc;
 
     // General-purpose registers
-    uint8_t reg[2];
+    uint8_t* reg;
 
     // Memory
-    uint8_t *program_memory;
+    const uint8_t *program_memory;
     uint8_t *data_memory;
     uint8_t *flash_memory;
 
@@ -70,7 +70,7 @@ typedef struct {
     bool v_flag;
 } CPUState;
 
-int start(uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
 void load_program(char *program_file, uint16_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 

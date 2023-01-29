@@ -33,13 +33,12 @@ uint8_t pop( ShiftStack *stack) {
     return value;
 }
 
-int start(uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory) {
+int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory) {
     CPUState state = {
             .ssr = {.top = -1},
     };
     state.pc = 0x00;
-    state.reg[0] = 0x00;
-    state.reg[1] = 0x00;
+    state.reg = calloc(16, sizeof(uint8_t));
     state.v_flag = false;
     state.z_flag = false;
     state.data_memory = data_memory;
@@ -52,7 +51,6 @@ int start(uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory) 
     printf("Starting emulator\n");
     while(state.pc!=0xFF) {   
         execute_instruction(&state);
-        state.pc++;
     }
     return 0;
 }

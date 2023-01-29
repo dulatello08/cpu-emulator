@@ -7,7 +7,7 @@
 bool execute_instruction(CPUState *state) {
     uint8_t opcode = state->program_memory[state->pc];
     // might be unused
-    uint8_t operand1 = state->program_memory[state->pc+1];
+    __attribute__((unused)) uint8_t operand1 = state->program_memory[state->pc+1];
     uint8_t operand_rd = (state->program_memory[state->pc+1] >> 4) & 0xF;
     uint8_t operand_rn = state->program_memory[state->pc+1] & 0xF;
     uint8_t operand2 = state->program_memory[state->pc+2];
@@ -90,28 +90,20 @@ bool execute_instruction(CPUState *state) {
             }
             state->data_memory[operand2] = state->data_memory[state->reg[operand_rd]];
             break;
-        // Read non-volatile memory and store in data memory using addresses from operands 2 and Rn, starting at address in Rd
+
         case 0x11: {
-            uint8_t *temp;
-            uint8_t size = state->reg[operand_rd] - state->reg[operand_rn];
-            if (size > 0) {
-                temp = (uint8_t *) calloc(size, sizeof(uint8_t));
-                memcpy(temp, (void *) &state->flash_memory[state->reg[operand_rn]], size);
-                memcpy((void *) &state->data_memory[operand2], temp, size);
-                free(temp);
-            }
+            // Read flash memory to data memory
+            // Rd has address in data memory, Rn has address in flash memory
+            // Copies single byte to data memory
+            memcpy((void *) &state->data_memory[state->reg[operand_rd]], (void *) &state->flash_memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
-        // Read data memory and store in non-volatile memory using addresses from registers Rd and Rn, starting at address in Operand 2
+
         case 0x12: {
-            uint8_t *temp;
-            uint8_t size = state->reg[operand_rd] - state->reg[operand_rn];
-            if (size > 0) {
-                temp = (uint8_t *) calloc(size, sizeof(uint8_t));
-                memcpy(temp, (void *) &state->data_memory[state->reg[operand_rn]], size);
-                memcpy((void *) &flash_memory[operand2], temp, size);
-                free(temp);
-            }
+            // Read data memory to flash memory
+            // Rd has address in flash memory, Rn has address in data memory
+            // Copies single byte to flash memory
+            memcpy((void *) &state->flash_memory[state->reg[operand_rd]], (void *) &state->data_memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
         // Branch to value specified in operand 2
