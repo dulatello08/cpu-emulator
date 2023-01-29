@@ -1,7 +1,7 @@
 #include "main.h"
 
 
-void load_program(char *program_file, uint16_t **program_memory) {
+void load_program(char *program_file, uint8_t **program_memory) {
     if (program_file == NULL) {
         fprintf(stderr, "Error: input file not specified.\n");
         return;

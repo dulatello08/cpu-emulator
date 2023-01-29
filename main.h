@@ -71,7 +71,7 @@ typedef struct {
 } CPUState;
 
 int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
-void load_program(char *program_file, uint16_t **program_memory);
+void load_program(char *program_file, uint8_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);

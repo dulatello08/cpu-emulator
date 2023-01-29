@@ -14,7 +14,7 @@ void print_usage() {
 int main(int argc, char *argv[]) {
     char *program_file = NULL, *flash_file = NULL;
     char input[MAX_INPUT_LENGTH];
-    uint16_t *program_memory = NULL;
+    uint8_t *program_memory = NULL;
     uint8_t *flash_memory = NULL;
     FILE *fpf = NULL;
     int input_len;

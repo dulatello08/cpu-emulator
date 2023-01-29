@@ -23,7 +23,7 @@ void push(ShiftStack *stack, uint8_t value) {
     stack->data[stack->top] = value;
 }
 
-uint8_t pop( ShiftStack *stack) {
+uint8_t pop(ShiftStack *stack) {
     if (stack->top == -1) {
         // Stack is empty, return 0
         return 0;
