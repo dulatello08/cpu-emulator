@@ -10,7 +10,7 @@ Memory manipulation and access
 # Requirements
 A C compiler (such as GCC or Clang)
 Make (optional, but recommended for building)
-#Building and Running
+# Building and Running
 To build the emulator, navigate to the root directory of the project and run make. This will create an executable file called emulator.
 
 To run the emulator, execute the emulator executable with the path to a file containing 8-bit machine code as an argument. For example:
