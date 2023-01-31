@@ -108,30 +108,30 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case 0x13:
-            state->pc = operand2;
+            state->pc = operand1;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case 0x14:
             if (state->z_flag) {
-                state->pc = operand2;
+                state->pc = operand1;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case 0x15:
             if (!state->v_flag) {
-                state->pc = operand2;
+                state->pc = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case 0x16:
             if (state->reg[operand_rd] == state->reg[operand_rn]) {
-                state->pc = operand2;
+                state->pc = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case 0x17:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                state->pc = operand2;
+                state->pc = operand1;
             }
             break;
         // Halt

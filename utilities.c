@@ -84,13 +84,14 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
 
 void increment_pc(CPUState *state, int opcode) {
     switch (opcode) {
-        case OP_NOP:
         case OP_POP:
         case OP_PRT:
         case OP_BRN:
         case OP_BRZ:
         case OP_BRO:
-            state->pc++;
+        case OP_PSH:
+        case OP_CLZ:
+            state->pc += 2;
             break;
         case OP_ADD:
         case OP_SUB:
@@ -98,10 +99,6 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_STO:
         case OP_STM:
         case OP_LDM:
-        case OP_PSH:
-        case OP_CLZ:
-            state->pc += 2;
-            break;
         case OP_ADM:
         case OP_SBM:
         case OP_MLM:
@@ -115,9 +112,9 @@ void increment_pc(CPUState *state, int opcode) {
             state->pc += 3;
             break;
         case OP_HLT:
-            break;
+        case OP_NOP:
         default:
-            fprintf(stderr, "Error: invalid opcode\n");
+            state->pc += 1;
             break;
     }
 }
