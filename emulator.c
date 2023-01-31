@@ -49,8 +49,9 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         return 1;
     }
     printf("Starting emulator\n");
-    while(state.pc!=0xFF) {   
-        execute_instruction(&state);
+    bool exitCode = false;
+    while(state.pc!=0xFF && !exitCode) {   
+        exitCode = execute_instruction(&state);
     }
     return 0;
 }
