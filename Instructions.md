@@ -28,3 +28,10 @@
 |     BRR     |  0x16  | Branch to value specified in operand2 if register Rd equals to Rn register                                                            |  BRR Rd, Rn, Label   |
 |     BNR     |  0x17  | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                    |  BNR Rd, Rn, Label   |
 |     HLT     |  0x18  | Halt                                                                                                                                  |         HLT          |
+# Memory Map
+
+| Address Range | Description              |
+|---------------|--------------------------|
+| 0x00 - 0xFD   | Data Memory              |
+| 0xFE          | Input                    |
+| 0xFF          | Output                   |

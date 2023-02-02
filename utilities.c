@@ -17,7 +17,7 @@ void load_program(char *program_file, uint8_t **program_memory) {
     long size = ftell(fpi);
 
     if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint8_t)) {
-        fprintf(stderr, "Error: Input program file does not contain %d 16-bit words.\n", EXPECTED_PROGRAM_WORDS);
+        fprintf(stderr, "Error: Input program file does not contain %d bytes. It contains %ld bytes\n", EXPECTED_PROGRAM_WORDS, size);
         fclose(fpi);
         return;
     }
@@ -33,7 +33,7 @@ void load_program(char *program_file, uint8_t **program_memory) {
     size_t num_read = fread(*program_memory, sizeof(uint8_t), EXPECTED_PROGRAM_WORDS, fpi);
     if (num_read != EXPECTED_PROGRAM_WORDS)
     {
-        fprintf(stderr, "Error: Failed to read %d 16-bit words from input program file.\n", EXPECTED_PROGRAM_WORDS);
+        fprintf(stderr, "Error: Failed to read %d bytes from input program file.\n", EXPECTED_PROGRAM_WORDS);
         free(*program_memory);
         fclose(fpi);
         return;
@@ -58,7 +58,7 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
     long size = ftell(fpf);
 
     if (size != EXPECTED_FLASH_WORDS) {
-        fprintf(stderr, "Error: Input flash file does not contain %d 8-bit words.\n", EXPECTED_FLASH_WORDS);
+        fprintf(stderr, "Error: Input flash file does not contain %d bytes. It contains %ld bytes.\n", EXPECTED_FLASH_WORDS, size);
         fclose(fpf);
         return;
     }
@@ -73,7 +73,7 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
     fseek(fpf, 0, SEEK_SET);
     size_t num_read = fread(*flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
     if (num_read != EXPECTED_FLASH_WORDS) {
-        fprintf(stderr, "Error: Failed to read %d 8-bit words from input flash file.\n", EXPECTED_FLASH_WORDS);
+        fprintf(stderr, "Error: Failed to read %d bytes from input flash file.\n", EXPECTED_FLASH_WORDS);
         free(*flash_memory);
         fclose(fpf);
         return;
