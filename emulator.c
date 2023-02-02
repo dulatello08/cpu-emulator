@@ -55,5 +55,6 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         //printf("Instruction: %x\n", state.program_memory[state.pc]);
         exitCode = execute_instruction(&state);
     }
+    printf("\n>> ");
     return 0;
 }

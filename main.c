@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
     if (flash_file) {
         load_flash(flash_file, fpf, &flash_memory);
     }
+    uint8_t emulator_running = 0;
     while(1) {
         printf(">> ");
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
@@ -50,20 +51,25 @@ int main(int argc, char *argv[]) {
         if (input[input_len - 1] == '\n' && input[input_len - 2] == 8) {
             input[input_len - 2] = '\0';
         }
-        if (strcmp(input, "start\n") == 0) {
-            pid_t emulator = fork();
-            if(emulator==0) {
-                if(program_memory == NULL) {
-                    printf("Program memory not loaded\n>> ");
-                    exit(1);
+        else if (strcmp(input, "start\n") == 0) {
+            if (emulator_running == 0) {
+                pid_t emulator = fork();
+                if(emulator==0) {
+                    if(program_memory == NULL) {
+                        printf("Program memory not loaded\n>> ");
+                        exit(1);
+                    }
+                    if(flash_memory == NULL) {
+                        printf("Flash memory not loaded\n>> ");
+                        exit(1);
+                    }
+                    start(program_memory, shared_data_memory, flash_memory);
+                    printf(">> ");
+                    exit(0);
                 }
-                if(flash_memory == NULL) {
-                    printf("Flash memory not loaded\n>> ");
-                    exit(1);
-                }
-                start(program_memory, shared_data_memory, flash_memory);
-                printf(">> ");
-                exit(0);
+                emulator_running = 1;
+            } else {
+                printf("Emulator already running.\n");
             }
         } else if (strncmp(input, "program ", 8) == 0) {
             char* filename = input + 8;
