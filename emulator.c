@@ -51,6 +51,8 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
     printf("Starting emulator\n");
     bool exitCode = false;
     while(state.pc!=0xFF && !exitCode) {   
+        // Had to use this because gitpod's GDB is useless
+        //printf("Instruction: %x\n", state.program_memory[state.pc]);
         exitCode = execute_instruction(&state);
     }
     return 0;
