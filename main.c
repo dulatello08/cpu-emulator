@@ -8,6 +8,7 @@ void print_usage() {
     printf("program - load program\n");
     printf("flash - load flash\n");
     printf("help or h - display this help message\n");
+    printf("free - free emulator memory")
     printf("exit - exit the program\n");
 }
 
