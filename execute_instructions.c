@@ -116,9 +116,9 @@ bool execute_instruction(CPUState *state) {
                 state->pc = operand1;
             }
             break;
-        // Branch to value specified in operand2 if overflow flag was not set.
+        // Branch to value specified in operand2 if overflow flag was set.
         case 0x15:
-            if (!state->v_flag) {
+            if (state->v_flag) {
                 state->pc = operand1;
             }
             break;
