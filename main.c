@@ -1,5 +1,6 @@
 #include "main.h"
 #include <stdint.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 
 void print_usage() {
@@ -41,7 +42,8 @@ int main(int argc, char *argv[]) {
     if (flash_file) {
         load_flash(flash_file, fpf, &flash_memory);
     }
-    uint8_t emulator_running = 0;
+    uint8_t* emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    *emulator_running = 0;
     while(1) {
         printf(">> ");
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
@@ -53,8 +55,9 @@ int main(int argc, char *argv[]) {
             input[input_len - 2] = '\0';
         }
         else if (strcmp(input, "start\n") == 0) {
-            if (emulator_running == 0) {
+            if (*emulator_running == 0) {
                 pid_t emulator = fork();
+                *emulator_running = 1;
                 if(emulator==0) {
                     if(program_memory == NULL) {
                         printf("Program memory not loaded\n>> ");
@@ -66,9 +69,9 @@ int main(int argc, char *argv[]) {
                     }
                     start(program_memory, shared_data_memory, flash_memory);
                     printf(">> ");
+                    *emulator_running = 0;
                     exit(0);
                 }
-                emulator_running = 1;
             } else {
                 printf("Emulator already running.\n");
             }
@@ -114,6 +117,7 @@ int main(int argc, char *argv[]) {
         free(flash_memory);
     }
     munmap(shared_data_memory, DATA_MEMORY);
+    munmap(emulator_running, 1);
     free(program_memory);
     return 0;
 }
