@@ -24,7 +24,7 @@
 |     RNM     |  0x12  | Read data memory to flash memory, where Rd has address in flash memory, Rn address to data memory, copies single byte to flash memory | RNM Rd, Rn, Operand2 |
 |     BRN     |  0x13  | Branch to value specified in operand 2                                                                                                |      BRN Label       |
 |     BRZ     |  0x14  | Branch to value specified in operand 2 if zero flag was set                                                                           |      BRZ Label       |
-|     BRO     |  0x15  | Branch to value specified in operand 2 if overflow flag was set                                                                   |      BRO Label       |
+|     BRO     |  0x15  | Branch to value specified in operand 2 if overflow flag was not set                                                                   |      BRO Label       |
 |     BRR     |  0x16  | Branch to value specified in operand2 if register Rd equals to Rn register                                                            |  BRR Rd, Rn, Label   |
 |     BNR     |  0x17  | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                    |  BNR Rd, Rn, Label   |
 |     HLT     |  0x18  | Halt                                                                                                                                  |         HLT          |
