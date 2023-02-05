@@ -48,6 +48,10 @@
 #define OP_BRR 0x16
 #define OP_BNR 0x17
 #define OP_HLT 0x18
+#define OP_TSK 0x19
+#define OP_SCH 0x1A
+#define OP_SWT 0x1B
+#define OP_KIL 0x1C
 
 #define TIME_SLOT 15
 
@@ -60,6 +64,7 @@ typedef struct {
     uint8_t pid; // unique id of the task
     uint8_t priority; // priority of the task
     uint8_t entry_point; // entry point of the task
+    uint8_t *program_counter; // pc of task, relative to entry point
     uint8_t status; // status
     uint8_t time_slice; // Time dedicated to the task, depends on priority
     uint8_t time_running; // Time running the task
@@ -106,7 +111,6 @@ void push(ShiftStack *stack, uint8_t value);
 uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
-bool execute_sch_instruction(CPUState *state);
 
 void increment_pc(CPUState *state, int opcode);
 

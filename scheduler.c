@@ -12,8 +12,6 @@ void push_task(TaskQueue *task_queue, Task *task) {
         task_queue->tasks[0]->status = task->status;
         task_queue->tasks[0]->time_slice = task->time_slice;
         task_queue->tasks[0]->time_running = task->time_running;
-        task_queue->tasks[0]->program_memory = calloc(task_queue->size, sizeof(uint16_t));
-        memcpy(task_queue->tasks[0]->program_memory, task->program_memory, sizeof(uint16_t)*task_queue->size);
         task_queue->size++;
     }
 }
@@ -49,7 +47,7 @@ int cmp_tasks_by_priority(const void *a, const void *b) {
     return task1->priority - task2->priority;
 }
 
-void schedule(CPUState *state, uint8_t *flash_memory) {
+void schedule(CPUState *state) {
     TaskQueue *task_queue = state->task_queue;
     /*
     Find the next highest priority task that is ready to run
@@ -74,7 +72,10 @@ void schedule(CPUState *state, uint8_t *flash_memory) {
     Increase the time running of the current task
     */
     while(task_queue->size>0) {
-        execute_sch_instruction(state, task_queue->tasks[task_queue->head]->program_counter, task_queue->tasks[task_queue->head]->program_memory, flash_memory);
+        CPUState *task_state = calloc(1, sizeof(CPUState));
+        memcpy(task_state, state, sizeof(CPUState));
+        task_state->pc = *task_queue->tasks[task_queue->head]->program_counter;
+        execute_instruction(state);
         task_queue->tasks[task_queue->head]->time_running++;
         /*
         Check if the current task has exceeded its time slice
