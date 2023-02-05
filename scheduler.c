@@ -35,7 +35,7 @@ uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_p
     new_task->pid = pid;
     new_task->priority = 1; // Default priority
     memcpy(new_task->program_counter, &entry_point, sizeof(uint8_t));
-    create_uint16_array((const uint8_t **) &data_memory, new_task->program_memory, entry_point, DATA_MEMORY-entry_point);
+
 
     // Insert the task into the task queue
     push_task(task_queue, new_task);

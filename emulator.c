@@ -43,7 +43,7 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
     state.z_flag = false;
     state.scheduler = false;
     state.data_memory = data_memory;
-    state.program_memory = (uint16_t *)program_memory;
+    state.program_memory = program_memory;
     state.task_queue = calloc(1, sizeof(TaskQueue));
     state.task_queue->tasks = calloc(1, sizeof(Task*));
     state.task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
@@ -54,16 +54,16 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         return 1;
     }
     printf("Starting emulator\n");
-    while (state.pc < EXPECTED_PROGRAM_WORDS) {
+    while (state.pc + 1 < EXPECTED_PROGRAM_WORDS) {
         if (!state.scheduler) {
-            execute_instruction(&state, flash_memory);
+            execute_instruction(&state);
             state.pc++;
         } else {
             break;
         }
     }
     if (state.scheduler) {
-       schedule(&state, flash_memory);
+       schedule(&state);
     }
     return 0;
 }

@@ -48,6 +48,7 @@
 #define OP_BRR 0x16
 #define OP_BNR 0x17
 #define OP_HLT 0x18
+
 #define TIME_SLOT 15
 
 typedef struct {
@@ -58,8 +59,7 @@ typedef struct {
 typedef struct {
     uint8_t pid; // unique id of the task
     uint8_t priority; // priority of the task
-    uint8_t *program_counter; // pointer to the task's program counter
-    uint16_t *program_memory; // program of task
+    uint8_t entry_point; // entry point of the task
     uint8_t status; // status
     uint8_t time_slice; // Time dedicated to the task, depends on priority
     uint8_t time_running; // Time running the task
@@ -90,11 +90,6 @@ typedef struct {
     // ALU Flags register
     bool z_flag;
     bool v_flag;
-} CPUState;
-
-int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
-void load_program(char *program_file, uint8_t **program_memory);
-void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 
     // Multitask
     bool scheduler;
@@ -102,20 +97,25 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
     TaskQueue *task_queue;
 } CPUState;
 
+int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+void load_program(char *program_file, uint8_t **program_memory);
+void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
+
 uint8_t count_leading_zeros(uint8_t x);
 void push(ShiftStack *stack, uint8_t value);
 uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
+bool execute_sch_instruction(CPUState *state);
+
 void increment_pc(CPUState *state, int opcode);
 
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
 
-bool execute_sch_instruction(CPUState *state, uint8_t *program_counter, const uint16_t *program_memory, uint8_t *flash_memory);
 void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
 uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point);
-void schedule(CPUState *state, uint8_t *flash_memory);
+void schedule(CPUState *state);
 void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);
