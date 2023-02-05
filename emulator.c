@@ -41,7 +41,12 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
     state.reg = calloc(16, sizeof(uint8_t));
     state.v_flag = false;
     state.z_flag = false;
+    state.scheduler = false;
     state.data_memory = data_memory;
+    state.program_memory = (uint16_t *)program_memory;
+    state.task_queue = calloc(1, sizeof(TaskQueue));
+    state.task_queue->tasks = calloc(1, sizeof(Task*));
+    state.task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     state.program_memory = program_memory;
     state.flash_memory = flash_memory;
     if (state.program_memory == NULL || state.data_memory == NULL) {
@@ -49,11 +54,16 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         return 1;
     }
     printf("Starting emulator\n");
-    bool exitCode = false;
-    while(state.pc!=0xFF && !exitCode) {   
-        // Had to use this because gitpod's GDB is useless
-        //printf("Instruction: %x\n", state.program_memory[state.pc]);
-        exitCode = execute_instruction(&state);
+    while (state.pc < EXPECTED_PROGRAM_WORDS) {
+        if (!state.scheduler) {
+            execute_instruction(&state, flash_memory);
+            state.pc++;
+        } else {
+            break;
+        }
+    }
+    if (state.scheduler) {
+       schedule(&state, flash_memory);
     }
     return 0;
 }

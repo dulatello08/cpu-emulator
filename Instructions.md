@@ -28,6 +28,11 @@
 |     BRR     |  0x16  | Branch to value specified in operand2 if register Rd equals to Rn register                                                            |  BRR Rd, Rn, Label   |
 |     BNR     |  0x17  | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                    |  BNR Rd, Rn, Label   |
 |     HLT     |  0x18  | Halt                                                                                                                                  |         HLT          |
+|     TSK     |  0x19  | Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.                                        |     TSK Operand2     |
+|     SCH     |  0x1A  | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop |         SCH          |
+|     SWT     |  0x1B  | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                          |     SWT Operand2     |
+|     KIL     |  0x1C  | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                  |     KIL Operand2     |
+
 # Memory Map
 
 | Address Range | Description              |
