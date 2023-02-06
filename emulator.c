@@ -37,7 +37,7 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
     CPUState state = {
             .ssr = {.top = -1},
     };
-    state.pc = 0x00;
+    state.pc = calloc(1, sizeof(uint8_t));
     state.reg = calloc(16, sizeof(uint8_t));
     state.v_flag = false;
     state.z_flag = false;
@@ -54,10 +54,10 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         return 1;
     }
     printf("Starting emulator\n");
-    while (state.pc + 1 < EXPECTED_PROGRAM_WORDS) {
+    bool exitCode = false;
+    while (*(state.pc) + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
         if (!state.scheduler) {
-            execute_instruction(&state);
-            state.pc++;
+            exitCode = execute_instruction(&state);
         } else {
             break;
         }

@@ -24,7 +24,7 @@ void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter){
     push_task(task_queue, kernel_task);
 }
 
-uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point) {
+uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point) {
     // Find the next available PID
     uint8_t pid = task_queue->tasks[task_queue->size]->pid + 1;
 
@@ -72,9 +72,8 @@ void schedule(CPUState *state) {
     Increase the time running of the current task
     */
     while(task_queue->size>0) {
-        CPUState *task_state = calloc(1, sizeof(CPUState));
-        memcpy(task_state, state, sizeof(CPUState));
-        task_state->pc = *task_queue->tasks[task_queue->head]->program_counter;
+        CPUState *task_state = state;
+        task_state->pc = task_queue->tasks[task_queue->head]->program_counter;
         execute_instruction(state);
         task_queue->tasks[task_queue->head]->time_running++;
         /*

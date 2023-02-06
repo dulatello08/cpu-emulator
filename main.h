@@ -79,7 +79,7 @@ typedef struct {
 
 typedef struct {
     // Program counter
-    uint8_t pc;
+    uint8_t* pc;
 
     // General-purpose registers
     uint8_t* reg;
@@ -119,7 +119,7 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
 
 void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
-uint8_t create_task(TaskQueue *task_queue, uint8_t *data_memory, uint8_t entry_point);
+uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point);
 void schedule(CPUState *state);
 void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);
