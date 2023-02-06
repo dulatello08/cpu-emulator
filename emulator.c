@@ -59,6 +59,7 @@ int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_me
         if (!state.scheduler) {
             exitCode = execute_instruction(&state);
         } else {
+            printf("Entering scheduling loop\n");
             break;
         }
     }
