@@ -18,7 +18,7 @@ To run the emulator, execute the emulator executable with the path to a file con
 Copy code
 ./emulator path/to/machine/code/file
 # Documentation
-Detailed documentation for the emulator can be found in the docs directory. This documentation includes information on the instruction set supported by the emulator, as well as the structure and function of the emulator itself.
+Detailed documentation for the emulator can be found in the gitlab wiki. This documentation includes information on the instruction set supported by the emulator, as well as the structure and function of the emulator itself.
 
 # Contributing
 We welcome contributions to the 8-bit CPU emulator! If you have an idea for a new feature or a bug fix, please open an issue or submit a pull request.
