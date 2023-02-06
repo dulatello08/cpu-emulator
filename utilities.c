@@ -57,7 +57,7 @@ void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
     fseek(fpf, 0, SEEK_END);
     long size = ftell(fpf);
 
-    if (size != EXPECTED_FLASH_WORDS) {
+    if (size != EXPECTED_FLASH_WORDS * sizeof(uint8_t)) {
         fprintf(stderr, "Error: Input flash file does not contain %d bytes. It contains %ld bytes.\n", EXPECTED_FLASH_WORDS, size);
         fclose(fpf);
         return;
@@ -91,7 +91,9 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_BRO:
         case OP_PSH:
         case OP_CLZ:
-            state->pc += 2;
+        case OP_SWT:
+        case OP_KIL:
+            *(state->pc) += 2;
             break;
         case OP_ADD:
         case OP_SUB:
@@ -109,12 +111,14 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_RNM:
         case OP_BRR:
         case OP_BNR:
-            state->pc += 3;
+        case OP_TSK:
+            *(state->pc) += 3;
             break;
         case OP_HLT:
         case OP_NOP:
+        case OP_SCH:
         default:
-            state->pc += 1;
+            *(state->pc) += 1;
             break;
     }
 }

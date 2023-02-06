@@ -1,16 +1,16 @@
 //
-// Created by dulat on 1/27/23.
+// Created by dulat on 1/24/23.
 //
 
 #include "main.h"
 
 bool execute_instruction(CPUState *state) {
-    uint8_t opcode = state->program_memory[state->pc];
+    uint8_t opcode = state->program_memory[*state->pc];
     // might be unused
-    __attribute__((unused)) uint8_t operand1 = state->program_memory[state->pc+1];
-    uint8_t operand_rd = (state->program_memory[state->pc+1] >> 4) & 0xF;
-    uint8_t operand_rn = state->program_memory[state->pc+1] & 0xF;
-    uint8_t operand2 = state->program_memory[state->pc+2];
+    uint8_t operand1 = state->program_memory[*state->pc+1];
+    uint8_t operand_rd = (state->program_memory[*state->pc+1] >> 4) & 0xF;
+    uint8_t operand_rn = state->program_memory[*state->pc+1] & 0xF;
+    uint8_t operand2 = state->program_memory[*state->pc+2];
     switch (opcode) {
         // Do nothing
         case 0x00:
@@ -108,39 +108,56 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case 0x13:
-            state->pc = operand1;
+            *(state->pc) = operand1;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case 0x14:
             if (state->z_flag) {
-                state->pc = operand1;
+                *(state->pc) = operand1;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case 0x15:
             if (!state->v_flag) {
-                state->pc = operand1;
+                *(state->pc) = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case 0x16:
-            if (state->reg[operand_rd] == state->reg[operand_rn]) {
-                state->pc = operand1;
+            if (state->reg[operand_rd]==state->reg[operand_rn]) {
+                *(state->pc) = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case 0x17:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                state->pc = operand1;
+                *(state->pc) = operand1;
             }
             break;
         // Halt
         case 0x18:
-            printf("Halt at state of program counter: %d\n", state->pc);
+            printf("Halt at state of program counter: %d\n", *state->pc);
             return true;
+        // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
+        case 0x19:
+            state->reg[operand_rd] = create_task(state->task_queue, operand2);
+            break;
+        // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
+        case 0x1A:
+            initialize_scheduler(state->task_queue, state->pc);
+            state->scheduler = true;
+            break;
+        // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
+        case 0x1B:
+            yield_task(state->task_queue, state->reg[operand_rd]);
+            break;
+        // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
+        case 0x1C:
+            kill_task(state->task_queue, state->reg[operand_rd]);
+            break;
         // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %d\n", state->pc);
+            printf("SIGILL: at state of program counter: %d\n", *state->pc);
             printf("Instruction: %x was called\n", opcode);
             return true;
     }
