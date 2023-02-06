@@ -91,6 +91,8 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_BRO:
         case OP_PSH:
         case OP_CLZ:
+        case OP_SWT:
+        case OP_KIL:
             *(state->pc) += 2;
             break;
         case OP_ADD:
@@ -109,10 +111,12 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_RNM:
         case OP_BRR:
         case OP_BNR:
+        case OP_TSK:
             *(state->pc) += 3;
             break;
         case OP_HLT:
         case OP_NOP:
+        case OP_SCH:
         default:
             *(state->pc) += 1;
             break;
