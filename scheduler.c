@@ -4,14 +4,9 @@
 void push_task(TaskQueue *task_queue, Task *task) {
     if (task_queue->size < TASK_PARALLEL) {
         for (int i = task_queue->size - 1; i > 0; i--) {
-            task_queue->tasks[0][i] = task_queue->tasks[0][i - 1];
+            memcpy(task_queue->tasks[0]+i, task_queue->tasks[0]+i-1, sizeof(Task));
         }
-        task_queue->tasks[0]->pid = task->pid;
-        task_queue->tasks[0]->priority = task->priority;
-        task_queue->tasks[0]->program_counter = task->program_counter;
-        task_queue->tasks[0]->status = task->status;
-        task_queue->tasks[0]->time_slice = task->time_slice;
-        task_queue->tasks[0]->time_running = task->time_running;
+        memcpy(task_queue->tasks[0], task, sizeof(Task));
         task_queue->size++;
     }
 }
