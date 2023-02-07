@@ -43,15 +43,17 @@ int start(const size_t program_size, const uint8_t* program_memory, uint8_t* fla
     state.v_flag = false;
     state.z_flag = false;
     state.scheduler = false;
-
     state.memory = memory;
     memcpy(&(state.memory), program_memory, program_size);
+
     printf("Memory map for HI: \n");
     printf("0x0000 - %04x : Program memory\n", (int) program_size);
     size_t usableMemorySize = UINT16_MAX - program_size - 4096 - 1;
     printf("%04x - %04x : Usable memory\n", (int) program_size, (int) program_size + (int) usableMemorySize);
     printf("%04x : Flash IO Port\n", (int) program_size + (int) usableMemorySize);
     printf("%04x - 0xFFFF : Current flash block\n", (int) program_size + (int) usableMemorySize + 1);
+
+    memcpy(&state.memory[(int) program_size + (int) usableMemorySize + 1], flash_memory, 4096);
 
     state.task_queue = calloc(1, sizeof(TaskQueue));
     state.task_queue->tasks = calloc(1, sizeof(Task*));

@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define DATA_MEMORY 256
+#define MEMORY 65535
 #define EXPECTED_PROGRAM_WORDS 256
 #define EXPECTED_FLASH_WORDS 256
 #define MAX_INPUT_LENGTH 1024
@@ -100,7 +100,7 @@ typedef struct {
     TaskQueue* task_queue;
 } CPUState;
 
-int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+int start(const size_t program_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory);
 void load_program(char *program_file, uint8_t **program_memory);
 void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
 

@@ -138,11 +138,11 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operan
             }
         }
     } else if (mode==1) {
-        if (state->data_memory[operand2] + state->reg[operand_rn] > UINT8_MAX) {
+        if (state->memory[operand2] + state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->data_memory[operand2] + state->reg[operand_rn];
+            state->reg[operand_rd] = state->memory[operand2] + state->reg[operand_rn];
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -155,8 +155,8 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operan
             state->reg[operand_rd] = 0xFF;
         } else {
             state->v_flag = false;
-            state->data_memory[operand2] = state->reg[operand_rd] + state->reg[operand_rn];
-            if (state->data_memory[operand2] == 0) {
+            state->memory[operand2] = state->reg[operand_rd] + state->reg[operand_rn];
+            if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
                 state->z_flag = false;
@@ -179,11 +179,11 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             }
         }
     } else if (mode==1) {
-        if (state->data_memory[operand2] < state->reg[operand_rn]) {
+        if (state->memory[operand2] < state->reg[operand_rn]) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->data_memory[operand2] - state->reg[operand_rn];
+            state->reg[operand_rd] = state->memory[operand2] - state->reg[operand_rn];
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -195,8 +195,8 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->data_memory[operand2] = state->reg[operand_rd] - state->reg[operand_rn];
-            if (state->data_memory[operand2] == 0) {
+            state->memory[operand2] = state->reg[operand_rd] - state->reg[operand_rn];
+            if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
                 state->z_flag = false;
@@ -220,11 +220,11 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             }
         }
     } else if (mode==1) {
-        if (state->data_memory[operand2] * state->reg[operand_rn] > UINT8_MAX) {
+        if (state->memory[operand2] * state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->data_memory[operand2] * state->reg[operand_rn];
+            state->reg[operand_rd] = state->memory[operand2] * state->reg[operand_rn];
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -237,8 +237,8 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             state->reg[operand_rd] = 0xFF;
         } else {
             state->v_flag = false;
-            state->data_memory[operand2] = state->reg[operand_rd] * state->reg[operand_rn];
-            if (state->data_memory[operand2] == 0) {
+            state->memory[operand2] = state->reg[operand_rd] * state->reg[operand_rn];
+            if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
                 state->z_flag = false;

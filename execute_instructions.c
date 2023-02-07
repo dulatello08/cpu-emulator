@@ -5,12 +5,12 @@
 #include "main.h"
 
 bool execute_instruction(CPUState *state) {
-    uint8_t opcode = state->program_memory[*state->pc];
+    uint8_t opcode = state->memory[*state->pc];
     // might be unused
-    uint8_t operand1 = state->program_memory[*state->pc+1];
-    uint8_t operand_rd = (state->program_memory[*state->pc+1] >> 4) & 0xF;
-    uint8_t operand_rn = state->program_memory[*state->pc+1] & 0xF;
-    uint8_t operand2 = state->program_memory[*state->pc+2];
+    uint8_t operand1 = state->memory[*state->pc+1];
+    uint8_t operand_rd = (state->memory[*state->pc+1] >> 4) & 0xF;
+    uint8_t operand_rn = state->memory[*state->pc+1] & 0xF;
+    uint8_t operand2 = state->memory[*state->pc+2];
     switch (opcode) {
         // Do nothing
         case 0x00:
@@ -69,11 +69,11 @@ bool execute_instruction(CPUState *state) {
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            state->data_memory[operand2] = state->reg[operand_rd];
+            state->memory[operand2] = state->reg[operand_rd];
             break;
         // Load the value in the memory at the address in operand 2 into the register Rd
         case 0x0D:
-            state->reg[operand_rd] = state->data_memory[operand2];
+            state->reg[operand_rd] = state->memory[operand2];
             break;
         // Push the value in the register Rn at the specified address onto a stack
         case 0x0E:
@@ -88,14 +88,14 @@ bool execute_instruction(CPUState *state) {
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            state->data_memory[operand2] = state->data_memory[state->reg[operand_rd]];
+            state->memory[operand2] = state->memory[state->reg[operand_rd]];
             break;
 
         case 0x11: {
             // Read flash memory to data memory
             // Rd has address in data memory, Rn has address in flash memory
             // Copies single byte to data memory
-            memcpy((void *) &state->data_memory[state->reg[operand_rd]], (void *) &state->flash_memory[state->reg[operand_rn]], sizeof(uint8_t));
+            memcpy((void *) &state->memory[state->reg[operand_rd]], (void *) &state->memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
 
@@ -103,7 +103,7 @@ bool execute_instruction(CPUState *state) {
             // Read data memory to flash memory
             // Rd has address in flash memory, Rn has address in data memory
             // Copies single byte to flash memory
-            memcpy((void *) &state->flash_memory[state->reg[operand_rd]], (void *) &state->data_memory[state->reg[operand_rn]], sizeof(uint8_t));
+            memcpy((void *) &state->memory[state->reg[operand_rd]], (void *) &state->memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
         // Branch to value specified in operand 2

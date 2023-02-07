@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     uint8_t *flash_memory = NULL;
     FILE *fpf = NULL;
     int input_len;
-    uint8_t *shared_data_memory = mmap(NULL, DATA_MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    uint8_t *shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--program") == 0) {
             if (i + 1 < argc) {
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
                         printf("Flash memory not loaded\n>> ");
                         exit(1);
                     }
-                    start(program_memory, shared_data_memory, flash_memory);
+                    start(255, program_memory, shared_data_memory, flash_memory);
                     printf(">> ");
                     *emulator_running = 0;
                     exit(0);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
             }
         } else if (strcmp(input, "free\n") == 0) {
             printf("Freeing emulator memory...\n");
-            memset(shared_data_memory, 0, DATA_MEMORY);
+            memset(shared_data_memory, 0, MEMORY);
         } else if (strcmp(input, "exit\n") == 0) {
             printf("Exiting emulator...\n");
             break;
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         fclose(fpf);
         free(flash_memory);
     }
-    munmap(shared_data_memory, DATA_MEMORY);
+    munmap(shared_data_memory, MEMORY);
     munmap(emulator_running, 1);
     free(program_memory);
     return 0;
