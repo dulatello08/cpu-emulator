@@ -85,9 +85,7 @@ typedef struct {
     uint8_t* reg;
 
     // Memory
-    const uint8_t *program_memory;
-    uint8_t *data_memory;
-    uint8_t *flash_memory;
+    uint8_t* memory;
 
     // Stack shift register
     ShiftStack ssr;
@@ -99,7 +97,7 @@ typedef struct {
     // Multitask
     bool scheduler;
     bool cpu_mode;
-    TaskQueue *task_queue;
+    TaskQueue* task_queue;
 } CPUState;
 
 int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
