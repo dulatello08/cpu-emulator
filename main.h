@@ -17,7 +17,7 @@
 
 #define MEMORY 65535
 #define EXPECTED_PROGRAM_WORDS 256
-#define EXPECTED_FLASH_WORDS 256
+#define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
 #define STACK_SIZE 8
 #define STACK_SIZE 8
@@ -100,9 +100,9 @@ typedef struct {
     TaskQueue* task_queue;
 } CPUState;
 
-int start(const size_t program_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory);
+int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory);
 void load_program(char *program_file, uint8_t **program_memory);
-void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
+int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
 void push(ShiftStack *stack, uint8_t value);

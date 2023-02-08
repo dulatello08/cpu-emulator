@@ -34,7 +34,7 @@ uint8_t pop(ShiftStack* stack) {
     return value;
 }
 
-int start(const size_t program_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory) {
+int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory) {
     CPUState state = {
             .ssr = {.top = -1},
     };
@@ -53,7 +53,7 @@ int start(const size_t program_size, const uint8_t* program_memory, uint8_t* fla
     printf("%04x : Flash IO Port\n", (int) program_size + (int) usableMemorySize);
     printf("%04x - 0xFFFF : Current flash block\n", (int) program_size + (int) usableMemorySize + 1);
 
-    memcpy(&state.memory[(int) program_size + (int) usableMemorySize + 1], flash_memory, 4096);
+    memcpy(&(state.memory[(int) program_size + (int) usableMemorySize + 1]), flash_memory, 4096);
 
     state.task_queue = calloc(1, sizeof(TaskQueue));
     state.task_queue->tasks = calloc(1, sizeof(Task*));

@@ -42,44 +42,63 @@ void load_program(char *program_file, uint8_t **program_memory) {
     fclose(fpi);
 }
 
-void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory) {
+int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     if (flash_file == NULL) {
         fprintf(stderr, "Error: flash file not specified.\n");
-        return;
+        return 0;
     }
 
     fpf = fopen(flash_file, "r+b");
     if (fpf == NULL) {
         fprintf(stderr, "Error: Failed to open input flash file.\n");
-        return;
+        return 0;
     }
 
     fseek(fpf, 0, SEEK_END);
-    long size = ftell(fpf);
+    long file_size = ftell(fpf);
+    int num_blocks = file_size / BLOCK_SIZE + (file_size % BLOCK_SIZE != 0);
 
-    if (size != EXPECTED_FLASH_WORDS * sizeof(uint8_t)) {
-        fprintf(stderr, "Error: Input flash file does not contain %d bytes. It contains %ld bytes.\n", EXPECTED_FLASH_WORDS, size);
-        fclose(fpf);
-        return;
-    }
-
-    *flash_memory = calloc(EXPECTED_FLASH_WORDS, sizeof(uint8_t));
+    *flash_memory = calloc(num_blocks, sizeof(uint8_t *));
     if (*flash_memory == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for flash memory.\n");
         fclose(fpf);
-        return;
+        return 0;
+    }
+
+    for (int i = 0; i < num_blocks; i++) {
+        (*flash_memory)[i] = calloc(BLOCK_SIZE, sizeof(uint8_t));
+        if ((*flash_memory)[i] == NULL) {
+            fprintf(stderr, "Error: Failed to allocate memory for flash block %d.\n", i);
+            for (int j = 0; j < i; j++) {
+                free((*flash_memory)[j]);
+            }
+            free(*flash_memory);
+            fclose(fpf);
+            return 0;
+        }
     }
 
     fseek(fpf, 0, SEEK_SET);
-    size_t num_read = fread(*flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
-    if (num_read != EXPECTED_FLASH_WORDS) {
-        fprintf(stderr, "Error: Failed to read %d bytes from input flash file.\n", EXPECTED_FLASH_WORDS);
-        free(*flash_memory);
-        fclose(fpf);
-        return;
+    int non_zero_count = 0;
+    for (int i = 0; i < num_blocks; i++) {
+        size_t bytes_to_read = (i == num_blocks - 1) ? file_size % BLOCK_SIZE : BLOCK_SIZE;
+        size_t num_read = fread((*flash_memory)[i], sizeof(uint8_t), bytes_to_read, fpf);
+        if (num_read != bytes_to_read) {
+            fprintf(stderr, "Error: Failed to read %ld bytes from input flash file for block %d.\n", bytes_to_read, i);
+            for (int j = 0; j < num_blocks; j++) {
+                free((*flash_memory)[j]);
+            }
+            free(*flash_memory);
+            fclose(fpf);
+            return 0;
+        }
+        for (int j = 0; j < bytes_to_read; j++) {
+            non_zero_count += (*flash_memory)[i][j] != 0;
+        }
     }
 
     fclose(fpf);
+    return non_zero_count;
 }
 
 void increment_pc(CPUState *state, int opcode) {

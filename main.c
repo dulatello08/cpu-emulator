@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     char *program_file = NULL, *flash_file = NULL;
     char input[MAX_INPUT_LENGTH];
     uint8_t *program_memory = NULL;
-    uint8_t *flash_memory = NULL;
+    uint8_t **flash_memory = NULL;
     FILE *fpf = NULL;
     int input_len;
     uint8_t *shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -38,9 +38,9 @@ int main(int argc, char *argv[]) {
     if (program_file) {
         load_program(program_file, &program_memory);
     }
-
+    int flash_size;
     if (flash_file) {
-        load_flash(flash_file, fpf, &flash_memory);
+        flash_size = load_flash(flash_file, fpf, &flash_memory);
     }
     uint8_t* emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *emulator_running = 0;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
                         printf("Flash memory not loaded\n>> ");
                         exit(1);
                     }
-                    start(255, program_memory, shared_data_memory, flash_memory);
+                    start(256 ,flash_size, program_memory, flash_memory, shared_data_memory);
                     printf(">> ");
                     *emulator_running = 0;
                     exit(0);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(input, "flash ", 6) == 0) {
             char* filename = input + 6;
             filename[strcspn(filename, "\n")] = 0; // remove trailing newline character
-            load_flash(filename, fpf, &flash_memory);
+            flash_size = load_flash(filename, fpf, &flash_memory);
         } else if ((strcmp(input, "help\n") == 0) || (strcmp(input, "h\n") == 0)) {
             print_usage();
         } else if (strncmp(input, "input", 5) == 0) {
