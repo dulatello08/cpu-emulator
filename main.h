@@ -100,7 +100,7 @@ typedef struct {
     TaskQueue* task_queue;
 } CPUState;
 
-int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t* flash_memory, uint8_t* memory);
+int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 void load_program(char *program_file, uint8_t **program_memory);
 int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 

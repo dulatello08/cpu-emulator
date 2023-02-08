@@ -108,10 +108,13 @@ int main(int argc, char *argv[]) {
         }
     }
     if(fpf!=NULL && flash_memory!=NULL) {
-        fseek(fpf, 0, SEEK_SET);
-        size_t num_written = fwrite(flash_memory, sizeof(uint8_t), EXPECTED_FLASH_WORDS, fpf);
-        if (num_written != EXPECTED_FLASH_WORDS) {
-            fprintf(stderr, "Error: Failed to write %d 8-bit words to output flash file.\n", EXPECTED_FLASH_WORDS);
+        int num_blocks = (flash_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        for (int i = 0; i < num_blocks; i++) {
+            size_t bytes_to_write = (i == num_blocks - 1) ? flash_size % BLOCK_SIZE : BLOCK_SIZE;
+            size_t num_written = fwrite(flash_memory[i], sizeof(uint8_t), bytes_to_write, fpf);
+            if (num_written != bytes_to_write) {
+                fprintf(stderr, "Error: Failed to write %ld bytes to output flash file for block %d.\n", bytes_to_write, i);
+            }
         }
         fclose(fpf);
         free(flash_memory);
