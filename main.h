@@ -60,6 +60,18 @@ typedef struct {
     int top;
 } ShiftStack;
 
+struct memory_block {
+    uint16_t startAddress;
+    uint16_t size;
+};
+
+typedef struct {
+    struct memory_block programMemory;
+    struct memory_block usableMemory;
+    struct memory_block memoryBlock;
+    struct memory_block currentFlashBlock;
+} MemoryMap;
+
 typedef struct {
     uint8_t pid; // unique id of the task
     uint8_t priority; // priority of the task
@@ -76,8 +88,9 @@ typedef struct {
     uint8_t head; // index of the next task to be executed
 } TaskQueue;
 
-
 typedef struct {
+    //Memory map
+    MemoryMap mm;
     // Program counter
     uint8_t* pc;
 
