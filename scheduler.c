@@ -69,7 +69,7 @@ void schedule(CPUState *state) {
     while(task_queue->size>0) {
         CPUState *task_state = state;
         printf("Tasks in queue: %d\n", task_queue->size);
-        task_state->pc = task_queue->tasks[task_queue->head]->program_counter;
+        task_state->reg[16] = *task_queue->tasks[task_queue->head]->program_counter;
         execute_instruction(state);
         task_queue->tasks[task_queue->head]->time_running++;
         /*

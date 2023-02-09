@@ -5,12 +5,12 @@
 #include "main.h"
 
 bool execute_instruction(CPUState *state) {
-    uint8_t opcode = state->program_memory[*state->pc];
+    uint8_t opcode = state->memory[state->reg[16]];
     // might be unused
-    uint8_t operand1 = state->program_memory[*state->pc+1];
-    uint8_t operand_rd = (state->program_memory[*state->pc+1] >> 4) & 0xF;
-    uint8_t operand_rn = state->program_memory[*state->pc+1] & 0xF;
-    uint8_t operand2 = state->program_memory[*state->pc+2];
+    uint8_t operand1 = state->memory[state->reg[16]+1];
+    uint8_t operand_rd = (state->memory[state->reg[16]+1] >> 4) & 0xF;
+    uint8_t operand_rn = state->memory[state->reg[16]+1] & 0xF;
+    uint8_t operand2 = state->memory[state->reg[16]+2];
     switch (opcode) {
         // Do nothing
         case 0x00:
@@ -69,11 +69,11 @@ bool execute_instruction(CPUState *state) {
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            state->data_memory[operand2] = state->reg[operand_rd];
+            state->memory[operand2] = state->reg[operand_rd];
             break;
         // Load the value in the memory at the address in operand 2 into the register Rd
         case 0x0D:
-            state->reg[operand_rd] = state->data_memory[operand2];
+            state->reg[operand_rd] = state->memory[operand2];
             break;
         // Push the value in the register Rn at the specified address onto a stack
         case 0x0E:
@@ -88,14 +88,14 @@ bool execute_instruction(CPUState *state) {
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            state->data_memory[operand2] = state->data_memory[state->reg[operand_rd]];
+            state->memory[operand2] = state->memory[state->reg[operand_rd]];
             break;
 
         case 0x11: {
             // Read flash memory to data memory
             // Rd has address in data memory, Rn has address in flash memory
             // Copies single byte to data memory
-            memcpy((void *) &state->data_memory[state->reg[operand_rd]], (void *) &state->flash_memory[state->reg[operand_rn]], sizeof(uint8_t));
+            memcpy((void *) &state->memory[state->reg[operand_rd]], (void *) &state->memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
 
@@ -103,40 +103,40 @@ bool execute_instruction(CPUState *state) {
             // Read data memory to flash memory
             // Rd has address in flash memory, Rn has address in data memory
             // Copies single byte to flash memory
-            memcpy((void *) &state->flash_memory[state->reg[operand_rd]], (void *) &state->data_memory[state->reg[operand_rn]], sizeof(uint8_t));
+            memcpy((void *) &state->memory[state->reg[operand_rd]], (void *) &state->memory[state->reg[operand_rn]], sizeof(uint8_t));
         }
             break;
         // Branch to value specified in operand 2
         case 0x13:
-            *(state->pc) = operand1;
+            state->reg[16] = operand1;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case 0x14:
             if (state->z_flag) {
-                *(state->pc) = operand1;
+                state->reg[16] = operand1;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case 0x15:
             if (!state->v_flag) {
-                *(state->pc) = operand1;
+                state->reg[16] = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case 0x16:
             if (state->reg[operand_rd]==state->reg[operand_rn]) {
-                *(state->pc) = operand1;
+                state->reg[16] = operand1;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case 0x17:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                *(state->pc) = operand1;
+                state->reg[16] = operand1;
             }
             break;
         // Halt
         case 0x18:
-            printf("Halt at state of program counter: %d\n", *state->pc);
+            printf("Halt at state of program counter: %d\n", state->reg[16]);
             return true;
         // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
         case 0x19:
@@ -144,7 +144,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case 0x1A:
-            initialize_scheduler(state->task_queue, state->pc);
+            initialize_scheduler(state->task_queue, &(state->reg[16]));
             state->scheduler = true;
             break;
         // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
@@ -157,7 +157,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %d\n", *state->pc);
+            printf("SIGILL: at state of program counter: %d\n", state->reg[16]);
             printf("Instruction: %x was called\n", opcode);
             return true;
     }

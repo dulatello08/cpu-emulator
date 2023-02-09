@@ -15,9 +15,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#define DATA_MEMORY 256
+#define MEMORY 65535
 #define EXPECTED_PROGRAM_WORDS 256
-#define EXPECTED_FLASH_WORDS 256
+#define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
 #define STACK_SIZE 8
 #define STACK_SIZE 8
@@ -60,6 +60,18 @@ typedef struct {
     int top;
 } ShiftStack;
 
+struct memory_block {
+    uint16_t startAddress;
+    uint16_t size;
+};
+
+typedef struct {
+    struct memory_block programMemory;
+    struct memory_block usableMemory;
+    struct memory_block memoryBlock;
+    struct memory_block currentFlashBlock;
+} MemoryMap;
+
 typedef struct {
     uint8_t pid; // unique id of the task
     uint8_t priority; // priority of the task
@@ -76,18 +88,14 @@ typedef struct {
     uint8_t head; // index of the next task to be executed
 } TaskQueue;
 
-
 typedef struct {
-    // Program counter
-    uint8_t* pc;
-
-    // General-purpose registers
+    //Memory map
+    MemoryMap mm;
+    // General-purpose registers + 16 is PC
     uint8_t* reg;
 
     // Memory
-    const uint8_t *program_memory;
-    uint8_t *data_memory;
-    uint8_t *flash_memory;
+    uint8_t* memory;
 
     // Stack shift register
     ShiftStack ssr;
@@ -99,12 +107,12 @@ typedef struct {
     // Multitask
     bool scheduler;
     bool cpu_mode;
-    TaskQueue *task_queue;
+    TaskQueue* task_queue;
 } CPUState;
 
-int start(const uint8_t *program_memory, uint8_t *data_memory, uint8_t *flash_memory);
+int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 void load_program(char *program_file, uint8_t **program_memory);
-void load_flash(char *flash_file, FILE *fpf, uint8_t **flash_memory);
+int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
 void push(ShiftStack *stack, uint8_t value);
