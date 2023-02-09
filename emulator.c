@@ -50,9 +50,8 @@ int start(size_t program_size, size_t flash_size, const uint8_t* program_memory,
             .ssr = {.top = -1},
             .mm = mm,
     };
-    state.pc = malloc(sizeof(uint8_t));
-    *(state.pc) = 0;
-    state.reg = malloc(16 * sizeof(uint8_t));
+    state.reg = malloc(17 * sizeof(uint8_t));
+    state.reg[16] = 0;
     state.v_flag = false;
     state.z_flag = false;
     state.scheduler = false;
@@ -78,7 +77,7 @@ int start(size_t program_size, size_t flash_size, const uint8_t* program_memory,
     state.task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     printf("Starting emulator\n");
     bool exitCode = false;
-    while (*(state.pc) + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
+    while (state.reg[16] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
         if (!state.scheduler) {
             exitCode = execute_instruction(&state);
         } else {

@@ -91,10 +91,7 @@ typedef struct {
 typedef struct {
     //Memory map
     MemoryMap mm;
-    // Program counter
-    uint8_t* pc;
-
-    // General-purpose registers
+    // General-purpose registers + 16 is PC
     uint8_t* reg;
 
     // Memory
