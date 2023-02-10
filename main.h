@@ -40,18 +40,16 @@
 #define OP_PSH 0x0E
 #define OP_POP 0x0F
 #define OP_PRT 0x10
-#define OP_RDM 0x11
-#define OP_RNM 0x12
-#define OP_BRN 0x13
-#define OP_BRZ 0x14
-#define OP_BRO 0x15
-#define OP_BRR 0x16
-#define OP_BNR 0x17
-#define OP_HLT 0x18
-#define OP_TSK 0x19
-#define OP_SCH 0x1A
-#define OP_SWT 0x1B
-#define OP_KIL 0x1C
+#define OP_BRN 0x11
+#define OP_BRZ 0x12
+#define OP_BRO 0x13
+#define OP_BRR 0x14
+#define OP_BNR 0x15
+#define OP_HLT 0x16
+#define OP_TSK 0x17
+#define OP_SCH 0x18
+#define OP_SWT 0x19
+#define OP_KIL 0x1A
 
 #define TIME_SLOT 15
 

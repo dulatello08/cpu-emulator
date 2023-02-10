@@ -141,8 +141,6 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_ADR:
         case OP_SBR:
         case OP_MLR:
-        case OP_RDM:
-        case OP_RNM:
         case OP_BRR:
         case OP_BNR:
         case OP_TSK:
