@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(input, "program ", 8) == 0) {
             char* filename = input + 8;
             filename[strcspn(filename, "\n")] = 0; // remove trailing newline character
-            load_program(filename, &program_memory);
+            load_program(filename, program_memory);
         } else if (strncmp(input, "flash ", 6) == 0) {
             char* filename = input + 6;
             filename[strcspn(filename, "\n")] = 0; // remove trailing newline character

@@ -26,7 +26,7 @@ uint8_t load_program(char *program_file, uint8_t *program_memory) {
 
     program_memory = malloc(sizeof(uint8_t));
     uint8_t *temp = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
-    if (*program_memory == NULL || temp == NULL) {
+    if (program_memory == NULL || temp == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
         fclose(fpi);
         return 0;
@@ -37,7 +37,7 @@ uint8_t load_program(char *program_file, uint8_t *program_memory) {
     if (num_read != EXPECTED_PROGRAM_WORDS)
     {
         fprintf(stderr, "Error: Failed to read %d bytes from input program file.\n", EXPECTED_PROGRAM_WORDS);
-        free(*program_memory);
+        free(program_memory);
         fclose(fpi);
         return 0;
     }
@@ -53,8 +53,8 @@ uint8_t load_program(char *program_file, uint8_t *program_memory) {
         }
         current_byte++;
     }
-    return current_byte;
     fclose(fpi);
+    return current_byte;
 }
 
 int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
