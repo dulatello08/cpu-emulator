@@ -34,14 +34,15 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
+    uint8_t program_size;
     if (program_file) {
-        load_program(program_file, &program_memory);
+        program_size = load_program(program_file, program_memory);
     }
     int flash_size;
     if (flash_file) {
         flash_size = load_flash(flash_file, fpf, &flash_memory);
     }
+    printf("Loaded program %d bytes\n", program_size);
     uint8_t* emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *emulator_running = 0;
     while(1) {

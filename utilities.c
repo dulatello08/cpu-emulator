@@ -1,17 +1,18 @@
 #include "main.h"
 #include <stdint.h>
+#include <sys/types.h>
 
 
-void load_program(char *program_file, uint8_t **program_memory) {
+uint8_t load_program(char *program_file, uint8_t *program_memory) {
     if (program_file == NULL) {
         fprintf(stderr, "Error: input file not specified.\n");
-        return;
+        return 0;
     }
 
     FILE *fpi = fopen(program_file, "rb");
     if (fpi == NULL) {
         fprintf(stderr, "Error: Failed to open input program file.\n");
-        return;
+        return 0;
     }
 
     fseek(fpi, 0, SEEK_END);
@@ -20,15 +21,15 @@ void load_program(char *program_file, uint8_t **program_memory) {
     if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint8_t)) {
         fprintf(stderr, "Error: Input program file does not contain %d bytes. It contains %ld bytes\n", EXPECTED_PROGRAM_WORDS, size);
         fclose(fpi);
-        return;
+        return 0;
     }
 
-    *program_memory = malloc(sizeof(uint8_t));
+    program_memory = malloc(sizeof(uint8_t));
     uint8_t *temp = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
     if (*program_memory == NULL || temp == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
         fclose(fpi);
-        return;
+        return 0;
     }
 
     fseek(fpi, 0, SEEK_SET);
@@ -38,13 +39,13 @@ void load_program(char *program_file, uint8_t **program_memory) {
         fprintf(stderr, "Error: Failed to read %d bytes from input program file.\n", EXPECTED_PROGRAM_WORDS);
         free(*program_memory);
         fclose(fpi);
-        return;
+        return 0;
     }
     bool halt = false;
     uint8_t current_byte = 0;
     while (!halt) {
         if (temp[current_byte] != 0x18) {
-            *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
+            program_memory = realloc(program_memory, sizeof(uint8_t) * (current_byte + 1));
             memcpy(program_memory, &temp[current_byte], 1);
         } else {
             halt = true;
@@ -52,7 +53,7 @@ void load_program(char *program_file, uint8_t **program_memory) {
         }
         current_byte++;
     }
-
+    return current_byte;
     fclose(fpi);
 }
 
