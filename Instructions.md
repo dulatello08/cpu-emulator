@@ -32,8 +32,9 @@
 
 # Memory Map
 
-| Address Range | Description              |
-|---------------|--------------------------|
-| 0x00 - 0xFD   | Data Memory              |
-| 0xFE          | Input                    |
-| 0xFF          | Output                   |
+| Memory Address  | Usage               |
+|-----------------|---------------------|
+| 0x0000 - 0x00~~ | Program memory      |
+| 0x00~~ - 0xeffe | Usable memory       |
+| 0xeffe          | Flash IO Port       |
+| 0xefff - 0xFFFF | Current flash block |

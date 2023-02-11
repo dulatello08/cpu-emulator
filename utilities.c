@@ -3,7 +3,7 @@
 #include <sys/types.h>
 
 
-uint8_t load_program(char *program_file, uint8_t *program_memory) {
+uint8_t load_program(char *program_file, uint8_t **program_memory) {
     if (program_file == NULL) {
         fprintf(stderr, "Error: input file not specified.\n");
         return 0;
@@ -24,29 +24,30 @@ uint8_t load_program(char *program_file, uint8_t *program_memory) {
         return 0;
     }
 
-    program_memory = malloc(sizeof(uint8_t));
-    uint8_t *temp = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
-    if (program_memory == NULL || temp == NULL) {
+    *program_memory = malloc(sizeof(uint8_t));
+    if (*program_memory == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
         fclose(fpi);
         return 0;
     }
 
     fseek(fpi, 0, SEEK_SET);
+    uint8_t *temp;
+    temp = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
     size_t num_read = fread(temp, sizeof(uint8_t), EXPECTED_PROGRAM_WORDS, fpi);
-    if (num_read != EXPECTED_PROGRAM_WORDS)
-    {
+    if (num_read != EXPECTED_PROGRAM_WORDS) {
         fprintf(stderr, "Error: Failed to read %d bytes from input program file.\n", EXPECTED_PROGRAM_WORDS);
-        free(program_memory);
+        free(*program_memory);
         fclose(fpi);
         return 0;
     }
+
     bool halt = false;
     uint8_t current_byte = 0;
     while (!halt) {
         if (temp[current_byte] != 0x18) {
-            program_memory = realloc(program_memory, sizeof(uint8_t) * (current_byte + 1));
-            memcpy(program_memory, &temp[current_byte], 1);
+            *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
+            memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
         } else {
             halt = true;
             break;

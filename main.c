@@ -1,7 +1,6 @@
 #include "main.h"
 #include <stdint.h>
 #include <sys/mman.h>
-#include <sys/types.h>
 
 void print_usage() {
     printf("Commands:\n");
@@ -36,7 +35,7 @@ int main(int argc, char *argv[]) {
     }
     uint8_t program_size = 0;
     if (program_file) {
-        program_size = load_program(program_file, program_memory);
+        program_size = load_program(program_file, &program_memory);
     }
     printf("Loaded program %d bytes\n", program_size);
     int flash_size;
@@ -62,13 +61,15 @@ int main(int argc, char *argv[]) {
                 if(emulator==0) {
                     if(program_memory == NULL) {
                         printf("Program memory not loaded\n>> ");
+                        *emulator_running = 0;
                         exit(1);
                     }
                     if(flash_memory == NULL) {
                         printf("Flash memory not loaded\n>> ");
+                        *emulator_running = 0;
                         exit(1);
                     }
-                    start(256 ,flash_size, program_memory, flash_memory, shared_data_memory);
+                    start(program_size ,flash_size, program_memory, flash_memory, shared_data_memory);
                     printf(">> ");
                     *emulator_running = 0;
                     exit(0);
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(input, "program ", 8) == 0) {
             char* filename = input + 8;
             filename[strcspn(filename, "\n")] = 0; // remove trailing newline character
-            program_size = load_program(filename, program_memory);
+            program_size = load_program(filename, &program_memory);
             printf("Loaded program %d bytes\n", program_size);
         } else if (strncmp(input, "flash ", 6) == 0) {
             char* filename = input + 6;
