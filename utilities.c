@@ -280,3 +280,18 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
         }
     }
 }
+
+void memory_access(CPUState *state, uint8_t reg, uint8_t *memory, uint16_t address, uint8_t value, int mode) {
+    switch (mode) {
+        case 0:
+            // Read mode
+            *state = memory[address];
+            break;
+        case 1:
+            // Write mode
+            memory[address] = value;
+            break;
+        default:
+            break;
+    }
+}
