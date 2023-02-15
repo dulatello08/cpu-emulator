@@ -1,5 +1,6 @@
 # Instructions
 
+
 | Instruction | Opcode | Description                                                                                                                                                 | Syntax               |
 |-------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
 | NOP         | 0x00   | Do nothing                                                                                                                                                  | NOP                  |
@@ -18,23 +19,26 @@
 | LDM         | 0x0D   | Load the value in the memory at the address in operand 2 into the register Rd                                                                               | LDM Rd, Operand2     |
 | PSH         | 0x0E   | Push the value in the register Rn at the specified address onto a stack                                                                                     | PSH Rd, Operand2     |
 | POP         | 0x0F   | Pop a value from the stack and store it in the register Rd                                                                                                  | POP Rd               |
-| PRT         | 0x10   | Print string of ASCII characters from memory with start address from register Rn and end until null terminator (0x80 is terminator)                         | PRT Rd               |
-| BRN         | 0x11   | Branch to value specified in operand 2                                                                                                                      | BRN Label            |
-| BRZ         | 0x12   | Branch to value specified in operand 2 if zero flag was set                                                                                                 | BRZ Label            |
-| BRO         | 0x13   | Branch to value specified in operand 2 if overflow flag was not set                                                                                         | BRO Label            |
-| BRR         | 0x14   | Branch to value specified in operand2 if register Rd equals to Rn register                                                                                  | BRR Rd, Rn, Label    |
-| BNR         | 0x15   | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                                          | BNR Rd, Rn, Label    |
-| HLT         | 0x16   | Halt                                                                                                                                                        | HLT                  |
-| TSK         | 0x17   | Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue. Store task id in Rd.                    | TSK Rd, Operand2     |
-| SCH         | 0x18   | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop. | SCH                  |
-| SWT         | 0x19   | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                           | SWT Rd               |
-| KIL         | 0x1A   | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                   | KIL Rd               |
+| BRN         | 0x10   | Branch to value specified in operand 2                                                                                                                      | BRN Label            |
+| BRZ         | 0x11   | Branch to value specified in operand 2 if zero flag was set                                                                                                 | BRZ Label            |
+| BRO         | 0x12   | Branch to value specified in operand 2 if overflow flag was not set                                                                                         | BRO Label            |
+| BRR         | 0x13   | Branch to value specified in operand2 if register Rd equals to Rn register                                                                                  | BRR Rd, Rn, Label    |
+| BNR         | 0x14   | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                                          | BNR Rd, Rn, Label    |
+| HLT         | 0x15   | Halt                                                                                                                                                        | HLT                  |
+| TSK         | 0x16   | Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue. Store task id in Rd.                    | TSK Rd, Operand2     |
+| SCH         | 0x17   | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop. | SCH                  |
+| SWT         | 0x18   | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                           | SWT Rd               |
+| KIL         | 0x19   | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                   | KIL Rd               |
+
+| Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
+|----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
+| NOP, HLT, SCH              | CLZ, PSH, POP, SWT, KIL       | ADM, SBM, MLM, ADR, SBR, MLR, STM, LDM        | BRN, BRZ, BRO               | ADD, SUB, MUL, STO, BRR, BNR, TSK    |
+
 
 # Memory Map
 
-| Memory Address  | Usage               |
-|-----------------|---------------------|
-| 0x0000 - 0x00~~ | Program memory      |
-| 0x00~~ - 0xeffe | Usable memory       |
-| 0xeffe          | Flash IO Port       |
-| 0xefff - 0xFFFF | Current flash block |
+| Address Range | Description              |
+|---------------|--------------------------|
+| 0x00 - 0xFD   | Data Memory              |
+| 0xFE          | Input                    |
+| 0xFF          | Output                   |
