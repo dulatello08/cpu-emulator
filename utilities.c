@@ -188,7 +188,7 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t opera
             state->reg[operand_rd] = 0xFF;
         } else {
             state->v_flag = false;
-            state->memory[operand2] = state->reg[operand_rd] + state->reg[operand_rn];
+            memory_access(state, state->reg[operand_rd] + state->reg[operand_rn], operand2, 1, 1);
             if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
@@ -198,10 +198,11 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t opera
     }
 }
 
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
-    if (mode==0) {
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    if (mode == 0) {
         if (state->reg[operand_rd] < operand2) {
             state->v_flag = true;
+            state->reg[operand_rd] = 0;
         } else {
             state->v_flag = false;
             state->reg[operand_rd] -= operand2;
@@ -211,24 +212,25 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
                 state->z_flag = false;
             }
         }
-    } else if (mode==1) {
-        if (state->memory[operand2] < state->reg[operand_rn]) {
+    } else if (mode == 1) {
+        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->memory[operand2] - state->reg[operand_rn];
+            state->reg[operand_rd] = state->reg[operand_rn] - memory_access(state, 0, operand2, 0, 1);
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
                 state->z_flag = false;
             }
         }
-    } else if (mode==2) {
+    } else if (mode == 2) {
         if (state->reg[operand_rd] < state->reg[operand_rn]) {
             state->v_flag = true;
+            state->reg[operand_rd] = 0;
         } else {
             state->v_flag = false;
-            state->memory[operand2] = state->reg[operand_rd] - state->reg[operand_rn];
+            memory_access(state, state->reg[operand_rd] - state->reg[operand_rn], operand2, 1, 1);
             if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
@@ -238,14 +240,14 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
     }
 }
 
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
     if (mode==0) {
-        if (state->reg[operand_rd] * operand2 > UINT8_MAX) {
+        if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
             state->v_flag = true;
             state->reg[operand_rd] = 0xFF;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] *= operand2;
+            state->reg[operand_rd] += operand2;
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -253,11 +255,11 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             }
         }
     } else if (mode==1) {
-        if (state->memory[operand2] * state->reg[operand_rn] > UINT8_MAX) {
+        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->memory[operand2] * state->reg[operand_rn];
+            state->reg[operand_rd] = memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn];
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -265,12 +267,12 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
             }
         }
     } else if (mode==2) {
-        if (state->reg[operand_rd] * state->reg[operand_rn] > UINT8_MAX) {
+        if (state->reg[operand_rd] + state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
             state->reg[operand_rd] = 0xFF;
         } else {
             state->v_flag = false;
-            state->memory[operand2] = state->reg[operand_rd] * state->reg[operand_rn];
+            memory_access(state, state->reg[operand_rd] + state->reg[operand_rn], operand2, 1, 1);
             if (state->memory[operand2] == 0) {
                 state->z_flag = true;
             } else {
@@ -281,18 +283,23 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
 }
 
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
+    /*
+     * reg argument can be used as value too
+    */
     switch (mode) {
         case 0:
             // Read mode
-            if(srcDest & 0x2) {
+            if(srcDest) {
                 state->reg[reg] = state->memory[address];
             }
             break;
         case 1:
             // Write mode
-            if(srcDest & 0x1) {
+            if(srcDest) {
                 state->memory[address] = state->reg[reg];
-            } else ()
+            } else {
+                state->memory[address] = reg;
+            }
             break;
         default:
             break;

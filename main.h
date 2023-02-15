@@ -119,9 +119,9 @@ bool execute_instruction(CPUState *state);
 
 void increment_pc(CPUState *state, int opcode);
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 
 void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
 uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point);
