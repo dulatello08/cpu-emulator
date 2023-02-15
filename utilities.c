@@ -121,7 +121,6 @@ int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
 void increment_pc(CPUState *state, int opcode) {
     switch (opcode) {
         case OP_POP:
-        case OP_PRT:
         case OP_BRN:
         case OP_BRZ:
         case OP_BRO:
@@ -157,7 +156,7 @@ void increment_pc(CPUState *state, int opcode) {
     }
 }
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode) {
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
     if (mode==0) {
         if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
             state->v_flag = true;
@@ -172,11 +171,11 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operan
             }
         }
     } else if (mode==1) {
-        if (state->memory[operand2] + state->reg[operand_rn] > UINT8_MAX) {
+        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
             state->v_flag = true;
         } else {
             state->v_flag = false;
-            state->reg[operand_rd] = state->memory[operand2] + state->reg[operand_rn];
+            state->reg[operand_rd] = memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn];
             if (state->reg[operand_rd] == 0) {
                 state->z_flag = true;
             } else {
@@ -281,17 +280,22 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t o
     }
 }
 
-void memory_access(CPUState *state, uint8_t reg, uint8_t *memory, uint16_t address, uint8_t value, int mode) {
+uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
     switch (mode) {
         case 0:
             // Read mode
-            *state = memory[address];
+            if(srcDest & 0x2) {
+                state->reg[reg] = state->memory[address];
+            }
             break;
         case 1:
             // Write mode
-            memory[address] = value;
+            if(srcDest & 0x1) {
+                state->memory[address] = state->reg[reg];
+            } else ()
             break;
         default:
             break;
     }
+    return state->memory[address];
 }

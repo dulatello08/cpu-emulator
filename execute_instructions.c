@@ -69,11 +69,11 @@ bool execute_instruction(CPUState *state) {
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            state->memory[operand2] = state->reg[operand_rd];
+            memory_access(state, operand_rd, operand2, 1, 0);
             break;
         // Load the value in the memory at the address in operand 2 into the register Rd
         case OP_LDM:
-            state->reg[operand_rd] = state->memory[operand2];
+            memory_access(state, operand_rd, operand2, 0, 0);
             break;
         // Push the value in the register Rn at the specified address onto a stack
         case OP_PSH:
@@ -82,13 +82,6 @@ bool execute_instruction(CPUState *state) {
         // Pop a value from the stack and store it in the register Rd
         case OP_POP:
             state->reg[operand_rd] = pop(&state->ssr);
-            break;
-        // Move data from one memory address to other, source: Rd, destination: Operand2, print if destination 0xFF
-        case OP_PRT:
-            if (operand2 == 255) {
-                printf("%02x\n", state->reg[operand_rd]);
-            }
-            state->memory[operand2] = state->memory[state->reg[operand_rd]];
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
@@ -126,20 +119,20 @@ bool execute_instruction(CPUState *state) {
         case OP_TSK:
             state->reg[operand_rd] = create_task(state->task_queue, operand2);
             break;
-        // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
+            // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case OP_SCH:
             initialize_scheduler(state->task_queue, &(state->reg[16]));
             state->scheduler = true;
             break;
-        // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
+            // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
         case OP_SWT:
             yield_task(state->task_queue, state->reg[operand_rd]);
             break;
-        // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
+            // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
         case OP_KIL:
             kill_task(state->task_queue, state->reg[operand_rd]);
             break;
-        // SIGILL
+            // SIGILL
         default:
             printf("SIGILL: at state of program counter: %d\n", state->reg[16]);
             printf("Instruction: %x was called\n", opcode);
