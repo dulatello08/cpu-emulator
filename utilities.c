@@ -45,7 +45,7 @@ uint8_t load_program(char *program_file, uint8_t **program_memory) {
     bool halt = false;
     uint8_t current_byte = 0;
     while (!halt) {
-        if (temp[current_byte] != 0x18) {
+        if (temp[current_byte] != OP_HLT) {
             *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
             memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
         } else {
@@ -118,14 +118,17 @@ int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     return non_zero_count;
 }
 
-void increment_pc(CPUState *state, int opcode) {
+void increment_pc(CPUState *state, uint8_t opcode) {
     switch (opcode) {
-        case OP_POP:
-        case OP_BRN:
-        case OP_BRZ:
-        case OP_BRO:
-        case OP_PSH:
+        case OP_NOP:
+        case OP_HLT:
+        case OP_SCH:
+        default:
+            state->reg[16] += 1;
+            break;
         case OP_CLZ:
+        case OP_PSH:
+        case OP_POP:
         case OP_SWT:
         case OP_KIL:
             state->reg[16] += 2;
@@ -134,24 +137,23 @@ void increment_pc(CPUState *state, int opcode) {
         case OP_SUB:
         case OP_MUL:
         case OP_STO:
-        case OP_STM:
-        case OP_LDM:
+        case OP_BRN:
+        case OP_BRZ:
+        case OP_BRO:
+            state->reg[16] += 3;
+            break;
         case OP_ADM:
         case OP_SBM:
         case OP_MLM:
         case OP_ADR:
         case OP_SBR:
         case OP_MLR:
+        case OP_STM:
+        case OP_LDM:
         case OP_BRR:
         case OP_BNR:
         case OP_TSK:
-            state->reg[16] += 3;
-            break;
-        case OP_HLT:
-        case OP_NOP:
-        case OP_SCH:
-        default:
-            state->reg[16] += 1;
+            state->reg[16] += 4;
             break;
     }
 }

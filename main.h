@@ -117,7 +117,7 @@ uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
 
-void increment_pc(CPUState *state, int opcode);
+void increment_pc(CPUState *state, uint8_t opcode);
 
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);

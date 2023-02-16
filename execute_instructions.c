@@ -7,7 +7,9 @@
 bool execute_instruction(CPUState *state) {
     uint8_t opcode = state->memory[state->reg[16]];
     // might be unused
-    uint8_t operand1 = state->memory[state->reg[16]+1];
+    uint16_t brnAddressing = state->memory[state->reg[16]+1] << 8 | state->memory[state->reg[16]+1];
+    uint16_t normAddressing = state->memory[state->reg[16]+2] << 8 | state->memory[state->reg[16]+2];
+    //uint8_t operand1 = state->memory[state->reg[16]+1];
     uint8_t operand_rd = (state->memory[state->reg[16]+1] >> 4) & 0xF;
     uint8_t operand_rn = state->memory[state->reg[16]+1] & 0xF;
     uint8_t operand2 = state->memory[state->reg[16]+2];
@@ -66,14 +68,16 @@ bool execute_instruction(CPUState *state) {
             break;
         // Store the value in the register Rd in the data memory at the operand 2
         case OP_STM:
+            // Deprecated start
             if (operand2 == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
-            memory_access(state, operand_rd, operand2, 1, 0);
+            // Deprecated end
+            memory_access(state, operand_rd, normAddressing, 1, 0);
             break;
         // Load the value in the memory at the address in operand 2 into the register Rd
         case OP_LDM:
-            memory_access(state, operand_rd, operand2, 0, 0);
+            memory_access(state, operand_rd, normAddressing, 0, 0);
             break;
         // Push the value in the register Rn at the specified address onto a stack
         case OP_PSH:
@@ -85,30 +89,30 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
-            state->reg[16] = operand1;
+            state->reg[16] = brnAddressing;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case OP_BRZ:
             if (state->z_flag) {
-                state->reg[16] = operand1;
+                state->reg[16] = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case OP_BRO:
             if (!state->v_flag) {
-                state->reg[16] = operand1;
+                state->reg[16] = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case OP_BRR:
             if (state->reg[operand_rd]==state->reg[operand_rn]) {
-                state->reg[16] = operand1;
+                state->reg[16] = normAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case OP_BNR:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                state->reg[16] = operand1;
+                state->reg[16] = normAddressing;
             }
             break;
         // Halt
