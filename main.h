@@ -39,19 +39,16 @@
 #define OP_LDM 0x0D
 #define OP_PSH 0x0E
 #define OP_POP 0x0F
-#define OP_PRT 0x10
-#define OP_RDM 0x11
-#define OP_RNM 0x12
-#define OP_BRN 0x13
-#define OP_BRZ 0x14
-#define OP_BRO 0x15
-#define OP_BRR 0x16
-#define OP_BNR 0x17
-#define OP_HLT 0x18
-#define OP_TSK 0x19
-#define OP_SCH 0x1A
-#define OP_SWT 0x1B
-#define OP_KIL 0x1C
+#define OP_BRN 0x10
+#define OP_BRZ 0x11
+#define OP_BRO 0x12
+#define OP_BRR 0x13
+#define OP_BNR 0x14
+#define OP_HLT 0x15
+#define OP_TSK 0x16
+#define OP_SCH 0x17
+#define OP_SWT 0x18
+#define OP_KIL 0x19
 
 #define TIME_SLOT 15
 
@@ -111,7 +108,7 @@ typedef struct {
 } CPUState;
 
 int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
-void load_program(char *program_file, uint8_t **program_memory);
+uint8_t load_program(char *program_file, uint8_t **program_memory);
 int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
@@ -120,14 +117,16 @@ uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
 
-void increment_pc(CPUState *state, int opcode);
+void increment_pc(CPUState *state, uint8_t opcode);
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint8_t operand2, uint8_t mode);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 
 void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
 uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point);
 void schedule(CPUState *state);
 void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);
+
+uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
