@@ -31,27 +31,27 @@ bool execute_instruction(CPUState *state) {
             break;
         // Store sum of memory address at operand 2 and register Rn in register Rd
         case OP_ADM:
-            add(state, operand_rd, operand_rn, operand2, 1);
+            add(state, operand_rd, operand_rn, normAddressing, 1);
             break;
         // Store difference of memory address at operand2 and register Rn in register Rd
         case OP_SBM:
-            subtract(state, operand_rd, operand_rn, operand2, 1);
+            subtract(state, operand_rd, operand_rn, normAddressing, 1);
             break;
         // Multiply register Rn by memory address at operand 2 and store in register Rd
         case OP_MLM:
-            multiply(state, operand_rd, operand_rn, operand2, 1);
+            multiply(state, operand_rd, operand_rn, normAddressing, 1);
             break;
         // Store sum of registers Rd and Rn in memory address at operand 2
         case OP_ADR:
-            add(state, operand_rd, operand_rn, operand2, 2);
+            add(state, operand_rd, operand_rn, normAddressing, 2);
             break;
         // Store difference of registers Rd and Rn in memory address at operand 2
         case OP_SBR:
-            subtract(state, operand_rd, operand_rn, operand2, 2);
+            subtract(state, operand_rd, operand_rn, normAddressing, 2);
             break;
         // Multiply registers Rd and Rn and store in memory address at operand 2
         case OP_MLR:
-            multiply(state, operand_rd, operand_rn, operand2, 2);
+            multiply(state, operand_rd, operand_rn, normAddressing, 2);
             break;
         // Count the number of leading zeros at register Rn and store at Rd
         case OP_CLZ:
