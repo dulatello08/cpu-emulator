@@ -291,13 +291,13 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
     switch (mode) {
         case 0:
             // Read mode
-            if(srcDest) {
+            if(!srcDest) {
                 state->reg[reg] = state->memory[address];
             }
             break;
         case 1:
             // Write mode
-            if(srcDest) {
+            if(!srcDest) {
                 state->memory[address] = state->reg[reg];
             } else {
                 state->memory[address] = reg;

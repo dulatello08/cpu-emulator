@@ -129,4 +129,4 @@ void schedule(CPUState *state);
 void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);
 
-uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t out);
+uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
