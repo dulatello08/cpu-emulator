@@ -69,7 +69,7 @@ bool execute_instruction(CPUState *state) {
         // Store the value in the register Rd in the data memory at the operand 2
         case OP_STM:
             // Deprecated start
-            if (operand2 == 255) {
+            if (normAddressing == 255) {
                 printf("%02x\n", state->reg[operand_rd]);
             }
             // Deprecated end
