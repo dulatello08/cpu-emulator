@@ -65,6 +65,8 @@ struct memory_block {
 typedef struct {
     struct memory_block programMemory;
     struct memory_block usableMemory;
+    struct memory_block mmuControl;
+    struct memory_block peripheralControl;
     struct memory_block memoryBlock;
     struct memory_block currentFlashBlock;
 } MemoryMap;
