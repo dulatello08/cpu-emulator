@@ -52,6 +52,21 @@
 
 #define TIME_SLOT 15
 
+#define MMU_CONTROL_SIZE 0x0004
+#define PERIPHERAL_CONTROL_SIZE 0x8
+#define FLASH_CONTROL_SIZE 0x1
+#define FLASH_BLOCK_SIZE 0x1000
+
+#define PROGRAM_MEMORY_START 0x0000
+#define PROGRAM_MEMORY_SIZE(program_size) program_size
+#define USABLE_MEMORY_START(program_size) (program_size + 1)
+#define USABLE_MEMORY_SIZE(program_size) (MEMORY - (MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE + PROGRAM_MEMORY_SIZE(program_size)))
+
+#define MMU_CONTROL_START (MEMORY - (MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
+#define PERIPHERAL_CONTROL_START (MEMORY - (PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
+#define FLASH_CONTROL_START (MEMORY - (FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
+#define FLASH_BLOCK_START (FLASH_CONTROL_START + FLASH_CONTROL_SIZE)
+
 typedef struct {
     uint8_t data[STACK_SIZE];
     int top;
@@ -65,7 +80,9 @@ struct memory_block {
 typedef struct {
     struct memory_block programMemory;
     struct memory_block usableMemory;
-    struct memory_block memoryBlock;
+    struct memory_block mmuControl;
+    struct memory_block peripheralControl;
+    struct memory_block flashControl;
     struct memory_block currentFlashBlock;
 } MemoryMap;
 
@@ -130,3 +147,5 @@ void yield_task(TaskQueue *task_queue, uint8_t pid);
 void kill_task(TaskQueue *task_queue, uint8_t pid);
 
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
+
+void setupMmap(CPUState *state, uint8_t program_size);
