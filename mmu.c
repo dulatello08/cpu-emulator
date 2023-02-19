@@ -44,3 +44,30 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     printf("\tStart Address: 0x%04x\n", memoryMap.currentFlashBlock.startAddress);
     printf("\tSize: %d\n", memoryMap.currentFlashBlock.size);
 }
+
+bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
+    //Return true if write permission is denied
+    if (IS_ADDRESS_IN_RANGE(address, state->mm.programMemory)) {
+        // Write to program memory
+        return true;
+    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.usableMemory)) {
+        // Write to usable memory
+        return false;
+    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.mmuControl)) {
+        // Write to MMU control
+        return false;
+    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.peripheralControl)) {
+        // Write to peripheral control
+        return false;
+    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.flashControl)) {
+        // Write to flash control
+        return false;
+    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.currentFlashBlock)) {
+        // Write to current flash block
+        return false;
+    } else {
+        // Address is not within any known memory region
+        printf("How? \xF0\x9F\x98\xAE\n");
+        return true;
+    }
+}
