@@ -35,20 +35,8 @@ uint8_t pop(ShiftStack* stack) {
 }
 
 int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
-    MemoryMap mm;
-
-    mm.programMemory.startAddress = 0x0000;
-    mm.programMemory.size = program_size;
-    mm.usableMemory.startAddress = program_size;
-    mm.usableMemory.size = UINT16_MAX - program_size - 4096 - 1;
-    mm.memoryBlock.startAddress = program_size + mm.usableMemory.size;
-    mm.memoryBlock.size = 1;
-    mm.currentFlashBlock.startAddress = program_size + mm.usableMemory.size + 1;
-    mm.currentFlashBlock.size = UINT16_MAX - program_size - 4096;
-
     CPUState state = {
             .ssr = {.top = -1},
-            .mm = mm,
     };
     state.reg = malloc(17 * sizeof(uint8_t));
     state.reg[16] = 0;
@@ -58,13 +46,7 @@ int start(size_t program_size, size_t flash_size, const uint8_t* program_memory,
     state.memory = memory;
     memcpy(state.memory, program_memory, program_size);
 
-
-
-    printf("\nMemory map for HI: \n");
-    printf("0x%04x - 0x%04x : Program memory\n", mm.programMemory.startAddress, mm.programMemory.startAddress + mm.programMemory.size);
-    printf("0x%04x - 0x%04x : Usable memory\n", mm.usableMemory.startAddress, mm.usableMemory.startAddress + mm.usableMemory.size);
-    printf("0x%04x : Flash IO Port\n", mm.memoryBlock.startAddress);
-    printf("0x%04x - 0xFFFF : Current flash block\n", mm.currentFlashBlock.startAddress);
+    setupMmap(&state, program_size);
 
     if (flash_size > BLOCK_SIZE) {
         memcpy(&(state.memory[state.mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
