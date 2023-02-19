@@ -67,6 +67,9 @@
 #define FLASH_CONTROL_START (MEMORY - (FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define FLASH_BLOCK_START (FLASH_CONTROL_START + FLASH_CONTROL_SIZE)
 
+#define IS_ADDRESS_IN_RANGE(address, region) ((address >= (region).startAddress) && (address < ((region).startAddress + (region).size)))
+
+
 typedef struct {
     uint8_t data[STACK_SIZE];
     int top;
