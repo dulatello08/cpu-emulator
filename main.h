@@ -69,6 +69,7 @@
 
 #define IS_ADDRESS_IN_RANGE(address, region) ((address >= (region).startAddress) && (address < ((region).startAddress + (region).size)))
 
+#define READ_PERIPHERAL_MMAP 0x1
 
 typedef struct {
     uint8_t data[STACK_SIZE];
@@ -152,3 +153,5 @@ void kill_task(TaskQueue *task_queue, uint8_t pid);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
 
 void setupMmap(CPUState *state, uint8_t program_size);
+
+void mmuControl(CPUState *state, uint8_t value)

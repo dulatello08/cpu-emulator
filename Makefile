@@ -24,6 +24,9 @@ execute_instructions.o: execute_instructions.c
 mmu.o: mmu.c
 	$(CC) $(CFLAGS) -c mmu.c -o mmu.o
 
+peripherals.o: peripherals.c
+	$(CC) $(CFLAGS) -c peripherals.c -o peripherals.o
+
 clean:
 	rm -f *.o emulator
 
