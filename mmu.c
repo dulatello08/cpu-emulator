@@ -55,9 +55,13 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.mmuControl)) {
         // Write to MMU control
+        mmuControl(state, value);
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.peripheralControl)) {
         // Write to peripheral control
+        if((address == state->mm.peripheralControl.startAddress) || (address == state->mm.peripheralControl.startAddress + 1)) {
+
+        }
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.flashControl)) {
         // Write to flash control
@@ -69,5 +73,16 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
         // Address is not within any known memory region
         printf("How? \xF0\x9F\x98\xAE\n");
         return true;
+    }
+}
+
+void mmuControl(CPUState *state, uint8_t value) {
+    switch(value) {
+        case READ_PERIPHERAL_MMAP:;
+            uint16_t startAddress = state->mm.peripheralControl.startAddress;
+            uint8_t size = state->mm.peripheralControl.size;
+            state->memory[state->mm.mmuControl.startAddress + 1] = startAddress >> 8;
+            state->memory[state->mm.mmuControl.startAddress + 2] = startAddress;
+            state->memory[state->mm.mmuControl.startAddress + 3] = size;
     }
 }
