@@ -71,6 +71,9 @@
 
 #define READ_PERIPHERAL_MMAP 0x1
 
+#define LCD_WIDTH 16
+#define LCD_HEIGHT 2
+
 typedef struct {
     uint8_t data[STACK_SIZE];
     int top;
@@ -107,7 +110,7 @@ typedef struct {
 } TaskQueue;
 
 typedef struct {
-    //Memory map
+    // Memory map
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
@@ -126,6 +129,9 @@ typedef struct {
     bool scheduler;
     bool cpu_mode;
     TaskQueue* task_queue;
+
+    // Display
+    char display[LCD_WIDTH][LCD_HEIGHT];
 } CPUState;
 
 int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
@@ -153,5 +159,9 @@ void kill_task(TaskQueue *task_queue, uint8_t pid);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
 
 void setupMmap(CPUState *state, uint8_t program_size);
+bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
-void mmuControl(CPUState *state, uint8_t value)
+void mmuControl(CPUState *state, uint8_t value);
+void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
+void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
+void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], unsigned char data);

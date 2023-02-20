@@ -4,9 +4,6 @@
 
 #include "main.h"
 
-#define LCD_WIDTH 16
-#define LCD_HEIGHT 2
-
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]) {
     // Clear the display by setting all characters to space
     for (int i = 0; i < LCD_WIDTH; i++) {

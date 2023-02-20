@@ -60,7 +60,7 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.peripheralControl)) {
         // Write to peripheral control
         if((address == state->mm.peripheralControl.startAddress) || (address == state->mm.peripheralControl.startAddress + 1)) {
-
+            write_to_display(state->display, value);
         }
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.flashControl)) {

@@ -298,8 +298,10 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
         case 1:
             // Write mode
             if(!srcDest) {
+                handleWrite(state, address, state->reg[reg]);
                 state->memory[address] = state->reg[reg];
             } else {
+                handleWrite(state, address, reg);
                 state->memory[address] = reg;
             }
             break;
