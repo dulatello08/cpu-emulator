@@ -17,32 +17,32 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     // Print out the program memory block
     printf("Program Memory:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.programMemory.startAddress);
-    printf("\tSize: %d\n", memoryMap.programMemory.size);
+    printf("\tSize: %x\n", memoryMap.programMemory.size);
 
     // Print out the usable memory block
     printf("Usable Memory:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.usableMemory.startAddress);
-    printf("\tSize: %d\n", memoryMap.usableMemory.size);
+    printf("\tSize: %x\n", memoryMap.usableMemory.size);
 
     // Print out the mmu control block
     printf("MMU Control:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.mmuControl.startAddress);
-    printf("\tSize: %d\n", memoryMap.mmuControl.size);
+    printf("\tSize: %x\n", memoryMap.mmuControl.size);
 
     // Print out the peripheral control block
     printf("Peripheral Control:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.peripheralControl.startAddress);
-    printf("\tSize: %d\n", memoryMap.peripheralControl.size);
+    printf("\tSize: %x\n", memoryMap.peripheralControl.size);
 
     // Print out the flash control block
     printf("Memory Block:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.flashControl.startAddress);
-    printf("\tSize: %d\n", memoryMap.flashControl.size);
+    printf("\tSize: %x\n", memoryMap.flashControl.size);
 
     // Print out the current flash block
     printf("Current Flash Block:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.currentFlashBlock.startAddress);
-    printf("\tSize: %d\n", memoryMap.currentFlashBlock.size);
+    printf("\tSize: %x\n", memoryMap.currentFlashBlock.size);
 }
 
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
