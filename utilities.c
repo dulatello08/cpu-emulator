@@ -41,19 +41,15 @@ uint8_t load_program(char *program_file, uint8_t **program_memory) {
         fclose(fpi);
         return 0;
     }
-
-    bool halt = false;
     uint8_t current_byte = 0;
-    while (!halt) {
-        if (temp[current_byte] != OP_HLT) {
-            *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
-            memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
-        } else {
-            halt = true;
-            break;
-        }
+    while (temp[current_byte] != OP_HLT) {
+        *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
+        memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
         current_byte++;
     }
+    *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
+    memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
+    current_byte++;
     fclose(fpi);
     return current_byte;
 }

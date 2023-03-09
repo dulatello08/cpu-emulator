@@ -34,41 +34,39 @@ uint8_t pop(ShiftStack* stack) {
     return value;
 }
 
-int start(size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
-    CPUState state = {
-            .ssr = {.top = -1},
-    };
-    state.reg = malloc(17 * sizeof(uint8_t));
-    state.reg[16] = 0;
-    state.v_flag = false;
-    state.z_flag = false;
-    state.scheduler = false;
-    state.memory = memory;
-    memcpy(state.memory, program_memory, program_size);
+int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
+    state->ssr.top = -1;
+    state->reg = malloc(17 * sizeof(uint8_t));
+    state->reg[16] = 0;
+    state->v_flag = false;
+    state->z_flag = false;
+    state->scheduler = false;
+    state->memory = memory;
+    memcpy(state->memory, program_memory, program_size);
 
-    setupMmap(&state, program_size);
+    setupMmap(state, program_size);
 
     if (flash_size > BLOCK_SIZE) {
-        memcpy(&(state.memory[state.mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
+        memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
     } else {
-        memcpy(&(state.memory[state.mm.currentFlashBlock.startAddress]), flash_memory[0], flash_size - 1);
+        memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], flash_size - 1);
     }
 
-    state.task_queue = calloc(1, sizeof(TaskQueue));
-    state.task_queue->tasks = calloc(1, sizeof(Task*));
-    state.task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
+    state->task_queue = calloc(1, sizeof(TaskQueue));
+    state->task_queue->tasks = calloc(1, sizeof(Task*));
+    state->task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     printf("Starting emulator\n");
     bool exitCode = false;
-    while (state.reg[16] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
-        if (!state.scheduler) {
-            exitCode = execute_instruction(&state);
+    while (state->reg[16] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
+        if (!state->scheduler) {
+            exitCode = execute_instruction(state);
         } else {
             printf("Entering scheduling loop\n");
             break;
         }
     }
-    if (state.scheduler) {
-       schedule(&state);
+    if (state->scheduler) {
+       schedule(state);
     }
     return 0;
 }
