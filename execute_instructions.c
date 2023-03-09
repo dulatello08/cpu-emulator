@@ -5,14 +5,14 @@
 #include "main.h"
 
 bool execute_instruction(CPUState *state) {
-    uint8_t opcode = state->memory[state->reg[16]];
+    uint8_t opcode = state->memory[state->reg[15]];
     // might be unused
-    uint16_t brnAddressing = state->memory[state->reg[16]+1] << 8 | state->memory[state->reg[16]+1];
-    uint16_t normAddressing = state->memory[state->reg[16]+2] << 8 | state->memory[state->reg[16]+3];
-    //uint8_t operand1 = state->memory[state->reg[16]+1];
-    uint8_t operand_rd = (state->memory[state->reg[16]+1] >> 4) & 0xF;
-    uint8_t operand_rn = state->memory[state->reg[16]+1] & 0xF;
-    uint8_t operand2 = state->memory[state->reg[16]+2];
+    uint16_t brnAddressing = state->memory[state->reg[15]+1] << 8 | state->memory[state->reg[15]+1];
+    uint16_t normAddressing = state->memory[state->reg[15]+2] << 8 | state->memory[state->reg[15]+3];
+    //uint8_t operand1 = state->memory[state->reg[15]+1];
+    uint8_t operand_rd = (state->memory[state->reg[15]+1] >> 4) & 0xF;
+    uint8_t operand_rn = state->memory[state->reg[15]+1] & 0xF;
+    uint8_t operand2 = state->memory[state->reg[15]+2];
     switch (opcode) {
         // Do nothing
         case OP_NOP:
@@ -89,35 +89,35 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
-            state->reg[16] = brnAddressing;
+            state->reg[15] = brnAddressing;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case OP_BRZ:
             if (state->z_flag) {
-                state->reg[16] = brnAddressing;
+                state->reg[15] = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case OP_BRO:
             if (!state->v_flag) {
-                state->reg[16] = brnAddressing;
+                state->reg[15] = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case OP_BRR:
             if (state->reg[operand_rd]==state->reg[operand_rn]) {
-                state->reg[16] = normAddressing;
+                state->reg[15] = normAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case OP_BNR:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                state->reg[16] = normAddressing;
+                state->reg[15] = normAddressing;
             }
             break;
         // Halt
         case OP_HLT:
-            printf("Halt at state of program counter: %d\n", state->reg[16]);
+            printf("Halt at state of program counter: %d\n", state->reg[15]);
             return true;
         // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
         case OP_TSK:
@@ -125,7 +125,7 @@ bool execute_instruction(CPUState *state) {
             break;
             // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case OP_SCH:
-            initialize_scheduler(state->task_queue, &(state->reg[16]));
+            initialize_scheduler(state->task_queue, &(state->reg[15]));
             state->scheduler = true;
             break;
             // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
@@ -138,7 +138,7 @@ bool execute_instruction(CPUState *state) {
             break;
             // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %d\n", state->reg[16]);
+            printf("SIGILL: at state of program counter: %d\n", state->reg[15]);
             printf("Instruction: %x was called\n", opcode);
             return true;
     }
