@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     FILE *fpf = NULL;
     int input_len;
     uint8_t *shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    CPUState *state = mmap (NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--program") == 0) {
             if (i + 1 < argc) {
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]) {
                         *emulator_running = 0;
                         exit(1);
                     }
-                    start(program_size ,flash_size, program_memory, flash_memory, shared_data_memory);
+                    start(state, program_size ,flash_size, program_memory, flash_memory, shared_data_memory);
                     printf(">> ");
                     *emulator_running = 0;
                     exit(0);
@@ -97,6 +98,9 @@ int main(int argc, char *argv[]) {
             } else {
                 shared_data_memory[254] = (uint8_t)value;
             }
+        } else if (strcmp(input, "print\n") == 0) {
+            print_display(state->display);
+            printf("\n");
         } else if (strcmp(input, "free\n") == 0) {
             printf("Freeing emulator memory...\n");
             memset(shared_data_memory, 0, MEMORY);
@@ -124,6 +128,7 @@ int main(int argc, char *argv[]) {
     }
     munmap(shared_data_memory, MEMORY);
     munmap(emulator_running, 1);
+    munmap(state, sizeof(CPUState));
     free(program_memory);
     return 0;
 }
