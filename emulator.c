@@ -35,9 +35,8 @@ uint8_t pop(ShiftStack* stack) {
 }
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
-    state->ssr.top = -1;
-    state->reg = malloc(17 * sizeof(uint8_t));
-    state->reg[16] = 0;
+    state->reg = malloc(16 * sizeof(uint8_t));
+    state->reg[15] = 0;
     state->v_flag = false;
     state->z_flag = false;
     state->scheduler = false;

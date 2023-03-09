@@ -19,8 +19,6 @@
 #define EXPECTED_PROGRAM_WORDS 256
 #define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
-#define STACK_SIZE 8
-#define STACK_SIZE 8
 #define TASK_PARALLEL 4
 
 #define OP_NOP 0x00
@@ -52,10 +50,12 @@
 
 #define TIME_SLOT 15
 
+#define STACK_SIZE 0x40
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
 #define FLASH_CONTROL_SIZE 0x1
 #define FLASH_BLOCK_SIZE 0x1000
+
 
 #define PROGRAM_MEMORY_START 0x0000
 #define PROGRAM_MEMORY_SIZE(program_size) program_size
@@ -117,9 +117,6 @@ typedef struct {
 
     // Memory
     uint8_t* memory;
-
-    // Stack shift register
-    ShiftStack ssr;
 
     // ALU Flags register
     bool z_flag;
