@@ -28,7 +28,7 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     // Print out the stack memory block
     printf("Stack Memory:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.stackMemory.startAddress);
-    printf("\tStack top: 0x%04x\n", memoryMap.stackMemory.startAddress);
+    // Multi-stage stack ->> printf("\tStack top: 0x%04x\n", memoryMap.stackMemory.startAddress);
     printf("\t Size %x\n", memoryMap.stackMemory.size);
 
     // Print out the mmu control block
@@ -60,7 +60,10 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.usableMemory)) {
         // Write to usable memory
         return false;
-    } else if (IS_ADDRESS_IN_RANGE(address, state->mm.mmuControl)) {
+    } else if(IS_ADDRESS_IN_RANGE(address, state->mm.stackMemory)) {
+        // Write to stack
+        return true;
+    }else if (IS_ADDRESS_IN_RANGE(address, state->mm.mmuControl)) {
         // Write to MMU control
         mmuControl(state, value);
         return false;

@@ -12,28 +12,6 @@ uint8_t count_leading_zeros(uint8_t x) {
     return 8 - count;
 }
 
-void push(ShiftStack* stack, uint8_t value) {
-    if (stack->top == STACK_SIZE - 1) {
-        // Shift all values in the stack down one position
-        for (int i = 0; i < STACK_SIZE - 1; i++) {
-            stack->data[i] = stack->data[i + 1];
-        }
-    } else {
-        stack->top++;
-    }
-    stack->data[stack->top] = value;
-}
-
-uint8_t pop(ShiftStack* stack) {
-    if (stack->top == -1) {
-        // Stack is empty, return 0
-        return 0;
-    }
-    uint8_t value = stack->data[stack->top];
-    stack->top--;
-    return value;
-}
-
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
     state->reg = malloc(16 * sizeof(uint8_t));
     state->reg[15] = 0;
