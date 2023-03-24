@@ -7,6 +7,7 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     MemoryMap memoryMap = {
             .programMemory = { .startAddress = PROGRAM_MEMORY_START, .size = PROGRAM_MEMORY_SIZE(program_size) },
             .usableMemory = { .startAddress = USABLE_MEMORY_START(program_size), .size = USABLE_MEMORY_SIZE(program_size) },
+            .stackMemory = { .startAddress = STACK_START , .size = STACK_SIZE },
             .mmuControl = { .startAddress = MMU_CONTROL_START, .size = MMU_CONTROL_SIZE },
             .peripheralControl = { .startAddress = PERIPHERAL_CONTROL_START, .size = PERIPHERAL_CONTROL_SIZE },
             .flashControl = { .startAddress = FLASH_CONTROL_START, .size = FLASH_CONTROL_SIZE },
@@ -23,6 +24,12 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     printf("Usable Memory:\n");
     printf("\tStart Address: 0x%04x\n", memoryMap.usableMemory.startAddress);
     printf("\tSize: %x\n", memoryMap.usableMemory.size);
+
+    // Print out the stack memory block
+    printf("Stack Memory:\n");
+    printf("\tStart Address: 0x%04x\n", memoryMap.stackMemory.startAddress);
+    printf("\tStack top: 0x%04x\n", memoryMap.stackMemory.startAddress);
+    printf("\t Size %x\n", memoryMap.stackMemory.size);
 
     // Print out the mmu control block
     printf("MMU Control:\n");
