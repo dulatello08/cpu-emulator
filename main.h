@@ -50,18 +50,18 @@
 
 #define TIME_SLOT 15
 
-#define STACK_SIZE 0x40
+#define STACK_SIZE 0x11
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
 #define FLASH_CONTROL_SIZE 0x1
 #define FLASH_BLOCK_SIZE 0x1000
 
-
 #define PROGRAM_MEMORY_START 0x0000
 #define PROGRAM_MEMORY_SIZE(program_size) program_size
 #define USABLE_MEMORY_START(program_size) (program_size)
-#define USABLE_MEMORY_SIZE(program_size) (MEMORY - (MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE + PROGRAM_MEMORY_SIZE(program_size)))
+#define USABLE_MEMORY_SIZE(program_size) (MEMORY - (STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE + PROGRAM_MEMORY_SIZE(program_size)))
 
+#define STACK_START (MEMORY - (STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define MMU_CONTROL_START (MEMORY - (MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define PERIPHERAL_CONTROL_START (MEMORY - (PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define FLASH_CONTROL_START (MEMORY - (FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
@@ -74,11 +74,6 @@
 #define LCD_WIDTH 16
 #define LCD_HEIGHT 2
 
-typedef struct {
-    uint8_t data[STACK_SIZE];
-    int top;
-} ShiftStack;
-
 struct memory_block {
     uint16_t startAddress;
     uint16_t size;
@@ -87,6 +82,7 @@ struct memory_block {
 typedef struct {
     struct memory_block programMemory;
     struct memory_block usableMemory;
+    struct memory_block stackMemory;
     struct memory_block mmuControl;
     struct memory_block peripheralControl;
     struct memory_block flashControl;
@@ -136,8 +132,6 @@ uint8_t load_program(char *program_file, uint8_t **program_memory);
 int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
-void push(ShiftStack *stack, uint8_t value);
-uint8_t pop( ShiftStack *stack);
 
 bool execute_instruction(CPUState *state);
 
@@ -159,6 +153,10 @@ void setupMmap(CPUState *state, uint8_t program_size);
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
 void mmuControl(CPUState *state, uint8_t value);
+
+void pushStack(uint8_t value);
+uint8_t popStack();
+
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], unsigned char data);
