@@ -34,7 +34,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     printf("Starting emulator\n");
     bool exitCode = false;
-    while (state->reg[16] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
+    while (state->reg[15] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
         if (!state->scheduler) {
             exitCode = execute_instruction(state);
         } else {
