@@ -81,10 +81,11 @@ bool execute_instruction(CPUState *state) {
             break;
         // Push the value in the register Rn at the specified address onto a stack
         case OP_PSH:
-            pushStack(state->reg[operand_rd], )
+            pushStack(state, operand_rd);
             break;
         // Pop a value from the stack and store it in the register Rd
         case OP_POP:
+            popStack(state, operand_rd);
             break;
         // Branch to value specified in operand 2
         case OP_BRN:

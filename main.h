@@ -154,8 +154,8 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
 void mmuControl(CPUState *state, uint8_t value);
 
-void pushStack(uint8_t value);
-uint8_t popStack();
+void pushStack(CPUState *state, uint8_t reg);
+uint8_t popStack(CPUState *state, uint8_t reg);
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
