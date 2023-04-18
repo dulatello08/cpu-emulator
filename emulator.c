@@ -19,6 +19,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->z_flag = false;
     state->scheduler = false;
     state->memory = memory;
+    state->inSubroutine = false;
     memcpy(state->memory, program_memory, program_size);
 
     setupMmap(state, program_size);
