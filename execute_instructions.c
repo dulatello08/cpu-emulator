@@ -123,20 +123,36 @@ bool execute_instruction(CPUState *state) {
         case OP_TSK:
             state->reg[operand_rd] = create_task(state->task_queue, operand2);
             break;
-            // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
+        // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case OP_SCH:
             initialize_scheduler(state->task_queue, &(state->reg[15]));
             state->scheduler = true;
             break;
-            // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
+        // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
         case OP_SWT:
             yield_task(state->task_queue, state->reg[operand_rd]);
             break;
-            // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
+        // Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.
         case OP_KIL:
             kill_task(state->task_queue, state->reg[operand_rd]);
             break;
-            // SIGILL
+        // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
+        case OP_JSR:
+            pushStack(state, state->reg[15]);
+            state->reg[15] = brnAddressing;
+            state->inSubroutine = true;
+            break;
+        // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
+        case OP_OSR:
+            if(state->inSubroutine) {
+                popStack(state, state->reg[15]);
+                state->inSubroutine = false;
+                break;
+            } else {
+                printf("Jump out of subroutine was called while not in subroutine");
+                return true;
+            }
+        // SIGILL
         default:
             printf("SIGILL: at state of program counter: %d\n", state->reg[15]);
             printf("Instruction: %x was called\n", opcode);

@@ -47,6 +47,8 @@
 #define OP_SCH 0x17
 #define OP_SWT 0x18
 #define OP_KIL 0x19
+#define OP_JSR 0x1A
+#define OP_OSR 0x1B
 
 #define TIME_SLOT 15
 
@@ -110,6 +112,7 @@ typedef struct {
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
+    bool inSubroutine;
 
     // Memory
     uint8_t* memory;
