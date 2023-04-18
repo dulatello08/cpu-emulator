@@ -29,6 +29,8 @@
 | SCH         | 0x17   | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop. | SCH                  |
 | SWT         | 0x18   | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                           | SWT Rd               |
 | KIL         | 0x19   | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                   | KIL Rd               |
+| JSR|0x1A|Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.|JSR Operand1+2|
+| OSR|0x1B|Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.|OSR|
 
 | Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
 |----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
