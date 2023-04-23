@@ -52,6 +52,7 @@
 
 #define TIME_SLOT 15
 
+#define FLAGS_SIZE 0x1
 #define STACK_SIZE 0x1
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
@@ -61,8 +62,9 @@
 #define PROGRAM_MEMORY_START 0x0000
 #define PROGRAM_MEMORY_SIZE(program_size) program_size
 #define USABLE_MEMORY_START(program_size) (program_size)
-#define USABLE_MEMORY_SIZE(program_size) (MEMORY - (STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE + PROGRAM_MEMORY_SIZE(program_size)))
+#define USABLE_MEMORY_SIZE(program_size) (MEMORY - (FLAGS_SIZE + STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE + PROGRAM_MEMORY_SIZE(program_size)))
 
+#define FLAGS_START (MEMORY - (FLAGS_SIZE + STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define STACK_START (MEMORY - (STACK_SIZE + MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define MMU_CONTROL_START (MEMORY - (MMU_CONTROL_SIZE + PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
 #define PERIPHERAL_CONTROL_START (MEMORY - (PERIPHERAL_CONTROL_SIZE + FLASH_CONTROL_SIZE + FLASH_BLOCK_SIZE))
@@ -84,6 +86,7 @@ struct memory_block {
 typedef struct {
     struct memory_block programMemory;
     struct memory_block usableMemory;
+    struct memory_block flagsBlock;
     struct memory_block stackMemory;
     struct memory_block mmuControl;
     struct memory_block peripheralControl;
@@ -112,7 +115,7 @@ typedef struct {
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
-    bool inSubroutine;
+    uint8_t* inSubroutine;
 
     // Memory
     uint8_t* memory;

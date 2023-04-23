@@ -140,13 +140,13 @@ bool execute_instruction(CPUState *state) {
         case OP_JSR:
             pushStack(state, state->reg[15]);
             state->reg[15] = brnAddressing;
-            state->inSubroutine = true;
+            *(state->inSubroutine) = true;
             break;
         // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if(state->inSubroutine) {
                 popStack(state, state->reg[15]);
-                state->inSubroutine = false;
+                *(state->inSubroutine) = false;
                 break;
             } else {
                 printf("Jump out of subroutine was called while not in subroutine");
