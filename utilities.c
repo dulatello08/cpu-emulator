@@ -310,16 +310,16 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
 }
 
 
-void pushStack(CPUState *state, uint8_t reg) {
+void pushStack(CPUState *state, uint8_t value) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint8_t regValue = reg;
+    uint8_t regValue = value;
     memory_access(state, regValue, stackAddress, 1, 1);
 }
 
-uint8_t popStack(CPUState *state, uint8_t reg) {
+uint8_t popStack(CPUState *state, uint8_t *out) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
     uint8_t value = state->memory[stackAddress];
-    state->reg[reg] = value;
+    *(out) = value;
     state->memory[stackAddress] = 0;
     return value;
 }
