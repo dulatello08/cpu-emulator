@@ -7,7 +7,7 @@
 bool execute_instruction(CPUState *state) {
     uint8_t opcode = state->memory[state->reg[15]];
     // might be unused
-    uint16_t brnAddressing = state->memory[state->reg[15]+1] << 8 | state->memory[state->reg[15]+1];
+    uint16_t brnAddressing = state->memory[state->reg[15]+1] << 8 | state->memory[state->reg[15]+2];
     uint16_t normAddressing = state->memory[state->reg[15]+2] << 8 | state->memory[state->reg[15]+3];
     //uint8_t operand1 = state->memory[state->reg[15]+1];
     uint8_t operand_rd = (state->memory[state->reg[15]+1] >> 4) & 0xF;
