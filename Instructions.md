@@ -29,8 +29,8 @@
 | SCH         | 0x17   | Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop. | SCH                  |
 | SWT         | 0x18   | Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly.                                                           | SWT Rd               |
 | KIL         | 0x19   | Kill a specific task, takes argument of task's unique id. Remove the task from the task queue and free the memory allocated for the task.                   | KIL Rd               |
-| JSR|0x1A|Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.|JSR Operand1+2|
-| OSR|0x1B|Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.|OSR|
+| JSR         | 0x1A   | Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.                                                                            | JSR Operand1+2       |
+| OSR         | 0x1B   | Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.                                                                         | OSR                  |
 
 | Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
 |----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
@@ -39,8 +39,11 @@
 
 # Memory Map
 
-| Address Range | Description              |
-|---------------|--------------------------|
-| 0x00 - 0xFD   | Data Memory              |
-| 0xFE          | Input                    |
-| 0xFF          | Output                   |
+| Address Range   | Memory Space                            |
+|-----------------|-----------------------------------------|
+| 0x0000 - 0x00~~ | Boot Sector (max 256 bytes)             |
+| 0x0~~~ - 0xEFFF | Usable Memory (min 61,174 bytes)        |
+| 0xF000 - 0xFC03 | Reserved for MMU (4 bytes)              |
+| 0xFC04 - 0xFC05 | Keyboard Data (2 bytes)                 |
+| 0xFC06 - 0xFC07 | LCD Data (2 bytes)                      |
+| 0xFC08 - 0xFFFF | Reserved for Flash Memory (4,097 bytes) |
