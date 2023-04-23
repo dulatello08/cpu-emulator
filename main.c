@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     printf("Loaded program %d bytes\n", program_size);
     int flash_size;
     if (flash_file) {
-        flash_size = load_flash(flash_file, fpf, &flash_memory);
+        flash_size = load_flash(flash_file, fpf, &flash_memory)+2;
     } 
     uint8_t* emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *emulator_running = 0;

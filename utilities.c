@@ -121,14 +121,14 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_SCH:
         case OP_OSR:
         default:
-            state->reg[15] += 1;
+            *(state->pc) += 1;
             break;
         case OP_CLZ:
         case OP_PSH:
         case OP_POP:
         case OP_SWT:
         case OP_KIL:
-            state->reg[15] += 2;
+            *(state->pc) += 2;
             break;
         case OP_ADD:
         case OP_SUB:
@@ -138,7 +138,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_BRZ:
         case OP_BRO:
         case OP_JSR:
-            state->reg[15] += 3;
+            *(state->pc) += 3;
             break;
         case OP_ADM:
         case OP_SBM:
@@ -151,7 +151,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_BRR:
         case OP_BNR:
         case OP_TSK:
-            state->reg[15] += 4;
+            *(state->pc) += 4;
             break;
     }
 }
@@ -312,7 +312,7 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
 
 void pushStack(CPUState *state, uint8_t reg) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint8_t regValue = state->reg[reg];
+    uint8_t regValue = reg;
     memory_access(state, regValue, stackAddress, 1, 1);
 }
 

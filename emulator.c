@@ -14,7 +14,7 @@ uint8_t count_leading_zeros(uint8_t x) {
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
     state->reg = malloc(16 * sizeof(uint8_t));
-    state->reg[15] = 0;
+    state->pc = calloc(1, sizeof(uint16_t));
     state->v_flag = false;
     state->z_flag = false;
     state->scheduler = false;
@@ -35,7 +35,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     printf("Starting emulator\n");
     bool exitCode = false;
-    while (state->reg[15] + 1 < EXPECTED_PROGRAM_WORDS && !exitCode) {
+    while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (!state->scheduler) {
             exitCode = execute_instruction(state);
         } else {
