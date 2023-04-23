@@ -17,7 +17,7 @@ void print_display(char display[LCD_WIDTH][LCD_HEIGHT]) {
     // Print the display to the console
     for (int j = 0; j < LCD_HEIGHT; j++) {
         for (int i = 0; i < LCD_WIDTH; i++) {
-            printf("%c", display[i][j]);
+            printf("%d", display[i][j]);
         }
         printf("\n");
     }
