@@ -5,14 +5,14 @@
 #include "main.h"
 
 bool execute_instruction(CPUState *state) {
-    uint8_t opcode = state->memory[state->reg[15]];
+    uint8_t opcode = state->memory[*(state->pc)];
     // might be unused
-    uint16_t brnAddressing = state->memory[state->reg[15]+1] << 8 | state->memory[state->reg[15]+2];
-    uint16_t normAddressing = state->memory[state->reg[15]+2] << 8 | state->memory[state->reg[15]+3];
-    //uint8_t operand1 = state->memory[state->reg[15]+1];
-    uint8_t operand_rd = (state->memory[state->reg[15]+1] >> 4) & 0xF;
-    uint8_t operand_rn = state->memory[state->reg[15]+1] & 0xF;
-    uint8_t operand2 = state->memory[state->reg[15]+2];
+    uint16_t brnAddressing = state->memory[*(state->pc)+1] << 8 | state->memory[*(state->pc)+2];
+    uint16_t normAddressing = state->memory[*(state->pc)+2] << 8 | state->memory[*(state->pc)+3];
+    //uint8_t operand1 = state->memory[*(state->pc)+1];
+    uint8_t operand_rd = (state->memory[*(state->pc)+1] >> 4) & 0xF;
+    uint8_t operand_rn = state->memory[*(state->pc)+1] & 0xF;
+    uint8_t operand2 = state->memory[*(state->pc)+2];
     switch (opcode) {
         // Do nothing
         case OP_NOP:
@@ -89,35 +89,35 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
-            state->reg[15] = brnAddressing;
+            *(state->pc) = brnAddressing;
             break;
         // Branch to value specified in operand2 if zero flag was set
         case OP_BRZ:
             if (state->z_flag) {
-                state->reg[15] = brnAddressing;
+                *(state->pc) = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if overflow flag was not set.
         case OP_BRO:
             if (!state->v_flag) {
-                state->reg[15] = brnAddressing;
+                *(state->pc) = brnAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 equals to opposite register
         case OP_BRR:
             if (state->reg[operand_rd]==state->reg[operand_rn]) {
-                state->reg[15] = normAddressing;
+                *(state->pc) = normAddressing;
             }
             break;
         // Branch to value specified in operand2 if register at operand 1 does not equal to opposite register
         case OP_BNR:
             if (state->reg[operand_rd] != state->reg[operand_rn]) {
-                state->reg[15] = normAddressing;
+                *(state->pc) = normAddressing;
             }
             break;
         // Halt
         case OP_HLT:
-            printf("Halt at state of program counter: %d\n", state->reg[15]);
+            printf("Halt at state of program counter: %d\n", *(state->pc));
             return true;
         // Create a new task, takes argument of memory address of the task's entry point. Insert the task into the task queue.
         case OP_TSK:
@@ -125,7 +125,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Start the scheduler, should initialize the task queue, set the current task to the first task in the queue with kernel mode, and begin the scheduling loop
         case OP_SCH:
-            initialize_scheduler(state->task_queue, &(state->reg[15]));
+            initialize_scheduler(state->task_queue, (uint8_t *) state->pc);
             state->scheduler = true;
             break;
         // Switch to a specific task, takes argument of task's unique id. Update the task queue accordingly
@@ -138,14 +138,14 @@ bool execute_instruction(CPUState *state) {
             break;
         // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
         case OP_JSR:
-            pushStack(state, state->reg[15]);
-            state->reg[15] = brnAddressing;
+            pushStack(state, *(state->pc));
+            *(state->pc) = brnAddressing;
             *(state->inSubroutine) = true;
             break;
         // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if(state->inSubroutine) {
-                popStack(state, state->reg[15]);
+                popStack(state, *(state->pc));
                 *(state->inSubroutine) = false;
                 break;
             } else {
@@ -154,7 +154,7 @@ bool execute_instruction(CPUState *state) {
             }
         // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %d\n", state->reg[15]);
+            printf("SIGILL: at state of program counter: %d\n", *(state->pc));
             printf("Instruction: %x was called\n", opcode);
             return true;
     }

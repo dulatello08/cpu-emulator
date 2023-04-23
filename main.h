@@ -115,6 +115,7 @@ typedef struct {
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
+    uint16_t* pc;
     uint8_t* inSubroutine;
 
     // Memory
