@@ -85,7 +85,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Pop a value from the stack and store it in the register Rd
         case OP_POP:
-            popStack(state, operand_rd);
+            popStack(state, &(state->reg[operand_rd]));
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
@@ -138,6 +138,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
         case OP_JSR:
+            printf("before subroutine pc: %x\n", *state->pc);
             pushStack(state, *(state->pc));
             *(state->pc) = brnAddressing;
             *(state->inSubroutine) = true;
@@ -145,8 +146,11 @@ bool execute_instruction(CPUState *state) {
         // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if(state->inSubroutine) {
-                popStack(state, *(state->pc));
+                *(state->pc) = 0;
+                popStack(state, (uint8_t *) state->pc);
+                *(state->pc)+=2;
                 *(state->inSubroutine) = false;
+                printf("current pc: %x \n", *state->pc);
                 break;
             } else {
                 printf("Jump out of subroutine was called while not in subroutine");
