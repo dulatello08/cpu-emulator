@@ -139,7 +139,8 @@ bool execute_instruction(CPUState *state) {
         // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
         case OP_JSR:
             printf("before subroutine pc: %x\n", *state->pc);
-            pushStack(state, *(state->pc));
+            pushStack(state, *state->pc & 0xFF);
+            pushStack(state, (*state->pc >> 8) & 0xFF);
             *(state->pc) = brnAddressing;
             *(state->inSubroutine) = true;
             break;
@@ -147,7 +148,11 @@ bool execute_instruction(CPUState *state) {
         case OP_OSR:
             if(state->inSubroutine) {
                 *(state->pc) = 0;
-                popStack(state, (uint8_t *) state->pc);
+                uint8_t *temp = malloc(1 * sizeof(uint8_t));
+                popStack(state, temp);
+                *(state->pc) = *temp;
+                popStack(state, temp);
+                *(state->pc) += *temp << 8;
                 *(state->pc)+=2;
                 *(state->inSubroutine) = false;
                 printf("current pc: %x \n", *state->pc);
