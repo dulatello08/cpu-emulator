@@ -151,6 +151,7 @@ bool execute_instruction(CPUState *state) {
                 uint8_t *temp = malloc(1 * sizeof(uint8_t));
                 popStack(state, temp);
                 *(state->pc) = *temp;
+                
                 popStack(state, temp);
                 *(state->pc) += *temp << 8;
                 *(state->pc)+=2;

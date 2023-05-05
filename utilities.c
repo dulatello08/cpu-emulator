@@ -331,8 +331,8 @@ void pushStack(CPUState *state, uint8_t value) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
     uint16_t temp = state->memory[stackAddress+1];
     temp += value << 8;
-    state->memory[stackAddress] = temp | 0xFF;
-    state->memory[stackAddress+1] = (temp >> 8) | 0xFF;
+    state->memory[stackAddress] = temp & 0xFF;
+    state->memory[stackAddress+1] = (temp >> 8) & 0xFF;
 }
 
 uint8_t popStack(CPUState *state, uint8_t *out) {
