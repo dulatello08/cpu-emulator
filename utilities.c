@@ -330,29 +330,18 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
 
 void pushStack(CPUState *state, uint8_t value) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint16_t* stack = malloc(1 * sizeof(uint16_t));
-    uint8_t* temp = malloc(1);
-    *temp = memory_access(state, value, stackAddress, 0 , 0);
-    *stack = *temp;
-    *temp = value << 8;
-    *stack += *temp;
-    memory_access(state, (*stack >> 8) & 0xFF, stackAddress, 1, 1);
-    memory_access(state, *stack & 0xFF, stackAddress + 1, 1, 1);
+    memory_access(state, value, stackAddress, 0, 0);
+    memory_access(state, (value >> 8) & 0xFF, stackAddress + 1, 1, 1);
+    memory_access(state, value & 0xFF, stackAddress + 1, 1, 1);
 }
 
 uint8_t popStack(CPUState *state, uint8_t *out) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint16_t* stack = malloc(1 * sizeof(uint16_t));
-    uint8_t* temp = malloc(1);
-    *temp = memory_access(state, stackAddress, 1, 0 , 0);
-    *stack = *temp << 8;
-    *temp = memory_access(state, stackAddress + 1, 1, 0 , 0);
-    *stack += *temp;
+    uint16_t stack = memory_access(state, stackAddress, 1, 0 , 0) << 8;
+    stack |= memory_access(state, stackAddress + 1, 1, 0 , 0);
     memory_access(state, 0x00, stackAddress + 1, 1, 1);
     memory_access(state, 0x00, stackAddress, 1, 1);
-    uint8_t value = (*stack >> 8) & 0xFF;
-    free(stack);
-    free(temp);
+    uint8_t value = (stack >> 8) & 0xFF;
     *out = value;
     return value;
 }
