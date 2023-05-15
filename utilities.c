@@ -327,14 +327,15 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
     return state->memory[address];
 }
 
-// BAD CODE
 void pushStack(CPUState *state, uint8_t value) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    memory_access(state, value, stackAddress, 0, 0);
-    memory_access(state, (value >> 8) & 0xFF, stackAddress + 1, 1, 1);
-    memory_access(state, value & 0xFF, stackAddress + 1, 1, 1);
+    uint16_t temp = state->memory[stackAddress+1];
+    temp += value << 8;
+    state->memory[stackAddress] = temp | 0xFF;
+    state->memory[stackAddress+1] = (temp >> 8) | 0xFF;
 }
 
+// BAD CODE
 uint8_t popStack(CPUState *state, uint8_t *out) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
     uint16_t stack = memory_access(state, stackAddress, 1, 0 , 0) << 8;
