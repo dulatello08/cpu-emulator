@@ -341,5 +341,6 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
     stack += state->memory[stackAddress + 1];
     state->memory[stackAddress] = stack & 0xFF;
     state->memory[stackAddress + 1] = 0x0;
+    *out = (stack >> 8) & 0xFF;
     return (stack >> 8) & 0xFF;
 }
