@@ -147,14 +147,9 @@ bool execute_instruction(CPUState *state) {
         // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if(state->inSubroutine) {
-                *(state->pc) = 0;
                 uint8_t *temp = malloc(1 * sizeof(uint8_t));
                 popStack(state, temp);
-                *(state->pc) = *temp;
-                
-                popStack(state, temp);
-                *(state->pc) += *temp << 8;
-                *(state->pc)+=2;
+                *(state->pc) = *temp+2;
                 *(state->inSubroutine) = false;
                 printf("current pc: %x \n", *state->pc);
                 break;
@@ -164,7 +159,7 @@ bool execute_instruction(CPUState *state) {
             }
         // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %d\n", *(state->pc));
+            printf("SIGILL: at state of program counter: %x\n", *(state->pc));
             printf("Instruction: %x was called\n", opcode);
             return true;
     }
