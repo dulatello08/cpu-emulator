@@ -27,7 +27,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     if (flash_size > BLOCK_SIZE) {
         memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
     } else {
-        memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], flash_size - 1);
+        memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], flash_size); // TODO ISSUE
     }
 
     state->task_queue = calloc(1, sizeof(TaskQueue));
