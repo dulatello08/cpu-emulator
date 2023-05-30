@@ -46,5 +46,6 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     if (state->scheduler) {
        schedule(state);
     }
+    printf("PC went over 0xffff\n");
     return 0;
 }
