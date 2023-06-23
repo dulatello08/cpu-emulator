@@ -166,4 +166,4 @@ uint8_t popStack(CPUState *state, uint8_t *out);
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
-void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], unsigned char data);
+void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
