@@ -23,7 +23,7 @@ void print_display(char display[LCD_WIDTH][LCD_HEIGHT]) {
     }
 }
 
-void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], unsigned char data) {
+void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data) {
     static int x = 0;
     static int y = 0;
 
