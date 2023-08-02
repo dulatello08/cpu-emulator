@@ -43,12 +43,8 @@
 #define OP_BRR 0x13
 #define OP_BNR 0x14
 #define OP_HLT 0x15
-#define OP_TSK 0x16
-#define OP_SCH 0x17
-#define OP_SWT 0x18
-#define OP_KIL 0x19
-#define OP_JSR 0x1A
-#define OP_OSR 0x1B
+#define OP_JSR 0x16
+#define OP_OSR 0x17
 
 #define TIME_SLOT 15
 
