@@ -95,22 +95,6 @@ typedef struct {
 } MemoryMap;
 
 typedef struct {
-    uint8_t pid; // unique id of the task
-    uint8_t priority; // priority of the task
-    uint8_t entry_point; // entry point of the task
-    uint8_t *program_counter; // pc of task, relative to entry point
-    uint8_t status; // status
-    uint8_t time_slice; // Time dedicated to the task, depends on priority
-    uint8_t time_running; // Time running the task
-} Task;
-
-typedef struct {
-    Task **tasks; // array of pointers to tasks
-    uint8_t size; // number of tasks in the queue
-    uint8_t head; // index of the next task to be executed
-} TaskQueue;
-
-typedef struct {
     // Memory map
     MemoryMap mm;
     // General-purpose registers + 16 is PC
@@ -124,11 +108,6 @@ typedef struct {
     // ALU Flags register
     bool z_flag;
     bool v_flag;
-
-    // Multitask
-    bool scheduler;
-    bool cpu_mode;
-    TaskQueue* task_queue;
 
     // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
@@ -147,13 +126,6 @@ void increment_pc(CPUState *state, uint8_t opcode);
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-
-void initialize_scheduler(TaskQueue *task_queue, uint8_t *program_counter);
-uint8_t create_task(TaskQueue *task_queue, uint8_t entry_point);
-void schedule(CPUState *state);
-void yield_task(TaskQueue *task_queue, uint8_t pid);
-void kill_task(TaskQueue *task_queue, uint8_t pid);
-
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
 
 void setupMmap(CPUState *state, uint8_t program_size);
