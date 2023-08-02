@@ -282,7 +282,7 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
     }
 }
 
-// Written by Google Bard
+// Written by Dulat
 // This function performs a memory access.
 //
 // Parameters:
