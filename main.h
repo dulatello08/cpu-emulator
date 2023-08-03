@@ -46,8 +46,6 @@
 #define OP_JSR 0x16
 #define OP_OSR 0x17
 
-#define TIME_SLOT 15
-
 #define FLAGS_SIZE 0x1
 #define STACK_SIZE 0x2
 #define MMU_CONTROL_SIZE 0x0004
