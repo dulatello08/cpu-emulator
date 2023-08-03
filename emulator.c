@@ -17,7 +17,6 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->pc = calloc(1, sizeof(uint16_t));
     state->v_flag = false;
     state->z_flag = false;
-    state->scheduler = false;
     state->memory = memory;
     state->inSubroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
     memcpy(state->memory, program_memory, program_size);
@@ -30,22 +29,11 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
         memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], flash_size);
     }
 
-    state->task_queue = calloc(1, sizeof(TaskQueue));
-    state->task_queue->tasks = calloc(1, sizeof(Task*));
-    state->task_queue->tasks[0] = calloc(TASK_PARALLEL, sizeof(Task));
     printf("Starting emulator\n");
     bool exitCode = false;
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        if (!state->scheduler) {
-            exitCode = execute_instruction(state);
-        } else {
-            printf("Entering scheduling loop\n");
-            break;
-        }
+        exitCode = execute_instruction(state);
     }
-    if (state->scheduler) {
-       schedule(state);
-    }
-    printf("PC went over 0xffff\n");
+    if (*(state->pc) + 1 > UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
 }
