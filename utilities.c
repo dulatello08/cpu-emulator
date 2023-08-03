@@ -159,7 +159,7 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
         result = operation(state->reg[operand_rd], operand2);
     } else if(mode == 1) {
         result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
-    } else if(mode == 2) {
+    } else /*if(mode == 2)*/ {
         result = operation(state->reg[operand_rd], state->reg[operand_rn]);
     }
 
@@ -167,9 +167,17 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
     state->z_flag = (result == 0);
 
     if(state->v_flag) {
-        state->reg[operand_rd] = UINT8_MAX;
+        if(mode == 0 || mode == 1) {
+            state->reg[operand_rd] = UINT8_MAX;
+        } else /*if(mode == 2)*/ {
+            memory_access(state, UINT8_MAX, operand2, 1, 1);
+        }
     } else {
-        state->reg[operand_rd] = (uint8_t)result;
+        if(mode == 0 || mode == 1) {
+            state->reg[operand_rd] = (uint8_t)result;
+        } else /*if(mode == 2)*/ {
+            memory_access(state, result, operand2, 1, 1);
+        }
     }
 }
 
