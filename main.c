@@ -1,5 +1,4 @@
 #include "main.h"
-#include <stdint.h>
 #include <sys/mman.h>
 
 void print_usage() {
