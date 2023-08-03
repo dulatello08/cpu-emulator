@@ -34,12 +34,15 @@
 
 
 # Memory Map
+Address range is including start address but excluding end address.
 
 | Address Range   | Memory Space                            |
 |-----------------|-----------------------------------------|
 | 0x0000 - 0x00~~ | Boot Sector (max 256 bytes)             |
-| 0x0~~~ - 0xEFFF | Usable Memory (min 61,174 bytes)        |
-| 0xF000 - 0xFC03 | Reserved for MMU (4 bytes)              |
-| 0xFC04 - 0xFC05 | Keyboard Data (2 bytes)                 |
-| 0xFC06 - 0xFC07 | LCD Data (2 bytes)                      |
-| 0xFC08 - 0xFFFF | Reserved for Flash Memory (4,097 bytes) |
+| 0x00~~ - 0xEFD7 | Usable Memory (min 61,174 bytes)        |
+| 0xEFF0 - 0xEFF1 | Flags                                   |
+| 0xEFF1 - 0xEFF3 | Stack Memory                            |
+| 0xEFF3 - 0xEFF7 | MMU Control                             |
+| 0xEFF7 - 0xEFFF | Peripheral Control                      |
+| 0xEFFF - 0xEFFF | Memory Block                            |
+| 0xF000 - 0xFFFF | Reserved for Flash Memory (4,097 bytes) |

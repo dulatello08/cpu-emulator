@@ -118,7 +118,6 @@ void increment_pc(CPUState *state, uint8_t opcode) {
     switch (opcode) {
         case OP_NOP:
         case OP_HLT:
-        case OP_SCH:
         case OP_OSR:
         default:
             *(state->pc) += 1;
@@ -126,8 +125,6 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_CLZ:
         case OP_PSH:
         case OP_POP:
-        case OP_SWT:
-        case OP_KIL:
             *(state->pc) += 2;
             break;
         case OP_ADD:
@@ -150,136 +147,54 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_LDM:
         case OP_BRR:
         case OP_BNR:
-        case OP_TSK:
             *(state->pc) += 4;
             break;
     }
 }
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    if (mode==0) {
-        if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0xFF;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] += operand2;
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode==1) {
-        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
-            state->v_flag = true;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] = memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn];
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode==2) {
-        if (state->reg[operand_rd] + state->reg[operand_rn] > UINT8_MAX) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0xFF;
-        } else {
-            state->v_flag = false;
-            memory_access(state, state->reg[operand_rd] + state->reg[operand_rn], operand2, 1, 1);
-            if (state->memory[operand2] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
+void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode, uint16_t (*operation)(uint8_t, uint16_t)) {
+    uint16_t result;
+
+    if(mode == 0) {
+        result = operation(state->reg[operand_rd], operand2);
+    } else if(mode == 1) {
+        result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
+    } else if(mode == 2) {
+        result = operation(state->reg[operand_rd], state->reg[operand_rn]);
     }
+
+    state->v_flag = (result > UINT8_MAX);
+    state->z_flag = (result == 0);
+
+    if(state->v_flag) {
+        state->reg[operand_rd] = UINT8_MAX;
+    } else {
+        state->reg[operand_rd] = (uint8_t)result;
+    }
+}
+
+uint16_t add_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 + operand2;
+}
+
+uint16_t subtract_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 - operand2;
+}
+
+uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 * operand2;
+}
+
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, add_operation);
 }
 
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    if (mode == 0) {
-        if (state->reg[operand_rd] < operand2) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] -= operand2;
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode == 1) {
-        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
-            state->v_flag = true;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] = state->reg[operand_rn] - memory_access(state, 0, operand2, 0, 1);
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode == 2) {
-        if (state->reg[operand_rd] < state->reg[operand_rn]) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0;
-        } else {
-            state->v_flag = false;
-            memory_access(state, state->reg[operand_rd] - state->reg[operand_rn], operand2, 1, 1);
-            if (state->memory[operand2] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    }
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, subtract_operation);
 }
 
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    if (mode==0) {
-        if (state->reg[operand_rd] + operand2 > UINT8_MAX) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0xFF;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] += operand2;
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode==1) {
-        if (memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn] > UINT8_MAX) {
-            state->v_flag = true;
-        } else {
-            state->v_flag = false;
-            state->reg[operand_rd] = memory_access(state, 0, operand2, 0, 1) + state->reg[operand_rn];
-            if (state->reg[operand_rd] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    } else if (mode==2) {
-        if (state->reg[operand_rd] + state->reg[operand_rn] > UINT8_MAX) {
-            state->v_flag = true;
-            state->reg[operand_rd] = 0xFF;
-        } else {
-            state->v_flag = false;
-            memory_access(state, state->reg[operand_rd] + state->reg[operand_rn], operand2, 1, 1);
-            if (state->memory[operand2] == 0) {
-                state->z_flag = true;
-            } else {
-                state->z_flag = false;
-            }
-        }
-    }
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, multiply_operation);
 }
 
 // Written by Dulat
@@ -327,20 +242,29 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
     return state->memory[address];
 }
 
-void pushStack(CPUState *state, uint8_t value) {
+// Function to get the current stack value
+uint16_t getStackValue(CPUState *state) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint16_t temp = state->memory[stackAddress+1];
-    temp += value << 8;
-    state->memory[stackAddress] = temp & 0xFF;
-    state->memory[stackAddress+1] = (temp >> 8) & 0xFF;
+    return (state->memory[stackAddress] << 8) + state->memory[stackAddress + 1];
 }
 
-uint8_t popStack(CPUState *state, uint8_t *out) {
+// Function to set the current stack value
+void setStackValue(CPUState *state, uint16_t value) {
     uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    uint16_t stack = state->memory[stackAddress] << 8;
-    stack += state->memory[stackAddress + 1];
-    state->memory[stackAddress] = stack & 0xFF;
-    state->memory[stackAddress + 1] = 0x0;
-    *out = (stack >> 8) & 0xFF;
-    return (stack >> 8) & 0xFF;
+    state->memory[stackAddress] = value & 0xFF;
+    state->memory[stackAddress + 1] = (value >> 8) & 0xFF;
+}
+
+// Push a value onto the stack
+void pushStack(CPUState *state, uint8_t value) {
+    uint16_t currentStack = getStackValue(state);
+    setStackValue(state, currentStack + (value << 8));
+}
+
+// Pop a value from the stack
+uint8_t popStack(CPUState *state, uint8_t *out) {
+    uint16_t currentStack = getStackValue(state);
+    *out = (currentStack >> 8) & 0xFF;
+    setStackValue(state, currentStack & 0xFF);  // zero out the high byte
+    return *out;
 }
