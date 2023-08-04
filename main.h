@@ -88,6 +88,7 @@ typedef struct {
     struct memory_block currentFlashBlock;
 } MemoryMap;
 
+
 typedef struct {
     // Memory map
     MemoryMap mm;
