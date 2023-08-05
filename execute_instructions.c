@@ -9,7 +9,7 @@ bool execute_instruction(CPUState *state) {
     // might be unused
     uint16_t brnAddressing = state->memory[*(state->pc)+1] << 8 | state->memory[*(state->pc)+2];
     uint16_t normAddressing = state->memory[*(state->pc)+2] << 8 | state->memory[*(state->pc)+3];
-    //uint8_t operand1 = state->memory[*(state->pc)+1];
+    //uint8_t operand1 = appState->memory[*(appState->pc)+1];
     uint8_t operand_rd = (state->memory[*(state->pc)+1] >> 4) & 0xF;
     uint8_t operand_rn = state->memory[*(state->pc)+1] & 0xF;
     uint8_t operand2 = state->memory[*(state->pc)+2];
@@ -117,7 +117,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Halt
         case OP_HLT:
-            printf("Halt at state of program counter: %d\n", *(state->pc));
+            printf("Halt at appState of program counter: %d\n", *(state->pc));
             return true;
         // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
         case OP_JSR:
@@ -128,7 +128,7 @@ bool execute_instruction(CPUState *state) {
             *(state->pc) = brnAddressing;
             *(state->inSubroutine) = true;
             break;
-        // Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.
+        // Jump out of subroutine use PC appState saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if(state->inSubroutine) {
                 uint8_t *temp = malloc(1 * sizeof(uint8_t));
@@ -143,7 +143,7 @@ bool execute_instruction(CPUState *state) {
             }
         // SIGILL
         default:
-            printf("SIGILL: at state of program counter: %x\n", *(state->pc));
+            printf("SIGILL: at appState of program counter: %x\n", *(state->pc));
             printf("Instruction: %x was called\n", opcode);
             return true;
     }

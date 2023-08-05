@@ -1,3 +1,4 @@
 # Ignore build artifacts
 *.o
 emulator
+emulator_socket

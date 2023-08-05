@@ -34,6 +34,6 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
         exitCode = execute_instruction(state);
     }
-    if (*(state->pc) + 1 > UINT16_MAX) printf("PC went over 0xffff\n");
+    if (*(state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
 }
