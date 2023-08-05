@@ -16,17 +16,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/cpu-emulator.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/cpu-emulator.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="Initial work on unix socket">
+      <change beforePath="$PROJECT_DIR$/.gdbinit" beforeDir="false" afterPath="$PROJECT_DIR$/.gdbinit" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/socket/unix-socket.c" beforeDir="false" afterPath="$PROJECT_DIR$/socket/unix-socket.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,11 +148,35 @@
       <updated>1691188801273</updated>
       <workItem from="1691188803216" duration="2156000" />
       <workItem from="1691190964045" duration="119000" />
-      <workItem from="1691191104493" duration="5576000" />
+      <workItem from="1691191104493" duration="15630000" />
     </task>
+    <task id="LOCAL-00001" summary="Initial work on unix socket">
+      <option name="closed" value="true" />
+      <created>1691196982343</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1691196982343</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial work on unix socket" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial work on unix socket" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/main.c</url>
+          <line>277</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

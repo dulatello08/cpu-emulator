@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <ctype.h>
 
 #define MEMORY 65536
 #define EXPECTED_PROGRAM_WORDS 256
