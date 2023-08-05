@@ -39,19 +39,29 @@ const FieldEntry cpu_state_fields[] = {
         { "display", offsetof(CPUState, display), sizeof(char[LCD_WIDTH][LCD_HEIGHT]) },
 };
 
+void handle_command(int client_fd, const char *command, void *ptr, const FieldEntry *entry, const char *value);
+
 // Function to handle a connection
 void handle_connection(int client_fd, CPUState *state) {
     char buffer[1024];
     ssize_t numBytes;
 
-    // Loop to handle requests from the client
     while((numBytes = read(client_fd, buffer, sizeof(buffer) - 1)) > 0) {
-        buffer[numBytes] = '\0'; // Null-terminate the string
-        char *command = strtok(buffer, " ");
+        buffer[numBytes] = '\0';
+        char *trimmed_buffer = buffer;
+        while (isspace(*trimmed_buffer)) {
+            trimmed_buffer++;
+        }
+        size_t buffer_length = strlen(trimmed_buffer);
+        while (buffer_length > 0 && isspace(trimmed_buffer[buffer_length - 1])) {
+            trimmed_buffer[buffer_length - 1] = '\0';
+            buffer_length--;
+        }
+
+        char *command = strtok(trimmed_buffer, " ");
         char *param = strtok(NULL, " ");
         char *value = strtok(NULL, " ");
 
-        // Split the parameter into field names
         char *fieldNames[10];
         int numFieldNames = 0;
         char *fieldName = strtok(param, ".");
@@ -60,78 +70,101 @@ void handle_connection(int client_fd, CPUState *state) {
             fieldName = strtok(NULL, ".");
         }
 
-        // Look for the field in the lookup tables
         const FieldEntry *entry = NULL;
         void *structPtr = state;
-        for(int i = 0; i < numFieldNames; i++) {
-            // Determine which lookup table to use
-            const FieldEntry *table;
-            size_t numEntries;
-            if(i == 0) {
-                table = cpu_state_fields;
-                numEntries = sizeof(cpu_state_fields) / sizeof(FieldEntry);
-            } else if(i == 1) {
-                table = memory_map_fields;
-                numEntries = sizeof(memory_map_fields) / sizeof(FieldEntry);
-            } else {
-                table = memory_block_fields;
-                numEntries = sizeof(memory_block_fields) / sizeof(FieldEntry);
-            }
+        const FieldEntry *tables[] = {cpu_state_fields, memory_map_fields, memory_block_fields};
+        size_t tableSizes[] = {sizeof(cpu_state_fields), sizeof(memory_map_fields), sizeof(memory_block_fields)};
 
-            // Search the lookup table for the field name
+        for(int i = 0; i < numFieldNames; i++) {
+            size_t numEntries = tableSizes[i] / sizeof(FieldEntry);
+
             entry = NULL;
             for(size_t j = 0; j < numEntries; j++) {
-                if(strcmp(fieldNames[i], table[j].name) == 0) {
-                    entry = &table[j];
+                if(strcmp(fieldNames[i], tables[i][j].name) == 0) {
+                    entry = &tables[i][j];
                     break;
                 }
             }
 
-            // If the field was not found, send an error message and break out of the loop
             if(entry == NULL) {
                 sprintf(buffer, "Unknown field: %s", fieldNames[i]);
-                break;
+                write(client_fd, buffer, strlen(buffer));
+                return;
             }
 
-            // Update the pointer to the structure for the next level of fields
             structPtr = (char*)structPtr + entry->offset;
         }
 
-        // If the field was found, handle the command
-        if(entry != NULL) {
-            if(strcmp(command, "GET") == 0) {
-                // Get the value of the field and format it as a string
-                if(entry->size == sizeof(uint16_t)) {
-                    sprintf(buffer, "%u", *(uint16_t*)structPtr);
-                } else if(entry->size == sizeof(struct memory_block)) {
-                    struct memory_block *mb = (struct memory_block*)structPtr;
-                    sprintf(buffer, "{ \"startAddress\": %u, \"size\": %u }", mb->startAddress, mb->size);
-                }
-                // Add else if cases for other field sizes as needed
-
-            } else if(strcmp(command, "SET") == 0 && value != NULL) {
-                // Parse the value and set the field
-                if(entry->size == sizeof(uint16_t)) {
-                    // Support both decimal and hexadecimal input
-                    if(strncmp(value, "0x", 2) == 0) {
-                        sscanf(value, "%" SCNx16, (uint16_t*)structPtr);
-                    } else {
-                        sscanf(value, "%" SCNu16, (uint16_t*)structPtr);
-                    }
-                } else if(entry->size == sizeof(struct memory_block)) {
-                    // Parse the value as a memory_block struct (this is just an example and may need to be adjusted depending on the actual format of the values)
-                    struct memory_block *mb = (struct memory_block*)structPtr;
-                    sscanf(value, "{ \"startAddress\": %" SCNu16 ", \"size\": %" SCNu16 " }", &mb->startAddress, &mb->size);
-                }
-                // Add else if cases for other field sizes as needed
-
-                strcpy(buffer, "OK");
-            } else {
-                strcpy(buffer, "Missing value for SET command");
-            }
-        }
-
-        // Send the response back to the client
-        write(client_fd, buffer, strlen(buffer));
+        handle_command(client_fd, command, structPtr, entry, value);
     }
+}
+
+void handle_get_command(void *ptr, __attribute__((unused)) const FieldEntry *entry, char *buffer) {
+    CPUState *state = (CPUState *)ptr;
+    const char *cpu_state_format =
+            "{"
+            "\"mm\": {"
+            "\"programMemory\": { \"startAddress\": %u, \"size\": %u },"
+            "\"usableMemory\": { \"startAddress\": %u, \"size\": %u },"
+            "\"flagsBlock\": { \"startAddress\": %u, \"size\": %u },"
+            "\"stackMemory\": { \"startAddress\": %u, \"size\": %u },"
+            "\"mmuControl\": { \"startAddress\": %u, \"size\": %u },"
+            "\"peripheralControl\": { \"startAddress\": %u, \"size\": %u },"
+            "\"flashControl\": { \"startAddress\": %u, \"size\": %u },"
+            "\"currentFlashBlock\": { \"startAddress\": %u, \"size\": %u }"
+            "},"
+            "\"reg\": \"%p\","
+            "\"pc\": \"%p\","
+            "\"inSubroutine\": \"%p\","
+            "\"memory\": \"%p\","
+            "\"z_flag\": %s,"
+            "\"v_flag\": %s,"
+            "\"display\": []"  // Display can be added if needed, left empty for simplicity
+            "}";
+    sprintf(buffer, cpu_state_format,
+            // MemoryMap fields
+            state->mm.programMemory.startAddress, state->mm.programMemory.size,
+            state->mm.usableMemory.startAddress, state->mm.usableMemory.size,
+            state->mm.flagsBlock.startAddress, state->mm.flagsBlock.size,
+            state->mm.stackMemory.startAddress, state->mm.stackMemory.size,
+            state->mm.mmuControl.startAddress, state->mm.mmuControl.size,
+            state->mm.peripheralControl.startAddress, state->mm.peripheralControl.size,
+            state->mm.flashControl.startAddress, state->mm.flashControl.size,
+            state->mm.currentFlashBlock.startAddress, state->mm.currentFlashBlock.size,
+            // CPUState fields
+            state->reg, state->pc, state->inSubroutine, state->memory,
+            state->z_flag ? "true" : "false",
+            state->v_flag ? "true" : "false");
+}
+
+void handle_set_command(void *ptr, const FieldEntry *entry, const char *value, char *buffer) {
+    if(entry->size == sizeof(uint16_t)) {
+        if(strncmp(value, "0x", 2) == 0) {
+            sscanf(value, "%" SCNx16, (uint16_t*)ptr);
+        } else {
+            sscanf(value, "%" SCNu16, (uint16_t*)ptr);
+        }
+    } else if(entry->size == sizeof(struct memory_block)) {
+        struct memory_block *mb = (struct memory_block*)ptr;
+        sscanf(value, "{ \"startAddress\": %" SCNu16 ", \"size\": %" SCNu16 " }", &mb->startAddress, &mb->size);
+    }
+    // Add else if cases for other field sizes as needed
+
+    strcpy(buffer, "OK");
+}
+
+void handle_command(int client_fd, const char *command, void *ptr, const FieldEntry *entry, const char *value) {
+    char buffer[1024];
+
+    if(strcmp(command, "GET") == 0) {
+        printf("GET");
+        handle_get_command(ptr, entry, buffer);
+    } else if(strcmp(command, "SET") == 0 && value != NULL) {
+        handle_set_command(ptr, entry, value, buffer);
+    } else {
+        printf("%s", command);
+        strcpy(buffer, "Invalid command or missing value for SET command\n");
+    }
+
+    write(client_fd, buffer, strlen(buffer));
 }

@@ -85,8 +85,13 @@ void free_app_state(AppState *appState) {
 }
 
 void execute_command(AppState *appState, const char *command, const char *args) {
+    if (!appState || !command) {
+        fflush(stdout);
+        return;
+    }
+
     for (const Command *cmd = COMMANDS; cmd->command != NULL; cmd++) {
-        if (strcmp(command, cmd->command) == 0) {
+        if (cmd->command && strcmp(command, cmd->command) == 0 && cmd->func) {
             cmd->func(appState, args);
             return;
         }
@@ -214,46 +219,72 @@ void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unu
 }
 
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
-    #ifdef EMULATOR_SOCKET
-        int server_fd, client_fd;
-        struct sockaddr_un server_addr, client_addr;
-        socklen_t client_addr_len = sizeof(client_addr);
+#ifdef EMULATOR_SOCKET
+    // Remove existing socket file
+    unlink(SOCKET_PATH);
+    int server_fd;
+    struct sockaddr_un server_addr;
 
-        // Create socket
-        server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if (server_fd == -1) {
-            perror("Socket creation");
-            return;
-        }
+    // Create socket
+    server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_fd == -1) {
+        perror("Socket creation");
+        return;
+    }
 
-        // Set up server address structure
-        memset(&server_addr, 0, sizeof(server_addr));
-        server_addr.sun_family = AF_UNIX;
-        strncpy(server_addr.sun_path, SOCKET_PATH, sizeof(server_addr.sun_path) - 1);
+    // Set up server address structure
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sun_family = AF_UNIX;
+    strncpy(server_addr.sun_path, SOCKET_PATH, sizeof(server_addr.sun_path) - 1);
 
-        // Bind socket
-        if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-            perror("Socket bind");
-            close(server_fd);
-            return;
-        }
-
-        // Listen for connections
-        if (listen(server_fd, 5) == -1) {
-            perror("Socket listen");
-            close(server_fd);
-            return;
-        }
-
-        // Accept and handle connections
-        while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len)) != -1) {
-            handle_connection(client_fd, (CPUState *) &(appState->state));
-        }
-
-        // Clean up
+    // Bind socket
+    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Socket bind");
         close(server_fd);
-        unlink(SOCKET_PATH);
-    #else
-        printf("Feature not enabled\n");
-    #endif
+        return;
+    }
+
+    // Listen for connections
+    if (listen(server_fd, 5) == -1) {
+        perror("Socket listen");
+        close(server_fd);
+        return;
+    }
+
+    // Fork a new process to handle the socket connections
+    pid_t child_pid = fork();
+    if (child_pid == -1) {
+        perror("Fork failed");
+        close(server_fd);
+        return;
+    } else if (child_pid == 0) {  // Child process
+        // Close server_fd in the child process
+        // Accept and handle connections
+        printf("Accepting connections on %s\n", SOCKET_PATH);
+        while (1) {
+            int client_fd;
+            struct sockaddr_un client_addr;
+            socklen_t client_addr_len = sizeof(client_addr);
+
+            client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+            if (client_fd == -1) {
+                perror("Socket accept");
+                continue;  // Continue accepting other connections
+            }
+
+            // Handle the connection
+            handle_connection(client_fd, (CPUState *) &(appState->state));
+
+            close(client_fd);
+        }
+
+        // Child process should not reach here
+        exit(0);
+    } else {  // Parent process
+        // Close server_fd in the parent process
+        close(server_fd);
+    }
+#else
+    printf("Feature not enabled\n");
+#endif
 }
