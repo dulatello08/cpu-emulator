@@ -2,16 +2,14 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror -I. -g -O0
 LIBS =
 
-ifeq ($(SOCKET_COMM),true)
-    SOURCES += socket/unix-socket.c
-    OBJECTS += unix-socket.o
-    CFLAGS += -DSOCKET_COMM_ENABLED
-endif
+all: emulator emulator_socket
 
-all: emulator
-
-emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o $(OBJECTS)
+emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator
+
+emulator_socket: CFLAGS += -DEMULATOR_SOCKET
+emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o
+	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c -o main.o
@@ -32,9 +30,9 @@ peripherals.o: peripherals.c
 	$(CC) $(CFLAGS) -c peripherals.c -o peripherals.o
 
 unix-socket.o: socket/unix-socket.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c socket/unix-socket.c -o unix-socket.o
 
 clean:
-	rm -f *.o emulator socket/*.o
+	rm -f *.o emulator emulator_socket
 
-.PHONY: all clean
+.PHONY: all clean emulator_socket
