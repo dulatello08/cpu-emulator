@@ -18,7 +18,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->v_flag = false;
     state->z_flag = false;
     state->memory = memory;
-    printf("From emulator, memory pointer: %p\n", state->memory);
+    printf("From emulator, register pointer: %p\n", state->reg);
     state->inSubroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
     memcpy(state->memory, program_memory, program_size);
 

@@ -105,15 +105,17 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
             printf("Struct ptr: %p\n", (void *)state);
 
             structPtr = (char*)structPtr + entry->offset;
-            if(entry->size == sizeof(uint8_t*) && indices[i] != -1) {
+            if (entry->size == sizeof(uint8_t*) && indices[i] != -1) {
                 // special case for memory
-                if(strcmp(entry->name, "memory") == 0) {
+                if (strcmp(entry->name, "memory") == 0) {
                     structPtr = shared_data_memory + indices[i];
                 }
                 // For something like registers:
                 else {
-                    printf("Start pointer: %p; Index: %d; Entry name: %s\n", structPtr, indices[i], entry->name);
-                    structPtr = ((uint8_t *) structPtr) + indices[i];
+                    printf("Start pointer: %p; Index: %d; Entry name: %s\n", (void *)(*((uint64_t *) structPtr)), indices[i], entry->name);
+
+                    structPtr = &(((uint8_t *)(*((uint64_t *) structPtr)))[indices[i]]);
+
                     printf("Result pointer: %p\n", structPtr);
                 }
             }
