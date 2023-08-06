@@ -109,6 +109,19 @@ typedef struct {
     char display[LCD_WIDTH][LCD_HEIGHT];
 } CPUState;
 
+typedef struct {
+    char *program_file;
+    char *flash_file;
+    uint8_t *program_memory;
+    uint8_t **flash_memory;
+    FILE *fpf;
+    uint8_t *shared_data_memory;
+    CPUState *state;
+    uint8_t *emulator_running;
+    uint8_t program_size;
+    int flash_size;
+} AppState;
+
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
 int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
@@ -136,4 +149,4 @@ void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
 
-void handle_connection(int client_fd, CPUState *state);
+void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
