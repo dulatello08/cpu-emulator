@@ -5,19 +5,6 @@
 
 #define SOCKET_PATH "/tmp/emulator.sock"
 
-typedef struct {
-    char *program_file;
-    char *flash_file;
-    uint8_t *program_memory;
-    uint8_t **flash_memory;
-    FILE *fpf;
-    uint8_t *shared_data_memory;
-    CPUState *state;
-    uint8_t *emulator_running;
-    uint8_t program_size;
-    int flash_size;
-} AppState;
-
 typedef void (*CommandFunc)(AppState *appState, const char *args);
 
 typedef struct {
@@ -192,12 +179,24 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("exit - exit the program\n");
 }
 
-void command_input(AppState *appState, const char *args){
+void command_input(AppState *appState, const char *args) {
+    if (args == NULL || *args == '\0') {
+        printf("Error: Empty input\n");
+        return;
+    }
+
     const char *arg = args;
+
+    // Check if input starts with "0x" or "0X", and skip the prefix if present
+    if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
+        arg += 2;
+    }
+
     char *endptr;
     unsigned long value = strtoul(arg, &endptr, 16);
-    if (*endptr != '\n' || value > 0xff) {
-        printf("Error: Invalid hexadecimal byte\n");
+
+    if (endptr == arg || *endptr != '\0' || value > 0xFF) {
+        printf("Error: Invalid hexadecimal byte. Provided: %s\n", args);
     } else {
         appState->shared_data_memory[254] = (uint8_t)value;
     }
@@ -273,7 +272,7 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
             }
 
             // Handle the connection
-            handle_connection(client_fd, (CPUState *) &(appState->state));
+            handle_connection(client_fd, (CPUState *) appState->state, appState->shared_data_memory);
 
             close(client_fd);
         }
