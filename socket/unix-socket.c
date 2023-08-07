@@ -167,31 +167,28 @@ void handle_get_command(void *ptr, __attribute__((unused)) const FieldEntry *ent
 }
 
 void handle_set_command(void *ptr, const FieldEntry *entry, const char *value, char *buffer) {
-    if(entry->size == sizeof(uint16_t)) {
-        if(strncmp(value, "0x", 2) == 0) {
-            sscanf(value, "%" SCNx16, (uint16_t*)ptr);
-        } else {
-            sscanf(value, "%" SCNu16, (uint16_t*)ptr);
-        }
-    } else if(entry->size == sizeof(struct memory_block)) {
-        struct memory_block *mb = (struct memory_block*)ptr;
-        sscanf(value, "{ \"startAddress\": %" SCNu16 ", \"size\": %" SCNu16 " }", &mb->startAddress, &mb->size);
-    } else if(entry->size == sizeof(bool)) {
+    if(entry->size == sizeof(bool)) {
         bool val = (strcmp(value, "true") == 0);
         *((bool*)ptr) = val;
+        sprintf(buffer, "Set boolean value to %s at memory address %p", val ? "true" : "false", ptr);
     } else if(entry->size == sizeof(uint8_t*)) {
         uint8_t val;
-        if(strncmp(value, "0x", 2) == 0) {
-            sscanf(value, "%" SCNx8, &val);
+        char *endptr;
+        val = strtoul(value, &endptr, 0);
+        if(*endptr != '\0') {
+            sprintf(buffer, "Error: invalid input \"%s\"", value);
         } else {
-            sscanf(value, "%" SCNu8, &val);
+            *((uint8_t*)ptr) = val;
+            sprintf(buffer, "Set %" PRIu8 " to memory address %p", val, ptr);
         }
-        printf("I actually worked %02x; result pointer: %p\n", val, ptr);
-        *((uint8_t*)ptr) = val;
     }
     // Add else if cases for other field sizes as needed
 
-    strcpy(buffer, "OK");
+    // Default feedback message if none of the above conditions match
+    if (strcmp(buffer, "") == 0) {
+        strcpy(buffer, "Unable to set value.");
+    }
+    strcat(buffer, "\n"); // add trailing newline
 }
 
 void handle_command(int client_fd, const char *command, void *ptr, const FieldEntry *entry, const char *value) {
