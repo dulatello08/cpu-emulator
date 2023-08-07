@@ -41,6 +41,7 @@ AppState *new_app_state() {
     AppState *appState = malloc(sizeof(AppState));
     appState->state = mmap(NULL, sizeof(CPUState),
                         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->reg = mmap(NULL, 16 * sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->shared_data_memory = mmap(NULL, MEMORY,
                                      PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1,
