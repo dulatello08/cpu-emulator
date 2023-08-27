@@ -3,7 +3,7 @@
 #include <sys/types.h>
 
 
-uint8_t load_program(char *program_file, uint8_t **program_memory) {
+uint8_t load_program(const char *program_file, uint8_t **program_memory) {
     if (program_file == NULL) {
         fprintf(stderr, "Error: input file not specified.\n");
         return 0;
@@ -54,7 +54,7 @@ uint8_t load_program(char *program_file, uint8_t **program_memory) {
     return current_byte;
 }
 
-int load_flash(char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
+int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     if (flash_file == NULL) {
         fprintf(stderr, "Error: flash file not specified.\n");
         return 0;
@@ -209,7 +209,7 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
 // This function performs a memory access.
 //
 // Parameters:
-//   state: A pointer to the CPU state.
+//   appState: A pointer to the CPU appState.
 //   reg: The register to be accessed.
 //   address: The memory address to be accessed.
 //   mode: The access mode.
@@ -224,7 +224,7 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
 //     * 0: Read mode
 //     * 1: Write mode
 //   * The `srcDest` argument can be one of the following:
-//     * 0: Use reg as index of reg in state.
+//     * 0: Use reg as index of reg in appState.
 //     * 1: Use reg as value.
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
     switch (mode) {
