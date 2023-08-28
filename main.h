@@ -1,8 +1,6 @@
 #ifndef INC_8_BIT_CPU_EMULATOR_MAIN_H
 #define INC_8_BIT_CPU_EMULATOR_MAIN_H
 
-#endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
-
 #include <stdint.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -150,3 +148,5 @@ void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
 
 void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
+
+#endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
