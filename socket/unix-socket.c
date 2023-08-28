@@ -76,7 +76,13 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
             char *bracketPos = strchr(fieldNames[i], '[');
             if (bracketPos != NULL) {
                 *bracketPos = '\0';  // Terminate field name at bracket
-                sscanf(bracketPos + 1, "%d", &index);  // Parse index
+
+                char *indexStr = bracketPos + 1;
+                if (indexStr[0] == '0' && indexStr[1] == 'x') {
+                    sscanf(indexStr + 2, "%x", &index);  // Parse hex index
+                } else {
+                    sscanf(indexStr, "%d", &index);  // Parse decimal index
+                }
             }
             indices[i] = index;
         }
