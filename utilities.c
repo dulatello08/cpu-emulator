@@ -205,11 +205,10 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
     handle_operation(state, operand_rd, operand_rn, operand2, mode, multiply_operation);
 }
 
-// Written by Dulat
 // This function performs a memory access.
 //
 // Parameters:
-//   appState: A pointer to the CPU appState.
+//   state: A pointer to the CPU state.
 //   reg: The register to be accessed.
 //   address: The memory address to be accessed.
 //   mode: The access mode.
@@ -217,15 +216,7 @@ void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
 //
 // Returns:
 //   The value of the memory location at the specified address.
-//
-// Notes:
-//   * The `reg` argument can be used as a value too.
-//   * The `mode` argument can be one of the following:
-//     * 0: Read mode
-//     * 1: Write mode
-//   * The `srcDest` argument can be one of the following:
-//     * 0: Use reg as index of reg in appState.
-//     * 1: Use reg as value.
+
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
     switch (mode) {
         case 0:
