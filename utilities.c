@@ -241,29 +241,32 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
     return state->memory[address];
 }
 
-// Function to get the current stack value
-uint16_t getStackValue(CPUState *state) {
-    uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    return (state->memory[stackAddress] << 8) + state->memory[stackAddress + 1];
-}
-
-// Function to set the current stack value
-void setStackValue(CPUState *state, uint16_t value) {
-    uint16_t stackAddress = state->mm.stackMemory.startAddress;
-    state->memory[stackAddress] = value & 0xFF;
-    state->memory[stackAddress + 1] = (value >> 8) & 0xFF;
-}
-
-// Push a value onto the stack
 void pushStack(CPUState *state, uint8_t value) {
-    uint16_t currentStack = getStackValue(state);
-    setStackValue(state, currentStack + (value << 8));
+    // Get the current stack top from the first byte of state->memory
+    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+
+    // Increment the stack top
+    stackTop++;
+
+    // Store the value in the updated stack top location
+    state->memory[stackTop] = value;
+
+    // Update the stack top in the first byte of state->memory
+    state->memory[0] = stackTop;
 }
 
-// Pop a value from the stack
 uint8_t popStack(CPUState *state, uint8_t *out) {
-    uint16_t currentStack = getStackValue(state);
-    *out = (currentStack >> 8) & 0xFF;
-    setStackValue(state, currentStack & 0xFF);  // zero out the high byte
+    // Get the current stack top from the first byte of state->memory
+    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+
+    // Copy the value from the stack top location
+    *out = state->memory[stackTop];
+
+    // Decrement the stack top
+    stackTop--;
+
+    // Update the stack top in the first byte of state->memory
+    state->memory[state->mm.stackMemory.startAddress] = stackTop;
+
     return *out;
 }
