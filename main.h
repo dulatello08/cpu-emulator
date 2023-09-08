@@ -46,7 +46,7 @@
 #define OP_OSR 0x17
 
 #define FLAGS_SIZE 0x1
-#define STACK_SIZE 0x2
+#define STACK_SIZE 0xff
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
 #define FLASH_CONTROL_SIZE 0x1
