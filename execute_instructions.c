@@ -3,6 +3,7 @@
 //
 
 #include "main.h"
+#include <stdint.h>
 
 bool execute_instruction(CPUState *state) {
     uint8_t opcode = state->memory[*(state->pc)];
@@ -134,9 +135,12 @@ bool execute_instruction(CPUState *state) {
         // Jump out of subroutine using PC appState saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if (state->inSubroutine) {
-                uint8_t *temp = malloc(1 * sizeof(uint8_t));
-                popStack(state, temp);
-                *(state->pc) = *temp + 2;
+                uint8_t *temp1 = malloc(1 * sizeof(uint8_t));
+                popStack(state, temp1);
+                uint8_t *temp2 = malloc(1 * sizeof(uint8_t));
+                popStack(state, temp2);
+                uint16_t realpc = (uint16_t) (((*temp1 << 8) & 0xFF00) + *temp1);
+                *(state->pc) = realpc + 5;
                 *(state->inSubroutine) = false;
                 printf("current pc: %x \n", *state->pc);
                 break;

@@ -11,7 +11,9 @@
             "target": "./emulator",
             "arguments": "-p ./program.m -m flash_file.m",
             "cwd": "${workspaceRoot}",
-            "valuesFormatting": "parseText"
+            "valuesFormatting": "parseText",
+            "internalConsoleOptions": "openOnSessionStart",
+            "externalConsole": true
         }
     ]
 }
