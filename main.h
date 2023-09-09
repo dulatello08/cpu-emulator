@@ -46,6 +46,8 @@
 #define OP_HLT 0x15
 #define OP_JSR 0x16
 #define OP_OSR 0x17
+#define OP_RSM 0x18
+#define OP_RLD 0x19
 
 #define FLAGS_SIZE 0x1
 #define STACK_SIZE 0xff
