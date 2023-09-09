@@ -2,3 +2,6 @@
 *.o
 emulator
 emulator_socket
+# ide
+.idea
+.vscode
