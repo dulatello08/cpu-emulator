@@ -139,8 +139,8 @@ bool execute_instruction(CPUState *state) {
                 popStack(state, temp1);
                 uint8_t *temp2 = malloc(1 * sizeof(uint8_t));
                 popStack(state, temp2);
-                uint16_t realpc = (uint16_t) (((*temp1 << 8) & 0xFF00) + *temp1);
-                *(state->pc) = realpc + 5;
+                uint16_t realPc = (uint16_t) (((*temp1 << 8) & 0xFF00) + *temp2);
+                *(state->pc) = realPc + 2;
                 *(state->inSubroutine) = false;
                 printf("current pc: %x \n", *state->pc);
                 break;
