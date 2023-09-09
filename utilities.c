@@ -125,6 +125,8 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_CLZ:
         case OP_PSH:
         case OP_POP:
+        case OP_RSM:
+        case OP_RLD:
             *(state->pc) += 2;
             break;
         case OP_ADD:
@@ -256,7 +258,7 @@ void pushStack(CPUState *state, uint8_t value) {
 
 uint8_t popStack(CPUState *state, uint8_t *out) {
     uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
-    *out = state->memory[state->mm.stackMemory.startAddress + 1];
+    uint8_t value = state->memory[state->mm.stackMemory.startAddress + 1];
 
     // Shift values down by one position
     for (uint8_t i = 1; i < stackTop; i++) {
@@ -264,5 +266,10 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
     }
 
     state->memory[state->mm.stackMemory.startAddress]--;
-    return *out;
+
+    if (out != NULL) {
+        *out = value;
+    }
+
+    return value;
 }
