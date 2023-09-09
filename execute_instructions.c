@@ -135,11 +135,9 @@ bool execute_instruction(CPUState *state) {
         // Jump out of subroutine using PC appState saved in stack. Set inSubroutine flag to false.
         case OP_OSR:
             if (state->inSubroutine) {
-                uint8_t *temp1 = malloc(1 * sizeof(uint8_t));
-                popStack(state, temp1);
-                uint8_t *temp2 = malloc(1 * sizeof(uint8_t));
-                popStack(state, temp2);
-                uint16_t realPc = (uint16_t) (((*temp1 << 8) & 0xFF00) + *temp2);
+                uint16_t realPc;
+                realPc = (uint16_t)(popStack(state, NULL) << 8);
+                realPc |= popStack(state, NULL);
                 *(state->pc) = realPc + 2;
                 *(state->inSubroutine) = false;
                 printf("current pc: %x \n", *state->pc);
@@ -148,6 +146,23 @@ bool execute_instruction(CPUState *state) {
                 printf("Jump out of subroutine was called while not in subroutine");
                 return true;
             }
+        // Relative store register to memory pops off 2 bytes from stack to be used as address
+        case OP_RSM: {
+            uint16_t relAddr;
+            relAddr = (uint16_t) (popStack(state, NULL) << 8);
+            relAddr |= popStack(state, NULL);
+            memory_access(state, operand_rd, relAddr, 1, 0);
+            printf("rsm relAddr: %04x\n", relAddr);
+            break;
+        }
+        case OP_RLD: {
+            uint16_t relAddr;
+            relAddr = (uint16_t) (popStack(state, NULL) << 8);
+            relAddr &= popStack(state, NULL);
+            memory_access(state, operand_rd, relAddr, 0, 0);
+            break;
+        }
+
         // SIGILL
         default:
             printf("SIGILL: at state of program counter: %x\n", *(state->pc));
