@@ -16,10 +16,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="Addressed issues with lldb debugger for improved functionality. (not) Grateful for the hard work of the llvm developers.">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="fibonacci working">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/program.m" beforeDir="false" afterPath="$PROJECT_DIR$/program.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -149,7 +147,7 @@
       <workItem from="1691376824494" duration="1378000" />
       <workItem from="1694184413645" duration="934000" />
       <workItem from="1694225625292" duration="10876000" />
-      <workItem from="1694292355594" duration="1005000" />
+      <workItem from="1694292355594" duration="1816000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -199,7 +197,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694237757401</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="fibonacci working">
+      <option name="closed" value="true" />
+      <created>1694293562387</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1694293562387</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -235,7 +241,8 @@
     <MESSAGE value="push &amp; pop working, ready to work on relative addr" />
     <MESSAGE value="rel addr working, wow" />
     <MESSAGE value="Addressed issues with lldb debugger for improved functionality. (not) Grateful for the hard work of the llvm developers." />
-    <option name="LAST_COMMIT_MESSAGE" value="Addressed issues with lldb debugger for improved functionality. (not) Grateful for the hard work of the llvm developers." />
+    <MESSAGE value="fibonacci working" />
+    <option name="LAST_COMMIT_MESSAGE" value="fibonacci working" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
