@@ -242,31 +242,27 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
 }
 
 void pushStack(CPUState *state, uint8_t value) {
-    // Get the current stack top from the first byte of state->memory
     uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
 
-    // Increment the stack top
-    stackTop++;
+    // Shift existing values up by one position
+    for (uint8_t i = stackTop; i > 0; i--) {
+        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
+    }
 
-    // Store the value in the updated stack top location
-    state->memory[stackTop] = value;
-
-    // Update the stack top in the first byte of state->memory
-    state->memory[0] = stackTop;
+    // Store the new value at the top of the stack
+    state->memory[state->mm.stackMemory.startAddress + 1] = value;
+    state->memory[state->mm.stackMemory.startAddress]++;
 }
 
 uint8_t popStack(CPUState *state, uint8_t *out) {
-    // Get the current stack top from the first byte of state->memory
     uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+    *out = state->memory[state->mm.stackMemory.startAddress + 1];
 
-    // Copy the value from the stack top location
-    *out = state->memory[stackTop];
+    // Shift values down by one position
+    for (uint8_t i = 1; i < stackTop; i++) {
+        state->memory[state->mm.stackMemory.startAddress + i] = state->memory[state->mm.stackMemory.startAddress + i + 1];
+    }
 
-    // Decrement the stack top
-    stackTop--;
-
-    // Update the stack top in the first byte of state->memory
-    state->memory[state->mm.stackMemory.startAddress] = stackTop;
-
+    state->memory[state->mm.stackMemory.startAddress]--;
     return *out;
 }
