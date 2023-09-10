@@ -4,11 +4,11 @@ LIBS =
 
 all: emulator emulator_socket
 
-emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o
+emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o interrupts.c
 	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator
 
 emulator_socket: CFLAGS += -DEMULATOR_SOCKET
-emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o
+emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o interrupts.c
 	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket
 
 main.o: main.c
@@ -31,6 +31,9 @@ peripherals.o: peripherals.c
 
 unix-socket.o: socket/unix-socket.c
 	$(CC) $(CFLAGS) -c socket/unix-socket.c -o unix-socket.o
+
+interrupts.o: interrupts.c
+	$(CC) $(CFLAGS) -c interrupts.c -o interrupts.o
 
 clean:
 	rm -f *.o emulator emulator_socket
