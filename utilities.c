@@ -273,3 +273,20 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
 
     return value;
 }
+
+void destroyCPUState(CPUState *state) {
+    // Deallocate memory for the general-purpose registers
+    if (state->reg != NULL) {
+        free(state->reg);
+    }
+
+    // Deallocate memory for the program counter
+    if (state->pc != NULL) {
+        free(state->pc);
+    }
+
+    // Deallocate memory for the in_subroutine flag
+    if (state->in_subroutine != NULL) {
+        free(state->in_subroutine);
+    }
+}
