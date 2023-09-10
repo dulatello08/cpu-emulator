@@ -25,7 +25,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->z_flag = false;
     state->memory = memory;
     printf("From emulator, register pointer: %p\n", state->reg);
-    state->inSubroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
+    state->in_subroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
     memcpy(state->memory, program_memory, program_size);
 
     setupMmap(state, program_size);
@@ -39,7 +39,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     printf("Starting emulator\n");
     bool exitCode = false;
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        //sleep(1);
+        usleep(500000);
         exitCode = execute_instruction(state);
     }
     if (*(state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");

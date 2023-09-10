@@ -25,8 +25,8 @@
 | BRR         | 0x13   | Branch to value specified in operand2 if register Rd equals to Rn register                                                                               | BRR Rd, Rn, Label     |
 | BNR         | 0x14   | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                                       | BNR Rd, Rn, Label     |
 | HLT         | 0x15   | Halt                                                                                                                                                     | HLT                   |
-| JSR         | 0x16   | Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.                                                                         | JSR Operand1+2        |
-| OSR         | 0x17   | Jump out of subroutine use PC state saved in stack. Set inSubroutine flag to false.                                                                      | OSR                   |
+| JSR         | 0x16   | Jump to subroutine at address of operand 1 and 2. Set in_subroutine flag to true.                                                                         | JSR Operand1+2        |
+| OSR         | 0x17   | Jump out of subroutine use PC state saved in stack. Set in_subroutine flag to false.                                                                      | OSR                   |
 | RSM         | 0x18   | Store the value in register Rd into the data memory at the address indicated by the top 2 bytes of the stack (Pops values from stack, subject to change) | RSM Rd                |
 | RLD         | 0x19   | Load value of data memory at the address indicated by the top 2 bytes of the stack (Pops values from stack, subject to change) into register Rd          | RLD Rd                |
 | ENI         | 0x1A   | Enables maskable interrupts                                                                                                                              | ENI                   |

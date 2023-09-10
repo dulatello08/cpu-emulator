@@ -1,50 +1,33 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "main.h"
 
-// Define a structure for the interrupt queue
-struct interrupt_queue {
-    uint8_t* elements; // Dynamically allocated array to store interrupt sources
-    int top; // Index of the top element
-};
-
-typedef struct interrupt_queue InterruptQueue; // Typedef for convenience
-
-// Initialize the interrupt queue with a specified capacity
-InterruptQueue* create_interrupt_queue(int capacity) {
-    InterruptQueue* queue = (InterruptQueue*)malloc(sizeof(InterruptQueue));
-    if (queue == NULL) {
-        return NULL; // Allocation failed
+// Function to push an element onto the queue
+void push(InterruptQueue* queue, uint8_t element) {
+    if (queue == NULL || queue->elements == NULL || queue->top >= UINT8_MAX) {
+        // Queue is not initialized correctly or is full
+        return;
     }
 
-    queue->elements = (uint8_t*)calloc(capacity, sizeof(uint8_t));
-    if (queue->elements == NULL) {
-        free(queue);
-        return NULL; // Allocation failed
+    // Add the element and increment top
+    queue->elements[queue->top++] = element;
+}
+
+// Function to pop an element from the queue (shift register behavior)
+uint8_t pop(InterruptQueue* queue) {
+    if (queue == NULL || queue->elements == NULL || queue->top == 0) {
+        // Queue is not initialized correctly or is empty
+        return 0; // Return a default value (you can choose your own)
     }
 
-    queue->top = -1;
-    return queue;
-}
+    // Get the element at the front of the queue
+    uint8_t front = queue->elements[0];
 
-// Check if the interrupt queue is empty
-bool is_interrupt_queue_empty(const InterruptQueue* queue) {
-    return queue->top == -1;
-}
-
-
-// Push an interrupt onto the queue
-bool push_interrupt(InterruptQueue* queue, uint8_t source) {
-    queue->elements[++queue->top] = source;
-    return true;
-}
-
-// Pop an interrupt from the queue
-bool pop_interrupt(InterruptQueue* queue, uint8_t* source) {
-    if (is_interrupt_queue_empty(queue)) {
-        return false; // Queue is empty
+    // Shift the elements to the left
+    for (uint8_t i = 0; i < queue->top - 1; i++) {
+        queue->elements[i] = queue->elements[i + 1];
     }
 
-    *source = queue->elements[queue->top--];
-    return true;
+    // Decrement top to indicate one less element
+    queue->top--;
+
+    return front;
 }

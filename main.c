@@ -70,6 +70,7 @@ void free_app_state(AppState *appState) {
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
+    destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
     free(appState);

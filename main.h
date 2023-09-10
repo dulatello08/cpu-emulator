@@ -93,13 +93,21 @@ typedef struct {
 } MemoryMap;
 
 
+// Define a structure for the interrupt queue
+struct interrupt_queue {
+    uint8_t* elements; // Dynamically allocated array to store interrupt sources
+    uint8_t top; // Index of the top element
+};
+
+typedef struct interrupt_queue InterruptQueue; // Typedef for convenience
+
 typedef struct {
     // Memory map
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
     uint16_t* pc;
-    uint8_t* inSubroutine;
+    uint8_t* in_subroutine;
 
     // Memory
     uint8_t* memory;
@@ -110,6 +118,9 @@ typedef struct {
 
     // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
+
+    // Interrupt queue
+    InterruptQueue * i_queue;
 } CPUState;
 
 typedef struct {
@@ -129,6 +140,8 @@ typedef struct {
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
 int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
+
+void destroyCPUState(CPUState *state);
 
 uint8_t count_leading_zeros(uint8_t x);
 

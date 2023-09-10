@@ -122,24 +122,24 @@ bool execute_instruction(CPUState *state) {
         case OP_HLT:
             printf("Halt at appState of program counter: %d\n", *(state->pc));
             return true;
-        // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
+        // Jump to subroutine at address of operand 1 and 2. Set in_subroutine flag to true.
         case OP_JSR:
             printf("before subroutine pc: %x\n", *state->pc);
             printf("subroutine jump to %x\n", brnAddressing);
             pushStack(state, *state->pc & 0xFF);
             pushStack(state, (*state->pc >> 8) & 0xFF);
             *(state->pc) = brnAddressing;
-            *(state->inSubroutine) = true;
+            *(state->in_subroutine) = true;
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
-        // Jump out of subroutine using PC appState saved in stack. Set inSubroutine flag to false.
+        // Jump out of subroutine using PC appState saved in stack. Set in_subroutine flag to false.
         case OP_OSR:
-            if (state->inSubroutine) {
+            if (state->in_subroutine) {
                 uint16_t realPc;
                 realPc = (uint16_t)(popStack(state, NULL) << 8);
                 realPc |= popStack(state, NULL);
                 *(state->pc) = realPc + 2;
-                *(state->inSubroutine) = false;
+                *(state->in_subroutine) = false;
                 printf("current pc: %x \n", *state->pc);
                 break;
             } else {

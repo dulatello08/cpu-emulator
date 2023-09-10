@@ -32,7 +32,7 @@ const FieldEntry cpu_state_fields[] = {
         { "mm", offsetof(CPUState, mm), sizeof(MemoryMap) },
         { "reg", offsetof(CPUState, reg), sizeof(uint8_t*) },
         { "pc", offsetof(CPUState, pc), sizeof(uint16_t*) },
-        { "inSubroutine", offsetof(CPUState, inSubroutine), sizeof(uint8_t*) },
+        { "in_subroutine", offsetof(CPUState, in_subroutine), sizeof(uint8_t*) },
         { "memory", offsetof(CPUState, memory), sizeof(uint8_t*) },
         { "z_flag", offsetof(CPUState, z_flag), sizeof(bool) },
         { "v_flag", offsetof(CPUState, v_flag), sizeof(bool) },
@@ -142,7 +142,7 @@ void handle_get_command(void *ptr, __attribute__((unused)) const FieldEntry *ent
             "  },\n"
             "  \"reg\": \"%p\",\n"
             "  \"pc\": \"%04x\",\n"
-            "  \"inSubroutine\": \"%02x\",\n"
+            "  \"in_subroutine\": \"%02x\",\n"
             "  \"memory\": \"%p\",\n"
             "  \"z_flag\": %s,\n"
             "  \"v_flag\": %s,\n"
@@ -161,7 +161,7 @@ void handle_get_command(void *ptr, __attribute__((unused)) const FieldEntry *ent
             state->mm.flashControl.startAddress, state->mm.flashControl.size,
             state->mm.currentFlashBlock.startAddress, state->mm.currentFlashBlock.size,
             // CPUState fields
-            state->reg, *(state->pc), *(state->inSubroutine), state->memory,
+            state->reg, *(state->pc), *(state->in_subroutine), state->memory,
             state->z_flag ? "true" : "false",
             state->v_flag ? "true" : "false");
 }
