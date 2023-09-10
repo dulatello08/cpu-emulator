@@ -3,6 +3,7 @@
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
 
+#include <signal.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -120,6 +121,7 @@ typedef struct {
     uint8_t *shared_data_memory;
     CPUState *state;
     uint8_t *emulator_running;
+    pid_t emulator_pid;
     uint8_t program_size;
     int flash_size;
 } AppState;

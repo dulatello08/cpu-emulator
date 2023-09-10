@@ -13,6 +13,7 @@ typedef struct {
 } Command;
 
 void command_start(AppState *appState, __attribute__((unused)) const char *args);
+void command_stop(AppState *appState, __attribute__((unused)) const char *args);
 void command_program(AppState *appState, const char *args);
 void command_flash(AppState *appState, const char *args);
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
@@ -24,6 +25,7 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 
 const Command COMMANDS[] = {
         {"start", command_start},
+        {"stop", command_stop},
         {"program", command_program},
         {"flash", command_flash},
         {"help", command_help},
@@ -47,6 +49,7 @@ AppState *new_app_state() {
     appState->emulator_running = mmap(NULL, 1,
                                    PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
+    appState->emulator_pid = 0;
 
     return appState;
 }
@@ -126,6 +129,8 @@ int main(int argc, char *argv[]) {
         char *command = strtok(input, " \n");
         char *args = strtok(NULL, "\n");
         execute_command(appState, command, args);
+        fflush(stdout);
+        usleep(500000);
     }
 
     free_app_state(appState);
@@ -135,6 +140,7 @@ int main(int argc, char *argv[]) {
 void command_start(AppState *appState, __attribute__((unused)) const char *args){
     if (*(appState->emulator_running) == 0) {
         pid_t emulator = fork();
+        appState->emulator_pid = emulator;
         *(appState->emulator_running) = 1;
         if(emulator==0) {
             if(appState->program_memory == NULL) {
@@ -158,6 +164,22 @@ void command_start(AppState *appState, __attribute__((unused)) const char *args)
     }
 }
 
+void command_stop(AppState *appState, __attribute__((unused)) const char *args) {
+    if (appState->emulator_running == 0) {
+        printf("Emulator is not running (PID is 0).\n");
+        return;
+    }
+
+    if (kill(appState->emulator_pid, SIGKILL) == 0) {
+        // The kill operation was successful
+        printf("Emulator successfully stopped.\n");
+        *(appState->emulator_running) = 0;
+    } else {
+        // An error occurred during the kill operation
+        perror("Error stopping emulator");
+    }
+}
+
 void command_program(AppState *appState, const char *args){
     const char* filename = args;
     appState->program_size = load_program(filename, &appState->program_memory);
@@ -172,6 +194,7 @@ void command_flash(AppState *appState, const char *args){
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
     printf("Commands:\n");
     printf("start - start emulator\n");
+    printf("stop - stop emulator \n");
     printf("program <filename> - load program\n");
     printf("flash <filename> - load flash\n");
     printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
