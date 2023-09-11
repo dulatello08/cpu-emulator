@@ -290,3 +290,18 @@ void destroyCPUState(CPUState *state) {
         free(state->in_subroutine);
     }
 }
+
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t ,uint8_t source, uint8_t handler) {
+    if (source < INTERRUPT_TABLE_SIZE) {
+        table[source].source = source;
+        table[source].handler = handler;
+    }
+}
+
+uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source) {
+    if (source < INTERRUPT_TABLE_SIZE) {
+        return table[source].handler;
+    }
+    // Return an invalid value or handle the error as needed
+    return 0xFF; // Change this to an appropriate error value
+}
