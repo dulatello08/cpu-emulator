@@ -16,15 +16,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="little changes">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="refactor + interrupt queue">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/Instructions.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/interrupts.c" beforeDir="false" afterPath="$PROJECT_DIR$/interrupts.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/socket/unix-socket.c" beforeDir="false" afterPath="$PROJECT_DIR$/socket/unix-socket.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -161,7 +156,7 @@
       <workItem from="1694184413645" duration="934000" />
       <workItem from="1694225625292" duration="10876000" />
       <workItem from="1694292355594" duration="1816000" />
-      <workItem from="1694375882265" duration="3278000" />
+      <workItem from="1694375882265" duration="10518000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -219,7 +214,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694293562387</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="refactor + interrupt queue">
+      <option name="closed" value="true" />
+      <created>1694379711512</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1694379711512</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -256,14 +259,15 @@
     <MESSAGE value="rel addr working, wow" />
     <MESSAGE value="Addressed issues with lldb debugger for improved functionality. (not) Grateful for the hard work of the llvm developers." />
     <MESSAGE value="fibonacci working" />
-    <option name="LAST_COMMIT_MESSAGE" value="fibonacci working" />
+    <MESSAGE value="refactor + interrupt queue" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor + interrupt queue" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/emulator.c</url>
-          <line>22</line>
+          <line>23</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">

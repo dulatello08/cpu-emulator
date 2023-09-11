@@ -76,6 +76,8 @@
 #define LCD_WIDTH 16
 #define LCD_HEIGHT 2
 
+#define INTERRUPT_TABLE_SIZE 10
+
 struct memory_block {
     uint16_t startAddress;
     uint16_t size;
@@ -94,12 +96,16 @@ typedef struct {
 
 
 // Define a structure for the interrupt queue
-struct interrupt_queue {
+struct {
     uint8_t* elements; // Dynamically allocated array to store interrupt sources
     uint8_t top; // Index of the top element
-};
+} typedef InterruptQueue;
 
-typedef struct interrupt_queue InterruptQueue; // Typedef for convenience
+// Define a structure for interrupt vectors
+struct {
+    uint8_t source;
+    uint8_t handler;
+} typedef InterruptVector;
 
 typedef struct {
     // Memory map
@@ -119,8 +125,9 @@ typedef struct {
     // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
 
-    // Interrupt queue
-    InterruptQueue * i_queue;
+    // Interrupts
+    InterruptVector* i_vector_table;
+    InterruptQueue* i_queue;
 } CPUState;
 
 typedef struct {
@@ -167,3 +174,6 @@ void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
 
 void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
+
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source, uint8_t handler);
+uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);
