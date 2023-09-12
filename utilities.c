@@ -291,10 +291,10 @@ void destroyCPUState(CPUState *state) {
     }
 }
 
-void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t ,uint8_t source, uint8_t handler) {
-    if (source < INTERRUPT_TABLE_SIZE) {
-        table[source].source = source;
-        table[source].handler = handler;
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler) {
+    if (index < INTERRUPT_TABLE_SIZE) {
+        table[index].source = source;
+        table[index].handler = handler;
     }
 }
 

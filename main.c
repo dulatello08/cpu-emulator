@@ -5,6 +5,11 @@
 
 #define SOCKET_PATH "/tmp/emulator.sock"
 
+void sigintHandler() {
+    signal(SIGINT, sigintHandler);
+    fflush(stdout);
+}
+
 typedef void (*CommandFunc)(AppState *appState, const char *args);
 
 typedef struct {
@@ -93,6 +98,8 @@ void execute_command(AppState *appState, const char *command, const char *args) 
 }
 
 int main(int argc, char *argv[]) {
+    // Set the SIGINT (Ctrl+C) signal handler to sigintHandler
+    signal(SIGINT, sigintHandler);
     AppState *appState = new_app_state();
 
     // Parse arguments
@@ -229,7 +236,6 @@ void command_input(AppState *appState, const char *args) {
 
 void command_print(AppState *appState, __attribute__((unused)) const char *args){
     print_display(appState->state->display);
-    printf("\n");
 }
 
 void command_free(AppState *appState, __attribute__((unused)) const char *args){
