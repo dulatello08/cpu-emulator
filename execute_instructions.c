@@ -108,6 +108,7 @@ bool execute_instruction(CPUState *state) {
         case OP_BRR:
             if (state->reg[operand_rd] == state->reg[operand_rn]) {
                 *(state->pc) = normAddressing;
+                printf("branched to %x", normAddressing);
                 skipIncrementPC = true;  // Skip incrementing the program counter
             }
             break;
