@@ -40,7 +40,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     printf("Starting emulator\n");
     bool exitCode = false;
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        usleep(500000);
+        //usleep(500000);
         exitCode = execute_instruction(state);
     }
     if (*(state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");

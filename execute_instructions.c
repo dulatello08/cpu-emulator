@@ -152,14 +152,15 @@ bool execute_instruction(CPUState *state) {
             relAddr = (uint16_t) (popStack(state, NULL) << 8);
             relAddr |= popStack(state, NULL);
             memory_access(state, operand_rd, relAddr, 1, 0);
-            printf("rsm relAddr: %04x\n", relAddr);
+            //printf("rsm relAddr: %04x\n", relAddr);
             break;
         }
         case OP_RLD: {
             uint16_t relAddr;
             relAddr = (uint16_t) (popStack(state, NULL) << 8);
-            relAddr &= popStack(state, NULL);
+            relAddr |= popStack(state, NULL);
             memory_access(state, operand_rd, relAddr, 0, 0);
+            //printf("rld relAddr: %04x\n", relAddr);
             break;
         }
 
