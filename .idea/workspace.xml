@@ -16,10 +16,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="upcoming keyboard work, stable display, 91 byte hello world program.&#10;&#10;idk how steve wozniak fit entire OS (arguably, WozMon) into 255 bytes of machine code...">
-      <change afterPath="$PROJECT_DIR$/display-text.m" afterDir="false" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="32 byte hello world">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/display-text.m" beforeDir="false" afterPath="$PROJECT_DIR$/display-text.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/program.m" beforeDir="false" afterPath="$PROJECT_DIR$/program.m" afterDir="false" />
     </list>
@@ -158,7 +157,7 @@
       <workItem from="1694292355594" duration="1816000" />
       <workItem from="1694375882265" duration="11396000" />
       <workItem from="1694489121186" duration="3970000" />
-      <workItem from="1694544835260" duration="2034000" />
+      <workItem from="1694544835260" duration="3534000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -240,7 +239,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694493696495</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="32 byte hello world">
+      <option name="closed" value="true" />
+      <created>1694547392390</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1694547392390</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -281,7 +288,8 @@
     <MESSAGE value="refactor + interrupt queue" />
     <MESSAGE value="interrupt vector table, feeling like code is getting bloated" />
     <MESSAGE value="upcoming keyboard work, stable display, 91 byte hello world program.&#10;&#10;idk how steve wozniak fit entire OS (arguably, WozMon) into 255 bytes of machine code..." />
-    <option name="LAST_COMMIT_MESSAGE" value="upcoming keyboard work, stable display, 91 byte hello world program.&#10;&#10;idk how steve wozniak fit entire OS (arguably, WozMon) into 255 bytes of machine code..." />
+    <MESSAGE value="32 byte hello world" />
+    <option name="LAST_COMMIT_MESSAGE" value="32 byte hello world" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -293,17 +301,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/execute_instructions.c</url>
-          <line>135</line>
+          <line>136</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/execute_instructions.c</url>
-          <line>128</line>
+          <line>129</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/execute_instructions.c</url>
-          <line>150</line>
+          <line>151</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
