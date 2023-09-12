@@ -171,9 +171,9 @@ uint8_t popStack(CPUState *state, uint8_t *out);
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
-void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
+void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 
 void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
 
-void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source, uint8_t handler);
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler);
 uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);

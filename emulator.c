@@ -20,7 +20,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
 //        printf("h");
 //        sleep(1);
 //    }
-    uint8_t interrupt_vector_table
+//    uint8_t interrupt_vector_table;
     state->pc = calloc(1, sizeof(uint16_t));
     state->v_flag = false;
     state->z_flag = false;
