@@ -73,8 +73,8 @@
 
 #define READ_PERIPHERAL_MMAP 0x1
 
-#define LCD_WIDTH 16
-#define LCD_HEIGHT 2
+#define LCD_WIDTH 32
+#define LCD_HEIGHT 4
 
 #define INTERRUPT_TABLE_SIZE 10
 
