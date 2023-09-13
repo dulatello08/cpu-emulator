@@ -16,10 +16,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="32 byte hello world">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="complex text reader app, 39 bytes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/display-text.m" beforeDir="false" afterPath="$PROJECT_DIR$/display-text.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/program.m" beforeDir="false" afterPath="$PROJECT_DIR$/program.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -86,26 +87,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "interrupts",
-    "last_opened_file_path": "/home/dulat/Documents/cpu/cpu-emulator",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "CPPToolchains",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;interrupts&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/dulat/Documents/cpu/cpu-emulator&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CPPToolchains&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/socket" />
@@ -157,7 +158,8 @@
       <workItem from="1694292355594" duration="1816000" />
       <workItem from="1694375882265" duration="11396000" />
       <workItem from="1694489121186" duration="3970000" />
-      <workItem from="1694544835260" duration="3534000" />
+      <workItem from="1694544835260" duration="3737000" />
+      <workItem from="1694572006849" duration="3767000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -247,7 +249,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694547392390</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="complex text reader app, 39 bytes">
+      <option name="closed" value="true" />
+      <created>1694548799320</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1694548799320</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -289,7 +299,8 @@
     <MESSAGE value="interrupt vector table, feeling like code is getting bloated" />
     <MESSAGE value="upcoming keyboard work, stable display, 91 byte hello world program.&#10;&#10;idk how steve wozniak fit entire OS (arguably, WozMon) into 255 bytes of machine code..." />
     <MESSAGE value="32 byte hello world" />
-    <option name="LAST_COMMIT_MESSAGE" value="32 byte hello world" />
+    <MESSAGE value="complex text reader app, 39 bytes" />
+    <option name="LAST_COMMIT_MESSAGE" value="complex text reader app, 39 bytes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
