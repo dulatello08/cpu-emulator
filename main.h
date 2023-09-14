@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include <ncurses.h>
 
 #define MEMORY 65536
 #define EXPECTED_PROGRAM_WORDS 256
@@ -177,3 +178,5 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 
 void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler);
 uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);
+
+void tty_mode(CPUState *state);
