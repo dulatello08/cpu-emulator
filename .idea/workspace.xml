@@ -16,12 +16,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="complex text reader app, 39 bytes">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="display test">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/display-text.m" beforeDir="false" afterPath="$PROJECT_DIR$/display-text.m" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/program.m" beforeDir="false" afterPath="$PROJECT_DIR$/program.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,6 +114,11 @@
     </key>
   </component>
   <component name="RunManager" selected="Makefile Application.all">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="all" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flashedSubroutine.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="all" CONFIG_NAME="all" version="1" RUN_PATH="./emulator_socket">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
@@ -159,7 +164,8 @@
       <workItem from="1694375882265" duration="11396000" />
       <workItem from="1694489121186" duration="3970000" />
       <workItem from="1694544835260" duration="3737000" />
-      <workItem from="1694572006849" duration="3767000" />
+      <workItem from="1694572006849" duration="4604000" />
+      <workItem from="1694630506068" duration="17550000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -257,7 +263,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694548799320</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="display test">
+      <option name="closed" value="true" />
+      <created>1694579100772</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1694579100772</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -300,7 +314,8 @@
     <MESSAGE value="upcoming keyboard work, stable display, 91 byte hello world program.&#10;&#10;idk how steve wozniak fit entire OS (arguably, WozMon) into 255 bytes of machine code..." />
     <MESSAGE value="32 byte hello world" />
     <MESSAGE value="complex text reader app, 39 bytes" />
-    <option name="LAST_COMMIT_MESSAGE" value="complex text reader app, 39 bytes" />
+    <MESSAGE value="display test" />
+    <option name="LAST_COMMIT_MESSAGE" value="display test" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
