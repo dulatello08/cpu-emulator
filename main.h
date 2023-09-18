@@ -97,16 +97,16 @@ typedef struct {
 
 
 // Define a structure for the interrupt queue
-struct {
+typedef struct {
     uint8_t* elements; // Dynamically allocated array to store interrupt sources
     uint8_t top; // Index of the top element
-} typedef InterruptQueue;
+} InterruptQueue;
 
 // Define a structure for interrupt vectors
-struct {
+typedef struct {
     uint8_t source;
     uint8_t handler;
-} typedef InterruptVector;
+} InterruptVector;
 
 typedef struct {
     // Memory map
