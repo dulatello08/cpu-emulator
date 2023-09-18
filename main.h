@@ -179,4 +179,4 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler);
 uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);
 
-void tty_mode(CPUState *state);
+void tty_mode(AppState *appState);

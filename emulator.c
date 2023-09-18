@@ -14,7 +14,7 @@ uint8_t count_leading_zeros(uint8_t x) {
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
     //state->reg = malloc(16 * sizeof(uint8_t));]
-    // debug shit
+    // debug stuff
 //    bool goOut = false;
 //    while(!goOut) {
 //        printf("h");
@@ -25,7 +25,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->v_flag = false;
     state->z_flag = false;
     state->memory = memory;
-    printf("From emulator, register pointer: %p\n", state->reg);
+    printf("From emulator, register pointer: %p\n", (void *) state->reg);
     state->in_subroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
     memcpy(state->memory, program_memory, program_size);
 

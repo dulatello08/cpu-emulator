@@ -5,8 +5,7 @@
 
 #define SOCKET_PATH "/tmp/emulator.sock"
 
-void sigintHandler() {
-    signal(SIGINT, sigintHandler);
+void sigintHandler(__attribute__((unused)) int signal) {
     fflush(stdout);
 }
 
@@ -46,7 +45,7 @@ const Command COMMANDS[] = {
         {NULL, NULL}
 };
 
-AppState *new_app_state() {
+AppState *new_app_state(void) {
     AppState *appState = malloc(sizeof(AppState));
     appState->state = mmap(NULL, sizeof(CPUState),
                         PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -322,5 +321,5 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 }
 
 void command_tty_mode(AppState *appState, __attribute__((unused)) const char *args) {
-    tty_mode(appState->state);
+    tty_mode(appState);
 }

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -I. -g -O0
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -I. -g -O0
 LIBS =
 
 all: emulator emulator_socket

@@ -304,19 +304,30 @@ uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE],
     // Return an invalid value or handle the error as needed
     return 0xFF; // Change this to an appropriate error value
 }
+#define PAIR_BW       1
+#define BRIGHT_WHITE  15
 
-void tty_mode(CPUState *state) {
+void tty_mode(AppState *appState) {
 
     //dark magic
-    (void)state;
+    (void)appState;
 
     initscr();          // Initialize ncurses
     cbreak();           // Line buffering disabled
     noecho();           // Don't echo user input
     curs_set(FALSE);    // Hide cursor
     keypad(stdscr, TRUE); // Enable special keys like arrow keys
-    nodelay(stdscr, TRUE); // Enable non-blocking input
-    timeout(0); // Set the delay for getch() to return immediately
+    start_color();
+    use_default_colors();
+    // Create a color pair for black on white
+    if (can_change_color() && COLORS >= 16)
+        init_color(BRIGHT_WHITE, 1000,1000,1000);
+
+    if (COLORS >= 16) {
+        init_pair(PAIR_BW, COLOR_BLACK, BRIGHT_WHITE);
+    } else {
+        init_pair(PAIR_BW, COLOR_BLACK, COLOR_WHITE);
+    }
 
     int height, width;
     getmaxyx(stdscr, height, width);
@@ -338,9 +349,11 @@ void tty_mode(CPUState *state) {
 
     // Status message initialization
     char statusMessage[256];
-    strcpy(statusMessage, "Welcome to the terminal!");
+    strcpy(statusMessage, "TTY State");
     wclear(statusWin);
     wprintw(statusWin, statusMessage);
+    wbkgd(statusWin, COLOR_PAIR(PAIR_BW));
+    wattron(statusWin, COLOR_PAIR(PAIR_BW));
     wrefresh(statusWin);
 
     // Command mode flag
@@ -420,6 +433,8 @@ void tty_mode(CPUState *state) {
         wclear(statusWin);
         wprintw(statusWin, statusMessage);
         wrefresh(statusWin);
+        // Set the background color of the window
+        wbkgd(statusWin, COLOR_PAIR(PAIR_BW));
     }
 
     // Clean up and exit
