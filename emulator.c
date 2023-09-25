@@ -13,7 +13,7 @@ uint8_t count_leading_zeros(uint8_t x) {
 }
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
-    //state->reg = malloc(16 * sizeof(uint8_t));]
+    //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
 //    bool goOut = false;
 //    while(!goOut) {

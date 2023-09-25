@@ -290,20 +290,23 @@ void destroyCPUState(CPUState *state) {
     }
 }
 
-void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler) {
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler) {
     if (index < INTERRUPT_TABLE_SIZE) {
         table[index].source = source;
         table[index].handler = handler;
     }
 }
 
-uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source) {
-    if (source < INTERRUPT_TABLE_SIZE) {
-        return table[source].handler;
+uint16_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source) {
+    for (int i = 0; i < INTERRUPT_TABLE_SIZE; i++) {
+        if (table[i].source == source) {
+            return table[i].handler;
+        }
     }
-    // Return an invalid value or handle the error as needed
-    return 0xFF; // Change this to an appropriate error value
+    // Return a default value or signal that the source was not found.
+    return 0; // You can use another suitable default value.
 }
+
 #define PAIR_BW       1
 #define BRIGHT_WHITE  15
 

@@ -1,15 +1,15 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -Wpedantic -I. -g -O0
-LIBS =
+LIBS = -lncurses
 
 all: emulator emulator_socket
 
 emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o interrupts.c
-	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator -lncurses
+	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator
 
 emulator_socket: CFLAGS += -DEMULATOR_SOCKET
 emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o interrupts.c
-	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket -lncurses
+	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket
 
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c -o main.o

@@ -76,10 +76,25 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
         mmuControl(state, value);
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.peripheralControl)) {
+        uint8_t ranged_address = address - state->mm.peripheralControl.startAddress;
         // Write to peripheral control
-        if((address == state->mm.peripheralControl.startAddress) || (address == state->mm.peripheralControl.startAddress + 1)) {
+        if((ranged_address == 0x0) || (ranged_address == 0x1)) {
             write_to_display(state->display, value);
+        } else if (ranged_address == 0x2) {
+            // handle request for initializing interrupt vector table
+            uint16_t ivt_start_address;
+            ivt_start_address = (uint16_t) (popStack(state, NULL) << 8);
+            ivt_start_address |= popStack(state, NULL);
+            // Loop to read 30 bytes and store them in the IVT
+            for (int i = 0; i < 30; i+=3) {
+                uint8_t source = memory_access(state, 0, ivt_start_address + i, 0, 1);
+                uint16_t handler = memory_access(state, 0, ivt_start_address + i + 1, 0, 1);
+                handler |= memory_access(state, 0, ivt_start_address + i + 2, 0, 1);
+
+                add_interrupt_vector(state->i_vector_table, i/3, source, handler);
+            }
         }
+
         return false;
     } else if (IS_ADDRESS_IN_RANGE(address, state->mm.flashControl)) {
         // Write to flash control
