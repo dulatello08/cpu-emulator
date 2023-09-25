@@ -1,4 +1,5 @@
 #include "main.h"
+#include <curses.h>
 #include <stdint.h>
 
 
@@ -318,6 +319,7 @@ void tty_mode(AppState *appState) {
     initscr();          // Initialize ncurses
     cbreak();           // Line buffering disabled
     noecho();           // Don't echo user input
+    nodelay(stdscr, true);
     curs_set(FALSE);    // Hide cursor
     keypad(stdscr, TRUE); // Enable special keys like arrow keys
     start_color();
@@ -354,7 +356,7 @@ void tty_mode(AppState *appState) {
     char statusMessage[256];
     strcpy(statusMessage, "TTY State");
     wclear(statusWin);
-    wprintw(statusWin, statusMessage);
+    wprintw(statusWin, "Status: %s", statusMessage);
     wbkgd(statusWin, COLOR_PAIR(PAIR_BW));
     wattron(statusWin, COLOR_PAIR(PAIR_BW));
     wrefresh(statusWin);
@@ -414,6 +416,12 @@ void tty_mode(AppState *appState) {
                 waddch(bottomWin, ch);
                 wrefresh(bottomWin);
             }
+            // Update the status message dynamically
+            // wclear(statusWin);
+            // wprintw(statusWin, "Status: %s", statusMessage);
+            // wrefresh(statusWin);
+            // Set the background color of the window
+            //wbkgd(statusWin, COLOR_PAIR(PAIR_BW));
         } else {
             // Handle normal mode
             if (ch == ':') {
@@ -432,12 +440,8 @@ void tty_mode(AppState *appState) {
             }
         }
 
-        // Update the status message dynamically
-        wclear(statusWin);
-        wprintw(statusWin, statusMessage);
-        wrefresh(statusWin);
-        // Set the background color of the window
-        wbkgd(statusWin, COLOR_PAIR(PAIR_BW));
+       
+        //usleep(500000);
     }
 
     // Clean up and exit
