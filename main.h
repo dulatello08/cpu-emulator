@@ -22,7 +22,6 @@
 #define EXPECTED_PROGRAM_WORDS 256
 #define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
-#define TASK_PARALLEL 4
 
 #define OP_NOP 0x00
 #define OP_ADD 0x01
@@ -105,7 +104,7 @@ struct {
 // Define a structure for interrupt vectors
 struct {
     uint8_t source;
-    uint8_t handler;
+    uint16_t handler;
 } typedef InterruptVector;
 
 typedef struct {
@@ -114,7 +113,10 @@ typedef struct {
     // General-purpose registers + 16 is PC
     uint8_t* reg;
     uint16_t* pc;
+
+    // flags in separate variables
     uint8_t* in_subroutine;
+    bool mask_interrupt;
 
     // Memory
     uint8_t* memory;
@@ -127,7 +129,7 @@ typedef struct {
     char display[LCD_WIDTH][LCD_HEIGHT];
 
     // Interrupts
-    InterruptVector* i_vector_table;
+    InterruptVector i_vector_table[INTERRUPT_TABLE_SIZE];
     InterruptQueue* i_queue;
 } CPUState;
 
@@ -176,7 +178,7 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 
 void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
 
-void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint8_t handler);
-uint8_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);
+void add_interrupt_vector(InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler);
+uint16_t get_interrupt_handler(const InterruptVector table[INTERRUPT_TABLE_SIZE], uint8_t source);
 
 void tty_mode(AppState *appState);

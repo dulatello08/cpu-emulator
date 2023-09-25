@@ -16,18 +16,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="ncurses, cursed (jk), quite a bit of progress on tty monitor">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="-Wpedantic and ncurses">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/Instructions.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/display-text.m" beforeDir="false" afterPath="$PROJECT_DIR$/display-text.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/execute_instructions.c" beforeDir="false" afterPath="$PROJECT_DIR$/execute_instructions.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/interrupts.c" beforeDir="false" afterPath="$PROJECT_DIR$/interrupts.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmu.c" beforeDir="false" afterPath="$PROJECT_DIR$/mmu.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/peripherals.c" beforeDir="false" afterPath="$PROJECT_DIR$/peripherals.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/socket/unix-socket.c" beforeDir="false" afterPath="$PROJECT_DIR$/socket/unix-socket.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -173,7 +168,10 @@
       <workItem from="1694544835260" duration="3737000" />
       <workItem from="1694572006849" duration="4604000" />
       <workItem from="1694630506068" duration="17804000" />
-      <workItem from="1694925320342" duration="9934000" />
+      <workItem from="1694925320342" duration="11281000" />
+      <workItem from="1695354245204" duration="1964000" />
+      <workItem from="1695440310095" duration="8480000" />
+      <workItem from="1695597321864" duration="2266000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -287,7 +285,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694667273665</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="-Wpedantic and ncurses">
+      <option name="closed" value="true" />
+      <created>1695013367498</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1695013367498</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -332,7 +338,8 @@
     <MESSAGE value="complex text reader app, 39 bytes" />
     <MESSAGE value="display test" />
     <MESSAGE value="ncurses, cursed (jk), quite a bit of progress on tty monitor" />
-    <option name="LAST_COMMIT_MESSAGE" value="ncurses, cursed (jk), quite a bit of progress on tty monitor" />
+    <MESSAGE value="-Wpedantic and ncurses" />
+    <option name="LAST_COMMIT_MESSAGE" value="-Wpedantic and ncurses" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
