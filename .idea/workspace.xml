@@ -16,13 +16,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="-Wpedantic and ncurses">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="interrupts">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/Instructions.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/flash_file.m" beforeDir="false" afterPath="$PROJECT_DIR$/flash_file.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmu.c" beforeDir="false" afterPath="$PROJECT_DIR$/mmu.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/program.m" beforeDir="false" afterPath="$PROJECT_DIR$/program.m" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -116,7 +116,7 @@
     </key>
   </component>
   <component name="RunManager" selected="Makefile Application.all">
-    <configuration name="all" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flashedSubroutine.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="all" CONFIG_NAME="all" version="1" RUN_PATH="./emulator_socket">
+    <configuration name="all" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flash_file.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="all" CONFIG_NAME="all" version="1" RUN_PATH="./emulator_socket">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
       </method>
@@ -129,11 +129,6 @@
     <configuration name="emulator_socket" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flashedSubroutine.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="emulator_socket" CONFIG_NAME="emulator_socket" version="1" RUN_PATH="emulator_socket">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration default="true" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
@@ -310,7 +305,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="rel-addr" />
+                        <option value="interrupts" />
                       </list>
                     </value>
                   </entry>
@@ -364,6 +359,11 @@
           <url>file://$PROJECT_DIR$/execute_instructions.c</url>
           <line>94</line>
           <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/main.c</url>
+          <line>203</line>
+          <option name="timeStamp" value="15" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

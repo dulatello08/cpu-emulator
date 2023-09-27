@@ -30,7 +30,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     memcpy(state->memory, program_memory, program_size);
 
     setupMmap(state, program_size);
-
+    printf("Flash size: %zu", flash_size);
     if (flash_size > BLOCK_SIZE) {
         memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
     } else {
