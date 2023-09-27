@@ -3,6 +3,11 @@
 //
 #include "main.h"
 
+#define PRINT_MEMORY_BLOCK(name, block) \
+    printf("%s:\n", name);             \
+    printf("\tStart Address: 0x%04x\n", block.startAddress); \
+    printf("\tSize: %x\n", block.size);
+
 void setupMmap(CPUState *state, uint8_t program_size) {
     MemoryMap memoryMap = {
             .programMemory = { .startAddress = PROGRAM_MEMORY_START, .size = PROGRAM_MEMORY_SIZE(program_size) },
@@ -16,46 +21,15 @@ void setupMmap(CPUState *state, uint8_t program_size) {
     };
     state->mm = memoryMap;
 
-    // Print out the program memory block
-    printf("Program Memory:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.programMemory.startAddress);
-    printf("\tSize: %x\n", memoryMap.programMemory.size);
-
-    // Print out the usable memory block
-    printf("Usable Memory:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.usableMemory.startAddress);
-    printf("\tSize: %x\n", memoryMap.usableMemory.size);
-
-    // Print out the flags block
-    printf("Flags:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.flagsBlock.startAddress);
-    printf("\tSize: %x\n", memoryMap.flagsBlock.size);
-
-    // Print out the stack memory block
-    printf("Stack Memory:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.stackMemory.startAddress);
-    // Multi-stage stack ->> printf("\tStack top: 0x%04x\n", memoryMap.stackMemory.startAddress);
-    printf("\t Size %x\n", memoryMap.stackMemory.size);
-
-    // Print out the mmu control block
-    printf("MMU Control:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.mmuControl.startAddress);
-    printf("\tSize: %x\n", memoryMap.mmuControl.size);
-
-    // Print out the peripheral control block
-    printf("Peripheral Control:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.peripheralControl.startAddress);
-    printf("\tSize: %x\n", memoryMap.peripheralControl.size);
-
-    // Print out the flash control block
-    printf("Memory Block:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.flashControl.startAddress);
-    printf("\tSize: %x\n", memoryMap.flashControl.size);
-
-    // Print out the current flash block
-    printf("Current Flash Block:\n");
-    printf("\tStart Address: 0x%04x\n", memoryMap.currentFlashBlock.startAddress);
-    printf("\tSize: %x\n", memoryMap.currentFlashBlock.size);
+    // print memory block
+    PRINT_MEMORY_BLOCK("Program Memory", memoryMap.programMemory);
+    PRINT_MEMORY_BLOCK("Usable Memory", memoryMap.usableMemory);
+    PRINT_MEMORY_BLOCK("Flags", memoryMap.flagsBlock);
+    PRINT_MEMORY_BLOCK("Stack Memory", memoryMap.stackMemory);
+    PRINT_MEMORY_BLOCK("MMU Control", memoryMap.mmuControl);
+    PRINT_MEMORY_BLOCK("Peripheral Control", memoryMap.peripheralControl);
+    PRINT_MEMORY_BLOCK("Memory Block", memoryMap.flashControl);
+    PRINT_MEMORY_BLOCK("Current Flash Block", memoryMap.currentFlashBlock);
 }
 
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
@@ -88,9 +62,10 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
             // Loop to read 30 bytes and store them in the IVT
             for (int i = 0; i < 30; i+=3) {
                 uint8_t source = memory_access(state, 0, ivt_start_address + i, 0, 1);
-                uint16_t handler = memory_access(state, 0, ivt_start_address + i + 1, 0, 1);
+                uint16_t handler = (uint16_t) (memory_access(state, 0, ivt_start_address + i + 1, 0, 1) << 8);
                 handler |= memory_access(state, 0, ivt_start_address + i + 2, 0, 1);
-
+                printf("IVT Start Address: %04x, Adding interrupt vector, source: %02x, handler %04x\n", ivt_start_address, source, handler);
+                printf("Source: %02x, Handler preview: %02x %02x %02x %02x\n", source, state->memory[handler], state->memory[handler + 1], state->memory[handler + 2], state->memory[handler + 3]);
                 add_interrupt_vector(state->i_vector_table, i/3, source, handler);
             }
         }

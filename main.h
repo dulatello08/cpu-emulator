@@ -149,7 +149,7 @@ typedef struct {
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
-int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
+long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 void destroyCPUState(CPUState *state);
 
