@@ -1,17 +1,6 @@
 #include "main.h"
 #include <stdint.h>
 
-uint8_t count_leading_zeros(uint8_t x) {
-    uint8_t count = 0;
-
-    while (x != 0) {
-        x >>= 1;
-        count++;
-    }
-
-    return 8 - count;
-}
-
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
     //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
@@ -25,11 +14,11 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->v_flag = false;
     state->z_flag = false;
     state->memory = memory;
-    printf("From emulator, register pointer: %p\n", (void *) state->reg);
-    state->in_subroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
+    //printf("From emulator, register pointer: %p\n", (void *) state->reg);
     memcpy(state->memory, program_memory, program_size);
 
     setupMmap(state, program_size);
+    state->in_subroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
     printf("Flash size: %zu", flash_size);
     if (flash_size > BLOCK_SIZE) {
         memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
