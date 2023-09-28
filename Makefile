@@ -4,11 +4,11 @@ LIBS = -lncurses
 
 all: emulator emulator_socket
 
-emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o interrupts.c
+emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o interrupts.c utilities_tty.o
 	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator
 
 emulator_socket: CFLAGS += -DEMULATOR_SOCKET
-emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o interrupts.c
+emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o utilities_tty.o interrupts.c
 	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket
 
 main.o: main.c
@@ -19,6 +19,9 @@ emulator.o: emulator.c
 
 utilities.o: utilities.c
 	$(CC) $(CFLAGS) -c utilities.c -o utilities.o
+
+utilities_tty.o: utilities_tty.c
+	$(CC) $(CFLAGS) -c utilities_tty.c -o utilities_tty.o
 
 execute_instructions.o: execute_instructions.c
 	$(CC) $(CFLAGS) -c execute_instructions.c -o execute_instructions.o

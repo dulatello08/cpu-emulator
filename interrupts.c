@@ -1,33 +1,63 @@
 #include "main.h"
 
-// Function to push an element onto the queue
-void push(InterruptQueue* queue, uint8_t element) {
-    if (queue == NULL || queue->elements == NULL || queue->top >= UINT8_MAX) {
-        // Queue is not initialized correctly or is full
+
+void add_interrupt_vector(InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler) {
+    if (index < INTERRUPT_TABLE_SIZE) {
+        table[index].source = source;
+        table[index].handler = handler;
+    }
+}
+
+uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t source) {
+    for (int i = 0; i < INTERRUPT_TABLE_SIZE; i++) {
+        if (table[i].source == source) {
+            return table[i].handler;
+        }
+    }
+    // Return a default value or signal that the source was not found.
+    return 0; // You can use another suitable default value.
+}
+
+void push_interrupt(InterruptQueue* queue, uint8_t source) {
+    if (queue->top == INTERRUPT_QUEUE_MAX - 1) {
+        // Queue is already full
         return;
     }
 
-    // Add the element and increment top
-    queue->elements[queue->top++] = element;
+    // Increment the top index
+    queue->top++;
+
+    // Reallocate memory for the sources array
+    queue->sources = realloc(queue->sources, (queue->top + 1) * sizeof(uint8_t));
+
+    // Shift all elements to the right
+    for (uint8_t i = queue->top; i > 0; i--) {
+        queue->sources[i] = queue->sources[i - 1];
+    }
+
+    // Add the new source to the front of the queue
+    queue->sources[0] = source;
 }
 
-// Function to pop an element from the queue (shift register behavior)
-uint8_t pop(InterruptQueue* queue) {
-    if (queue == NULL || queue->elements == NULL || queue->top == 0) {
-        // Queue is not initialized correctly or is empty
-        return 0; // Return a default value (you can choose your own)
+uint8_t pop_interrupt(InterruptQueue* queue) {
+    if (queue->top == SENTINEL_VALUE) {
+        // Queue is empty
+        return 0; // Or any other appropriate value
     }
 
-    // Get the element at the front of the queue
-    uint8_t front = queue->elements[0];
+    // Get the front source
+    uint8_t source = queue->sources[0];
 
-    // Shift the elements to the left
-    for (uint8_t i = 0; i < queue->top - 1; i++) {
-        queue->elements[i] = queue->elements[i + 1];
+    // Shift all elements to the left
+    for (uint8_t i = 0; i < queue->top; i++) {
+        queue->sources[i] = queue->sources[i + 1];
     }
 
-    // Decrement top to indicate one less element
+    // Decrement the top index
     queue->top--;
 
-    return front;
+    // Reallocate memory for the sources array
+    queue->sources = realloc(queue->sources, (queue->top + 1) * sizeof(uint8_t));
+
+    return source;
 }
