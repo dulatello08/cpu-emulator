@@ -78,7 +78,6 @@
 
 #define INTERRUPT_TABLE_SIZE 10
 #define INTERRUPT_QUEUE_MAX 10
-#define SENTINEL_VALUE 0xea
 
 struct memory_block {
     uint16_t startAddress;
@@ -100,7 +99,7 @@ typedef struct {
 // Define a structure for the interrupt queue
 typedef struct {
     uint8_t* sources; // Dynamically allocated array to store interrupt sources
-    uint8_t top; // Index of the top element
+    uint8_t size; // Index of the top element
 } InterruptQueue;
 
 // Define a structure for interrupt vectors
@@ -182,5 +181,8 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 
 void add_interrupt_vector(InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler);
 uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t source);
+
+void push_interrupt(InterruptQueue* queue, uint8_t source);
+uint8_t pop_interrupt(InterruptQueue* queue);
 
 void tty_mode(AppState *appState);
