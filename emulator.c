@@ -16,7 +16,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->memory = memory;
 
     state->i_queue.sources = NULL;
-    state->i_queue.top = SENTINEL_VALUE;
+    state->i_queue.size = 0;
     //printf("From emulator, register pointer: %p\n", (void *) state->reg);
     memcpy(state->memory, program_memory, program_size);
 
@@ -32,9 +32,19 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     printf("Starting emulator\n");
     bool exitCode = false;
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        if (state->i_queue.top == SENTINEL_VALUE || state->i_queue.top == 0)
+        if (state->mask_interrupt || state->i_queue.size == 0) {
+            exitCode = execute_instruction(state);
+        } else {
+            uint8_t i_source = pop_interrupt(&(state->i_queue));
+            uint16_t i_handler = get_interrupt_handler(state->i_vector_table, i_source);
+            printf("before interrupt pc: %x\n", *state->pc);
+            printf("interrupt jump to %x\n", i_handler);
+            pushStack(state, *state->pc & 0xFF);
+            pushStack(state, (*state->pc >> 8) & 0xFF);
+            *(state->pc) = i_handler;
+            *(state->in_subroutine) = true;
+        }
         //usleep(500000);
-        exitCode = execute_instruction(state);
     }
     if (*(state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
