@@ -31,7 +31,6 @@
 | RLD         | 0x19   | Load value of data memory at the address indicated by the top 2 bytes of the stack (Pops values from stack, subject to change) into register Rd          | RLD Rd                |
 | ENI         | 0x1A   | Enables maskable interrupts                                                                                                                              | ENI                   |
 | DSI         | 0x1B   | Disables maskable interrupts                                                                                                                             | DSI                   |
-| ITS         | 0x1C   | Set start address of interrupt vector table                                                                                                              | ITS Operand2 \| Label |
 
 
 | Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |

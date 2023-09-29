@@ -1,4 +1,5 @@
 #include "main.h"
+#include <stdint.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -27,6 +28,7 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_tty_mode(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
+void command_interrupt(AppState *appState, const char *args);
 
 const Command COMMANDS[] = {
         {"start", command_start},
@@ -42,6 +44,7 @@ const Command COMMANDS[] = {
         {"ctl_listen", command_ctl_listen},
         {"ctl_l", command_ctl_listen},
         {"tty", command_tty_mode},
+        {"interrupt", command_interrupt},
         {NULL, NULL}
 };
 
@@ -322,4 +325,9 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 
 void command_tty_mode(AppState *appState, __attribute__((unused)) const char *args) {
     tty_mode(appState);
+}
+
+void command_interrupt(AppState *appState, const char *args) {
+    uint8_t source = strtoul(args, NULL, 0);
+    
 }
