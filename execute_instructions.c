@@ -164,6 +164,12 @@ bool execute_instruction(CPUState *state) {
             printf("rld relAddr: %04x\n", relAddr);
             break;
         }
+        case OP_ENI: 
+            state->mask_interrupt = true;
+            break;
+        case OP_DSI:
+            state->mask_interrupt = false;
+            break;
 
         // SIGILL
         default:

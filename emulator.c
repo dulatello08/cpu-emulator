@@ -14,7 +14,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->v_flag = false;
     state->z_flag = false;
     state->memory = memory;
-
+    state->mask_interrupt = false;
     state->i_queue.sources = NULL;
     state->i_queue.size = 0;
     //printf("From emulator, register pointer: %p\n", (void *) state->reg);
@@ -22,7 +22,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
 
     setupMmap(state, program_size);
     state->in_subroutine = &(state->memory[state->mm.flagsBlock.startAddress]);
-    printf("Flash size: %zu",  flash_size);
+    printf("Flash size: %zu\n",  flash_size);
     if (flash_size > BLOCK_SIZE) {
         memcpy(&(state->memory[state->mm.currentFlashBlock.startAddress]), flash_memory[0], 4096);
     } else {

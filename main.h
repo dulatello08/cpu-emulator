@@ -49,6 +49,8 @@
 #define OP_OSR 0x17
 #define OP_RSM 0x18
 #define OP_RLD 0x19
+#define OP_ENI 0x1A
+#define OP_DSI 0x1B
 
 #define FLAGS_SIZE 0x1
 #define STACK_SIZE 0xff
