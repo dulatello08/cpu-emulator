@@ -132,7 +132,7 @@ typedef struct {
 
     // Interrupts
     InterruptVectors i_vector_table[INTERRUPT_TABLE_SIZE];
-    InterruptQueue* i_queue;
+    InterruptQueue i_queue;
 } CPUState;
 
 typedef struct {

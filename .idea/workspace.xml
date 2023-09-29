@@ -16,7 +16,12 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="very close to perfect loading of ivt" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="corrected testing flash file">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/interrupts.c" beforeDir="false" afterPath="$PROJECT_DIR$/interrupts.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/main.h" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -108,6 +113,11 @@
     </key>
   </component>
   <component name="RunManager" selected="Makefile Application.all">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="all" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flash_file.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="all" CONFIG_NAME="all" version="1" RUN_PATH="./emulator_socket">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
@@ -159,7 +169,10 @@
       <workItem from="1695354245204" duration="1964000" />
       <workItem from="1695440310095" duration="8480000" />
       <workItem from="1695597321864" duration="2266000" />
-      <workItem from="1695825554649" duration="639000" />
+      <workItem from="1695825554649" duration="855000" />
+      <workItem from="1695873671894" duration="228000" />
+      <workItem from="1695874388115" duration="248000" />
+      <workItem from="1695958197731" duration="2189000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -289,7 +302,15 @@
       <option name="project" value="LOCAL" />
       <updated>1695826192572</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="corrected testing flash file">
+      <option name="closed" value="true" />
+      <created>1695826400867</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1695826400867</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -336,7 +357,8 @@
     <MESSAGE value="ncurses, cursed (jk), quite a bit of progress on tty monitor" />
     <MESSAGE value="-Wpedantic and ncurses" />
     <MESSAGE value="very close to perfect loading of ivt" />
-    <option name="LAST_COMMIT_MESSAGE" value="very close to perfect loading of ivt" />
+    <MESSAGE value="corrected testing flash file" />
+    <option name="LAST_COMMIT_MESSAGE" value="corrected testing flash file" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
