@@ -23,6 +23,8 @@ uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE
 void push_interrupt(InterruptQueue* queue, uint8_t source) {
     queue->size++;
     queue->sources = realloc(queue->sources, queue->size * sizeof(uint8_t));
+
+    if (queue->sources == NULL) return;
     
     for (int i = queue->size - 1; i > 0; i--) {
         queue->sources[i] = queue->sources[i - 1];
@@ -44,6 +46,7 @@ uint8_t pop_interrupt(InterruptQueue* queue) {
 
     queue->size--;
     queue->sources = realloc(queue->sources, queue->size * sizeof(uint8_t));
+    if (queue->sources == NULL) return 0;
 
     return source;
 }

@@ -28,7 +28,7 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_tty_mode(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
-void command_interrupt(AppState *appState, const char *args);
+void command_interrupt(__attribute__((unused)) AppState *appState, const char *args);
 
 const Command COMMANDS[] = {
         {"start", command_start},
@@ -327,7 +327,7 @@ void command_tty_mode(AppState *appState, __attribute__((unused)) const char *ar
     tty_mode(appState);
 }
 
-void command_interrupt(AppState *appState, const char *args) {
+void command_interrupt(__attribute__((unused)) AppState *appState, const char *args) {
     uint8_t source = strtoul(args, NULL, 0);
-    
+    a
 }
