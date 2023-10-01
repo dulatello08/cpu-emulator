@@ -16,11 +16,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="refactor i queue">
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="command int">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/interrupts.c" beforeDir="false" afterPath="$PROJECT_DIR$/interrupts.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utilities.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,11 +126,6 @@
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration default="true" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile">
       <makefile filename="$PROJECT_DIR$/../cpu-assembler/Makefile" target="assembler" workingDirectory="" arguments="">
         <envs />
@@ -173,7 +166,8 @@
       <workItem from="1695873671894" duration="228000" />
       <workItem from="1695874388115" duration="248000" />
       <workItem from="1695958197731" duration="2953000" />
-      <workItem from="1696040741033" duration="2630000" />
+      <workItem from="1696040741033" duration="3249000" />
+      <workItem from="1696120597906" duration="259000" />
     </task>
     <task id="LOCAL-00001" summary="Initial work on unix socket">
       <option name="closed" value="true" />
@@ -319,7 +313,15 @@
       <option name="project" value="LOCAL" />
       <updated>1695962721056</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="command int">
+      <option name="closed" value="true" />
+      <created>1696054005935</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1696054005935</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -368,7 +370,8 @@
     <MESSAGE value="very close to perfect loading of ivt" />
     <MESSAGE value="corrected testing flash file" />
     <MESSAGE value="refactor i queue" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor i queue" />
+    <MESSAGE value="command int" />
+    <option name="LAST_COMMIT_MESSAGE" value="command int" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -329,5 +329,5 @@ void command_tty_mode(AppState *appState, __attribute__((unused)) const char *ar
 
 void command_interrupt(__attribute__((unused)) AppState *appState, const char *args) {
     uint8_t source = strtoul(args, NULL, 0);
-    a
+    push_interrupt(&(appState->state->i_queue), source);
 }
