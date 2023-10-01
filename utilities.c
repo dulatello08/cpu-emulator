@@ -276,8 +276,6 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
 }
 
 void destroyCPUState(CPUState *state) {
-    // Deallocate memory for the general-purpose registers
-    free(state->reg);
 
     // Deallocate memory for the program counter
     free(state->pc);
@@ -287,6 +285,11 @@ void destroyCPUState(CPUState *state) {
 
     // Deallocate memory for the interrupt queue sources
     free(state->i_queue.sources);
+
+    state->reg = NULL;
+    state->pc = NULL;
+    state->in_subroutine = NULL;
+    state->i_queue.sources = NULL;
 }
 
 uint8_t count_leading_zeros(uint8_t x) {

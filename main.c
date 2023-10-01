@@ -50,13 +50,11 @@ const Command COMMANDS[] = {
 
 AppState *new_app_state(void) {
     AppState *appState = malloc(sizeof(AppState));
-    appState->state = mmap(NULL, sizeof(CPUState),
-                        PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->shared_data_memory = mmap(NULL, MEMORY,
-                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->emulator_running = mmap(NULL, 1,
-                                   PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue.sources = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
 
@@ -79,6 +77,7 @@ void free_app_state(AppState *appState) {
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
+    munmap(appState->state->reg, 16 * sizeof(uint8_t));
     destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);

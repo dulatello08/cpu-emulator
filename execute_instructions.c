@@ -87,6 +87,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
+            //printf("%04x", brnAddressing);
             *(state->pc) = brnAddressing;
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
@@ -164,11 +165,12 @@ bool execute_instruction(CPUState *state) {
             printf("rld relAddr: %04x\n", relAddr);
             break;
         }
-        case OP_ENI: 
-            state->mask_interrupt = true;
+        case OP_ENI:
+            printf("enabling masked interrupts\n");
+            state->enable_mask_interrupts = true;
             break;
         case OP_DSI:
-            state->mask_interrupt = false;
+            state->enable_mask_interrupts = false;
             break;
 
         // SIGILL
