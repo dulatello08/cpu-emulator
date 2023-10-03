@@ -1,5 +1,6 @@
 #include "main.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -53,7 +54,8 @@ AppState *new_app_state(void) {
     appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->state->i_queue.sources = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue = mmap(NULL, sizeof(InterruptQueue), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue->sources = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
@@ -78,6 +80,8 @@ void free_app_state(AppState *appState) {
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint8_t));
+    munmap(appState->state->i_queue->sources, appState->state->i_queue->size * sizeof(uint8_t));
+    munmap(appState->state->i_queue, sizeof(InterruptQueue));
     destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
@@ -328,5 +332,6 @@ void command_tty_mode(AppState *appState, __attribute__((unused)) const char *ar
 
 void command_interrupt(__attribute__((unused)) AppState *appState, const char *args) {
     uint8_t source = strtoul(args, NULL, 0);
-    push_interrupt(&(appState->state->i_queue), source);
+    printf("main pointer: %p\n", (void *) appState->state->i_queue);
+    push_interrupt(appState->state->i_queue, source);
 }

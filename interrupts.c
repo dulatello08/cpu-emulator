@@ -41,7 +41,7 @@ void push_interrupt(InterruptQueue* queue, uint8_t source) {
 
     queue->sources = new_sources;
     queue->sources[queue->size - 1] = source;
-    printf("Size: %d Queue: ", queue->size);
+    printf("Size: %d Queue: \n", queue->size);
 
     for (int i = 0; i < queue->size; i++) {
         printf("%02x ", queue->sources[i]);
@@ -49,35 +49,18 @@ void push_interrupt(InterruptQueue* queue, uint8_t source) {
 }
 
 uint8_t pop_interrupt(InterruptQueue* queue) {
+
     if (queue->size == 0) {
         return 0;
     }
-
+    
     uint8_t source = queue->sources[queue->size - 1];
-
+    printf("q size %d\n", queue->size);
     queue->size--;
-
-    if (queue->size == 0) {
-        // If the queue is empty, simply unmap the old memory block
-        munmap(queue->sources, 0);
-        queue->sources = NULL;
-    } else {
-        // Allocate a new memory block with the reduced size
-        size_t new_size = queue->size * sizeof(uint8_t);
-        void *new_sources = mmap(NULL, new_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-        if (new_sources == MAP_FAILED) {
-            perror("mmap");
-            return 0;  // Handle the error appropriately
-        }
-
-        // Copy data from the old memory block to the new one (excluding the last element)
-        memcpy(new_sources, queue->sources, new_size);
-
-        // Unmap the old memory block
-        munmap(queue->sources, queue->size * sizeof(uint8_t));
-
-        queue->sources = new_sources;
+    // Unmap the old memory block
+    if(munmap(&(queue->sources[queue->size]), 1) == -1) {
+        perror("mmap");
+        return 0;
     }
 
     return source;
