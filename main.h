@@ -101,7 +101,7 @@ typedef struct {
 // Define a structure for the interrupt queue
 typedef struct {
     uint8_t* sources; // Dynamically allocated array to store interrupt sources
-    uint8_t size; // Index of the top element
+    uint8_t* size; // Index of the top element
 } InterruptQueue;
 
 // Define a structure for interrupt vectors
