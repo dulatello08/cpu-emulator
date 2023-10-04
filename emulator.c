@@ -15,7 +15,7 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     state->z_flag = false;
     state->memory = memory;
     state->enable_mask_interrupts = false;
-    state->i_queue->size = 0;
+    //*state->i_queue->size = 0;
     //printf("From emulator, register pointer: %p\n", (void *) state->reg);
     memcpy(state->memory, program_memory, program_size);
 
@@ -33,8 +33,8 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     
     printf("emulator pointer: %p\n", (void *) state->i_queue);
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        printf("enable mask interrupts %s, queue size: %02x\n", state->enable_mask_interrupts ? "true": "false", state->i_queue->size);
-        if (!state->enable_mask_interrupts || state->i_queue->size == 0) {
+        printf("enable mask interrupts %s, queue size: %02x\n", state->enable_mask_interrupts ? "true": "false", *state->i_queue->size);
+        if (!state->enable_mask_interrupts || *state->i_queue->size == 0) {
             exitCode = execute_instruction(state);
         } else {
             uint8_t i_source = pop_interrupt(state->i_queue);
