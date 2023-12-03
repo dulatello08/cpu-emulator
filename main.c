@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
         printf("Loaded program %d bytes\n", appState->program_size);
     }
     if (appState->flash_file) {
-        appState->flash_size = load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
+        appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
     }
 
     char input[MAX_INPUT_LENGTH];
@@ -205,7 +205,7 @@ void command_program(AppState *appState, const char *args){
 
 void command_flash(AppState *appState, const char *args){
     const char* filename = args;
-    appState->flash_size = load_flash(filename, appState->fpf, &appState->flash_memory);
+    appState->flash_size = (int) load_flash(filename, appState->fpf, &appState->flash_memory);
 }
 
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
