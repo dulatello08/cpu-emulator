@@ -69,3 +69,38 @@ uint8_t pop_interrupt(InterruptQueue* queue) {
 
     return source;
 }
+
+void add_interrupt_space(InterruptQueue* queue) {
+    (*queue->size)++;
+
+    size_t new_size = *queue->size * sizeof(uint8_t);
+
+    void *new_sources = mmap(NULL, new_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    if (new_sources == MAP_FAILED) {
+        perror("mmap");
+        return;  // Handle the error appropriately
+    }
+
+    // Copy data from the old memory block to the new one
+    memcpy(new_sources, queue->sources, (*queue->size - 1) * sizeof(uint8_t));
+}
+
+void remove_interrupt_space(InterruptQueue* queue) {
+    queue->size--;
+    // Unmap the old memory block
+    if(munmap(&(queue->sources[*queue->size]), 1) == -1) {
+        perror("mmap");
+        return;
+    }
+}
+
+void signal_handler(int signal, void* data) {
+    static int * saved_data = NULL;
+    if (saved_data == NULL) {
+        saved_data = data;
+    } else if (signal == SIGUSR1) {
+        printf("Received SIGUSR1, Data: %d\n", *saved_data);
+        add_interrupt_space((InterruptQueue*) data);
+    }
+}
