@@ -21,29 +21,15 @@ uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE
 }
 
 void push_interrupt(InterruptQueue* queue, uint8_t source) {
-    (*queue->size)++;
 
-    size_t new_size = *queue->size * sizeof(uint8_t);
-
-    void *new_sources = mmap(NULL, new_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-    if (new_sources == MAP_FAILED) {
-        perror("mmap");
-        return;  // Handle the error appropriately
-    }
-
-    // Copy data from the old memory block to the new one
-    memcpy(new_sources, queue->sources, (*queue->size - 1) * sizeof(uint8_t));
-
-    if (queue->sources != MAP_FAILED) {
-        munmap(queue->sources, (*queue->size - 1) * sizeof(uint8_t));
-    }
-
-    queue->sources = new_sources;
-    for (uint8_t i = *queue->size - 1; i > 0; i--) {
-        queue->sources[i] = queue->sources[i - 1];
+    if(*queue->size > 0) {
+        for (uint8_t i = *queue->size; i > 0; i--) {
+            queue->sources[i] = queue->sources[i - 1];
+        }
     }
     queue->sources[0] = source;
+    (*queue->size)++;
+
     printf("Size: %d Queue: ", *queue->size);
 
     for (int i = 0; i < *queue->size; i++) {
@@ -54,53 +40,13 @@ void push_interrupt(InterruptQueue* queue, uint8_t source) {
 
 uint8_t pop_interrupt(InterruptQueue* queue) {
 
-    if (*queue->size == 0) {
+    if (queue->size == 0) {
         return 0;
     }
     printf("q size %d\n", *queue->size);
     uint8_t source = queue->sources[*queue->size - 1];
 
     queue->size--;
-    // Unmap the old memory block
-    if(munmap(&(queue->sources[*queue->size]), 1) == -1) {
-        perror("mmap");
-        return 0;
-    }
 
     return source;
-}
-
-void add_interrupt_space(InterruptQueue* queue) {
-    (*queue->size)++;
-
-    size_t new_size = *queue->size * sizeof(uint8_t);
-
-    void *new_sources = mmap(NULL, new_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-
-    if (new_sources == MAP_FAILED) {
-        perror("mmap");
-        return;  // Handle the error appropriately
-    }
-
-    // Copy data from the old memory block to the new one
-    memcpy(new_sources, queue->sources, (*queue->size - 1) * sizeof(uint8_t));
-}
-
-void remove_interrupt_space(InterruptQueue* queue) {
-    queue->size--;
-    // Unmap the old memory block
-    if(munmap(&(queue->sources[*queue->size]), 1) == -1) {
-        perror("mmap");
-        return;
-    }
-}
-
-void signal_handler(int signal, void* data) {
-    static int * saved_data = NULL;
-    if (saved_data == NULL) {
-        saved_data = data;
-    } else if (signal == SIGUSR1) {
-        printf("Received SIGUSR1, Data: %d\n", *saved_data);
-        add_interrupt_space((InterruptQueue*) data);
-    }
 }

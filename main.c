@@ -1,8 +1,6 @@
 #include "main.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <sys/mman.h>
-#include <sys/socket.h>
 #include <sys/un.h>
 
 #define SOCKET_PATH "/tmp/emulator.sock"
@@ -56,7 +54,7 @@ AppState *new_app_state(void) {
     appState->shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->i_queue = mmap(NULL, sizeof(InterruptQueue), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->i_queue->size = mmap(NULL, sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->state->i_queue->sources = mmap(NULL, 0, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue->sources = mmap(NULL, 10, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
