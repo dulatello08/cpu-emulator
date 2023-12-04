@@ -33,7 +33,6 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
     
     printf("emulator pointer: %p\n", (void *) state->i_queue);
     while (*(state->pc) + 1 < UINT16_MAX && !exitCode) {
-        printf("enable mask interrupts %s, queue size: %02x\n", state->enable_mask_interrupts ? "true": "false", *state->i_queue->size);
         if (!state->enable_mask_interrupts || *state->i_queue->size == 0) {
             exitCode = execute_instruction(state);
         } else {
