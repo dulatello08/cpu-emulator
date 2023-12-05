@@ -1,9 +1,6 @@
 #ifndef INC_8_BIT_CPU_EMULATOR_MAIN_H
 #define INC_8_BIT_CPU_EMULATOR_MAIN_H
 
-#endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
-
-#include <signal.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -188,3 +185,5 @@ void push_interrupt(InterruptQueue* queue, uint8_t source);
 uint8_t pop_interrupt(InterruptQueue* queue);
 
 void tty_mode(AppState *appState);
+
+#endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
