@@ -5,3 +5,5 @@ emulator_socket
 # ide
 .idea
 .vscode
+# macos trash
+*.dSYM

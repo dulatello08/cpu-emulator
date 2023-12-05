@@ -1,6 +1,6 @@
 #include "main.h"
+#include <curses.h>
 #include <stdint.h>
-#include <sys/types.h>
 
 
 uint8_t load_program(const char *program_file, uint8_t **program_memory) {
@@ -54,7 +54,7 @@ uint8_t load_program(const char *program_file, uint8_t **program_memory) {
     return current_byte;
 }
 
-int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
+long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     if (flash_file == NULL) {
         fprintf(stderr, "Error: flash file not specified.\n");
         return 0;
@@ -67,7 +67,8 @@ int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     }
 
     fseek(fpf, 0, SEEK_END);
-    long file_size = ftell(fpf);
+    // bad code
+    long file_size, flash_size_total = file_size = ftell(fpf);
     int num_blocks = ((int) file_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     *flash_memory = calloc(num_blocks, sizeof(uint8_t *));
@@ -91,7 +92,7 @@ int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     }
 
     fseek(fpf, 0, SEEK_SET);
-    int non_zero_count = 0;
+    __attribute__ ((unused)) int non_zero_count = 0;
     for (int i = 0; i < num_blocks; i++) {
         size_t bytes_to_read = file_size > BLOCK_SIZE * (i + 1) ? BLOCK_SIZE : file_size % BLOCK_SIZE;
         size_t num_read = fread((*flash_memory)[i], sizeof(uint8_t), bytes_to_read, fpf);
@@ -111,7 +112,7 @@ int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     }
 
     fclose(fpf);
-    return non_zero_count;
+    return flash_size_total;
 }
 
 void increment_pc(CPUState *state, uint8_t opcode) {
@@ -272,4 +273,27 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
     }
 
     return value;
+}
+
+void destroyCPUState(CPUState *state) {
+
+    // Deallocate memory for the program counter
+    free(state->pc);
+
+    // Deallocate memory for the in_subroutine flag
+    free(state->in_subroutine);
+
+    state->pc = NULL;
+    state->in_subroutine = NULL;
+}
+
+uint8_t count_leading_zeros(uint8_t x) {
+    uint8_t count = 0;
+
+    while (x != 0) {
+        x >>= 1;
+        count++;
+    }
+
+    return 8 - count;
 }

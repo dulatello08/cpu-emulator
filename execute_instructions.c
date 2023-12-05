@@ -87,6 +87,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Branch to value specified in operand 2
         case OP_BRN:
+            //printf("%04x", brnAddressing);
             *(state->pc) = brnAddressing;
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
@@ -108,6 +109,7 @@ bool execute_instruction(CPUState *state) {
         case OP_BRR:
             if (state->reg[operand_rd] == state->reg[operand_rn]) {
                 *(state->pc) = normAddressing;
+                printf("branched to %x", normAddressing);
                 skipIncrementPC = true;  // Skip incrementing the program counter
             }
             break;
@@ -122,24 +124,24 @@ bool execute_instruction(CPUState *state) {
         case OP_HLT:
             printf("Halt at appState of program counter: %d\n", *(state->pc));
             return true;
-        // Jump to subroutine at address of operand 1 and 2. Set inSubroutine flag to true.
+        // Jump to subroutine at address of operand 1 and 2. Set in_subroutine flag to true.
         case OP_JSR:
             printf("before subroutine pc: %x\n", *state->pc);
             printf("subroutine jump to %x\n", brnAddressing);
             pushStack(state, *state->pc & 0xFF);
             pushStack(state, (*state->pc >> 8) & 0xFF);
             *(state->pc) = brnAddressing;
-            *(state->inSubroutine) = true;
+            *(state->in_subroutine) = true;
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
-        // Jump out of subroutine using PC appState saved in stack. Set inSubroutine flag to false.
+        // Jump out of subroutine using PC appState saved in stack. Set in_subroutine flag to false.
         case OP_OSR:
-            if (state->inSubroutine) {
+            if (state->in_subroutine) {
                 uint16_t realPc;
                 realPc = (uint16_t)(popStack(state, NULL) << 8);
                 realPc |= popStack(state, NULL);
                 *(state->pc) = realPc + 2;
-                *(state->inSubroutine) = false;
+                *(state->in_subroutine) = false;
                 printf("current pc: %x \n", *state->pc);
                 break;
             } else {
@@ -152,16 +154,24 @@ bool execute_instruction(CPUState *state) {
             relAddr = (uint16_t) (popStack(state, NULL) << 8);
             relAddr |= popStack(state, NULL);
             memory_access(state, operand_rd, relAddr, 1, 0);
-            printf("rsm relAddr: %04x\n", relAddr);
+            //printf("rsm relAddr: %04x\n", relAddr);
             break;
         }
         case OP_RLD: {
             uint16_t relAddr;
             relAddr = (uint16_t) (popStack(state, NULL) << 8);
-            relAddr &= popStack(state, NULL);
+            relAddr |= popStack(state, NULL);
             memory_access(state, operand_rd, relAddr, 0, 0);
+            printf("rld relAddr: %04x\n", relAddr);
             break;
         }
+        case OP_ENI:
+            printf("enabling masked interrupts\n");
+            state->enable_mask_interrupts = true;
+            break;
+        case OP_DSI:
+            state->enable_mask_interrupts = false;
+            break;
 
         // SIGILL
         default:

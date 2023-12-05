@@ -1,9 +1,13 @@
 #include "main.h"
+#include <stdio.h>
 #include <sys/mman.h>
-#include <sys/socket.h>
 #include <sys/un.h>
 
 #define SOCKET_PATH "/tmp/emulator.sock"
+
+void sigintHandler(__attribute__((unused)) int signal) {
+    fflush(stdout);
+}
 
 typedef void (*CommandFunc)(AppState *appState, const char *args);
 
@@ -13,6 +17,7 @@ typedef struct {
 } Command;
 
 void command_start(AppState *appState, __attribute__((unused)) const char *args);
+void command_stop(AppState *appState, __attribute__((unused)) const char *args);
 void command_program(AppState *appState, const char *args);
 void command_flash(AppState *appState, const char *args);
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
@@ -21,9 +26,12 @@ void command_print(AppState *appState, __attribute__((unused)) const char *args)
 void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
+void command_tty_mode(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
+void command_interrupt(__attribute__((unused)) AppState *appState, const char *args);
 
 const Command COMMANDS[] = {
         {"start", command_start},
+        {"stop", command_stop},
         {"program", command_program},
         {"flash", command_flash},
         {"help", command_help},
@@ -34,19 +42,22 @@ const Command COMMANDS[] = {
         {"exit", command_exit},
         {"ctl_listen", command_ctl_listen},
         {"ctl_l", command_ctl_listen},
+        {"tty", command_tty_mode},
+        {"interrupt", command_interrupt},
         {NULL, NULL}
 };
 
-AppState *new_app_state() {
+AppState *new_app_state(void) {
     AppState *appState = malloc(sizeof(AppState));
-    appState->state = mmap(NULL, sizeof(CPUState),
-                        PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->shared_data_memory = mmap(NULL, MEMORY,
-                                     PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    appState->emulator_running = mmap(NULL, 1,
-                                   PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->shared_data_memory = mmap(NULL, MEMORY, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue = mmap(NULL, sizeof(InterruptQueue), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue->size = mmap(NULL, sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->state->i_queue->sources = mmap(NULL, 10, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
+    appState->emulator_pid = 0;
 
     return appState;
 }
@@ -67,6 +78,11 @@ void free_app_state(AppState *appState) {
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
+    munmap(appState->state->reg, 16 * sizeof(uint8_t));
+    munmap(appState->state->i_queue->sources, *(appState->state->i_queue->size) * sizeof(uint8_t));
+    munmap(appState->state->i_queue->size, sizeof(uint8_t));
+    munmap(appState->state->i_queue, sizeof(InterruptQueue));
+    destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
     free(appState);
@@ -89,6 +105,8 @@ void execute_command(AppState *appState, const char *command, const char *args) 
 }
 
 int main(int argc, char *argv[]) {
+    // Set the SIGINT (Ctrl+C) signal handler to sigintHandler
+    signal(SIGINT, sigintHandler);
     AppState *appState = new_app_state();
 
     // Parse arguments
@@ -112,7 +130,7 @@ int main(int argc, char *argv[]) {
         printf("Loaded program %d bytes\n", appState->program_size);
     }
     if (appState->flash_file) {
-        appState->flash_size = load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
+        appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
     }
 
     char input[MAX_INPUT_LENGTH];
@@ -126,6 +144,8 @@ int main(int argc, char *argv[]) {
         char *command = strtok(input, " \n");
         char *args = strtok(NULL, "\n");
         execute_command(appState, command, args);
+        fflush(stdout);
+        usleep(500000);
     }
 
     free_app_state(appState);
@@ -135,6 +155,7 @@ int main(int argc, char *argv[]) {
 void command_start(AppState *appState, __attribute__((unused)) const char *args){
     if (*(appState->emulator_running) == 0) {
         pid_t emulator = fork();
+        appState->emulator_pid = emulator;
         *(appState->emulator_running) = 1;
         if(emulator==0) {
             if(appState->program_memory == NULL) {
@@ -158,6 +179,22 @@ void command_start(AppState *appState, __attribute__((unused)) const char *args)
     }
 }
 
+void command_stop(AppState *appState, __attribute__((unused)) const char *args) {
+    if (appState->emulator_running == 0) {
+        printf("Emulator is not running (PID is 0).\n");
+        return;
+    }
+
+    if (kill(appState->emulator_pid, SIGKILL) == 0) {
+        // The kill operation was successful
+        printf("Emulator successfully stopped.\n");
+        *(appState->emulator_running) = 0;
+    } else {
+        // An error occurred during the kill operation
+        perror("Error stopping emulator");
+    }
+}
+
 void command_program(AppState *appState, const char *args){
     const char* filename = args;
     appState->program_size = load_program(filename, &appState->program_memory);
@@ -166,12 +203,13 @@ void command_program(AppState *appState, const char *args){
 
 void command_flash(AppState *appState, const char *args){
     const char* filename = args;
-    appState->flash_size = load_flash(filename, appState->fpf, &appState->flash_memory);
+    appState->flash_size = (int) load_flash(filename, appState->fpf, &appState->flash_memory);
 }
 
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
     printf("Commands:\n");
     printf("start - start emulator\n");
+    printf("stop - stop emulator \n");
     printf("program <filename> - load program\n");
     printf("flash <filename> - load flash\n");
     printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
@@ -205,7 +243,6 @@ void command_input(AppState *appState, const char *args) {
 
 void command_print(AppState *appState, __attribute__((unused)) const char *args){
     print_display(appState->state->display);
-    printf("\n");
 }
 
 void command_free(AppState *appState, __attribute__((unused)) const char *args){
@@ -287,4 +324,17 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 #else
     printf("Feature not enabled\n");
 #endif
+}
+
+void command_tty_mode(AppState *appState, __attribute__((unused)) const char *args) {
+    tty_mode(appState);
+}
+
+void command_interrupt(AppState *appState, const char *args) {
+    uint8_t source = strtoul(args, NULL, 0);
+    //kill(appState->emulator_pid, SIGSTOP);
+    printf("main pointer: %p\n", (void *) appState->state->i_queue);
+    push_interrupt(appState->state->i_queue, source);
+    //printf("result: %02x\n", pop_interrupt(appState->state->i_queue));
+    //kill(appState->emulator_pid, SIGCONT);
 }
