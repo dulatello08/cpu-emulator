@@ -3,6 +3,7 @@
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
 
+#include <signal.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -15,12 +16,12 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include <ncurses.h>
 
 #define MEMORY 65536
 #define EXPECTED_PROGRAM_WORDS 256
 #define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
-#define TASK_PARALLEL 4
 
 #define OP_NOP 0x00
 #define OP_ADD 0x01
@@ -48,6 +49,8 @@
 #define OP_OSR 0x17
 #define OP_RSM 0x18
 #define OP_RLD 0x19
+#define OP_ENI 0x1A
+#define OP_DSI 0x1B
 
 #define FLAGS_SIZE 0x1
 #define STACK_SIZE 0xff
@@ -72,8 +75,11 @@
 
 #define READ_PERIPHERAL_MMAP 0x1
 
-#define LCD_WIDTH 16
-#define LCD_HEIGHT 2
+#define LCD_WIDTH 32
+#define LCD_HEIGHT 4
+
+#define INTERRUPT_TABLE_SIZE 10
+#define INTERRUPT_QUEUE_MAX 10
 
 struct memory_block {
     uint16_t startAddress;
@@ -92,13 +98,28 @@ typedef struct {
 } MemoryMap;
 
 
+// Define a structure for the interrupt queue
+typedef struct {
+    uint8_t* sources; // Dynamically allocated array to store interrupt sources
+    uint8_t* size; // Index of the top element
+} InterruptQueue;
+
+// Define a structure for interrupt vectors
+typedef struct {
+    uint8_t source;
+    uint16_t handler;
+} InterruptVectors;
+
 typedef struct {
     // Memory map
     MemoryMap mm;
     // General-purpose registers + 16 is PC
     uint8_t* reg;
     uint16_t* pc;
-    uint8_t* inSubroutine;
+
+    // flags in separate variables
+    uint8_t* in_subroutine;
+    bool enable_mask_interrupts;
 
     // Memory
     uint8_t* memory;
@@ -109,6 +130,10 @@ typedef struct {
 
     // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
+
+    // Interrupts
+    InterruptVectors i_vector_table[INTERRUPT_TABLE_SIZE];
+    InterruptQueue* i_queue;
 } CPUState;
 
 typedef struct {
@@ -120,13 +145,16 @@ typedef struct {
     uint8_t *shared_data_memory;
     CPUState *state;
     uint8_t *emulator_running;
+    pid_t emulator_pid;
     uint8_t program_size;
     int flash_size;
 } AppState;
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
-int load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
+long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
+
+void destroyCPUState(CPUState *state);
 
 uint8_t count_leading_zeros(uint8_t x);
 
@@ -149,6 +177,14 @@ uint8_t popStack(CPUState *state, uint8_t *out);
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
-void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], char data);
+void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 
 void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
+
+void add_interrupt_vector(InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler);
+uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t source);
+
+void push_interrupt(InterruptQueue* queue, uint8_t source);
+uint8_t pop_interrupt(InterruptQueue* queue);
+
+void tty_mode(AppState *appState);
