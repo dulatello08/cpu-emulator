@@ -1,7 +1,44 @@
 #include "main.h"
+#include<fcntl.h>
+#include<linux/input.h>
 
 #define PAIR_BW       1
 #define BRIGHT_WHITE  15
+
+void keyboard_mode(AppState *appState) {
+    const char *dev = "/dev/input/event5";
+    struct input_event ev;
+
+    int fd = open(dev, O_RDONLY);
+    if (fd == -1) {
+        perror("Cannot open input device");
+        return;
+    }
+
+    int ctrl_pressed = 0;
+
+    while (read(fd, &ev, sizeof(ev)) == sizeof(ev)) {
+        if (ev.type == EV_KEY) {
+            // Update state of Ctrl key
+            if (ev.code == KEY_LEFTCTRL || ev.code == KEY_RIGHTCTRL) {
+                ctrl_pressed = ev.value;
+            }
+
+            printf("Key event: code %d value %d\n", ev.code, ev.value);
+
+            // Write key code and value to memory
+            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = ev.code;
+            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 5] = ev.value;
+
+            // Break loop if Ctrl + C is pressed
+            if (ctrl_pressed && ev.code == KEY_C && ev.value == 1) {
+                break;
+            }
+        }
+    }
+
+    close(fd);
+}
 
 void tty_mode(AppState *appState) {
 
