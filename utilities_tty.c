@@ -1,11 +1,20 @@
 #include "main.h"
-#include<fcntl.h>
-#include<linux/input.h>
+
+#ifdef __linux__
+#include <fcntl.h>
+#include <linux/input.h>
+#endif
+
+#ifdef __APPLE__
+// Include macOS specific headers
+// You will fill in the macOS implementation here
+#endif
 
 #define PAIR_BW       1
 #define BRIGHT_WHITE  15
 
 void keyboard_mode(AppState *appState) {
+#ifdef __linux__
     const char *dev = "/dev/input/event5";
     struct input_event ev;
 
@@ -38,6 +47,11 @@ void keyboard_mode(AppState *appState) {
     }
 
     close(fd);
+
+#elif defined(__APPLE__)
+    // macOS specific implementation
+    // Add your macOS code here
+#endif
 }
 
 void tty_mode(AppState *appState) {
