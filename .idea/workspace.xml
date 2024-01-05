@@ -16,17 +16,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="sdl keyboard events">
-      <change afterPath="$PROJECT_DIR$/keyboard/ScanCodes.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/keyboard/main.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/keyboard/main.h" afterDir="false" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="sdl scan codes events">
+      <change afterPath="$PROJECT_DIR$/keyboard/scan_code_map.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keyboard-sdl/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard-sdl/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keyboard/Keycodes.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/keyboard/keyboard.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/ScanCodes.md" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/ScanCodes.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/socket/unix-socket.c" beforeDir="false" afterPath="$PROJECT_DIR$/socket/unix_socket.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities_tty.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities_tty.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -196,7 +192,15 @@
       <option name="project" value="LOCAL" />
       <updated>1704348879028</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="sdl scan codes events">
+      <option name="closed" value="true" />
+      <created>1704433077227</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1704433077227</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -231,6 +235,7 @@
     <MESSAGE value="Refactor keyboard event handling&#10;&#10;Refactored the keyboard.c to handle key code events for user inputs. This approach provides reliable real-time user input capture." />
     <MESSAGE value="sdl keyboard events" />
     <MESSAGE value="gitpod" />
-    <option name="LAST_COMMIT_MESSAGE" value="sdl keyboard events" />
+    <MESSAGE value="sdl scan codes events" />
+    <option name="LAST_COMMIT_MESSAGE" value="sdl scan codes events" />
   </component>
 </project>

@@ -5,7 +5,7 @@
 #include "./main.h"
 
 
-void keyboard(uint8_t* code, uint8_t* value) {
+void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uint8_t* value) {
     SDL_Event event;
     bool quit = false;
 

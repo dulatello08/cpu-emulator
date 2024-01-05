@@ -9,18 +9,18 @@ KEYBOARD_DIR = keyboard
 
 # Object files
 COMMON_OBJS = main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o utilities_tty.o interrupts.o
-SOCKET_OBJS = unix-socket.o
-KEYBOARD_OBJS = keyboard-main.o
+SOCKET_OBJS = unix_socket.o
+KEYBOARD_OBJS = keyboard_main.o scan_code_map.c
 
 # Pattern rule for compiling .c to .o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Specific rules for socket and keyboard objects
-$(SOCKET_OBJS): $(SOCKET_DIR)/unix-socket.c
+$(SOCKET_OBJS): $(SOCKET_DIR)/unix_socket.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(KEYBOARD_OBJS): $(KEYBOARD_DIR)/main.c
+$(KEYBOARD_OBJS): $(KEYBOARD_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Targets
@@ -35,6 +35,6 @@ emulator_socket: $(COMMON_OBJS) $(SOCKET_OBJS) $(KEYBOARD_OBJS)
 
 # Clean
 clean:
-	rm -f *.o emulator emulator_socket keyboard_main
+	rm -f *.o emulator emulator_socket
 
 .PHONY: all clean
