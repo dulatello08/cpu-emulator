@@ -1,44 +1,40 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Wpedantic -I. -g -O0
-LIBS = -lncurses
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -I. -g -O0 -I/opt/homebrew/include/SDL2 -D_THREAD_SAFE
+LIBS = -lncurses -L/opt/homebrew/lib -lSDL2
 
+# Source directories
+SRC_DIR = .
+SOCKET_DIR = socket
+KEYBOARD_DIR = keyboard
+
+# Object files
+COMMON_OBJS = main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o utilities_tty.o interrupts.o
+SOCKET_OBJS = unix-socket.o
+KEYBOARD_OBJS = keyboard-main.o
+
+# Pattern rule for compiling .c to .o
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Specific rules for socket and keyboard objects
+$(SOCKET_OBJS): $(SOCKET_DIR)/unix-socket.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(KEYBOARD_OBJS): $(KEYBOARD_DIR)/main.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Targets
 all: emulator emulator_socket
 
-emulator: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o interrupts.c utilities_tty.o
-	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator
+emulator: $(COMMON_OBJS) $(KEYBOARD_OBJS)
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 emulator_socket: CFLAGS += -DEMULATOR_SOCKET
-emulator_socket: main.o emulator.o utilities.o execute_instructions.o mmu.o peripherals.o unix-socket.o utilities_tty.o interrupts.c
-	$(CC) $(CFLAGS) $^ $(LIBS) -o emulator_socket
+emulator_socket: $(COMMON_OBJS) $(SOCKET_OBJS) $(KEYBOARD_OBJS)
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c -o main.o
-
-emulator.o: emulator.c
-	$(CC) $(CFLAGS) -c emulator.c -o emulator.o
-
-utilities.o: utilities.c
-	$(CC) $(CFLAGS) -c utilities.c -o utilities.o
-
-utilities_tty.o: utilities_tty.c
-	$(CC) $(CFLAGS) -c utilities_tty.c -o utilities_tty.o
-
-execute_instructions.o: execute_instructions.c
-	$(CC) $(CFLAGS) -c execute_instructions.c -o execute_instructions.o
-
-mmu.o: mmu.c
-	$(CC) $(CFLAGS) -c mmu.c -o mmu.o
-
-peripherals.o: peripherals.c
-	$(CC) $(CFLAGS) -c peripherals.c -o peripherals.o
-
-unix-socket.o: socket/unix-socket.c
-	$(CC) $(CFLAGS) -c socket/unix-socket.c -o unix-socket.o
-
-interrupts.o: interrupts.c
-	$(CC) $(CFLAGS) -c interrupts.c -o interrupts.o
-
+# Clean
 clean:
-	rm -f *.o emulator emulator_socket
+	rm -f *.o emulator emulator_socket keyboard_main
 
-.PHONY: all clean emulator_socket
+.PHONY: all clean

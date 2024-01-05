@@ -8,6 +8,7 @@
 #ifdef __APPLE__
 // Include macOS specific headers
 // You will fill in the macOS implementation here
+#include <keyboard/main.h>
 #endif
 
 #define PAIR_BW       1
@@ -49,8 +50,7 @@ void keyboard_mode(AppState *appState) {
     close(fd);
 
 #elif defined(__APPLE__)
-    // macOS specific implementation
-    // Add your macOS code here
+
 #endif
 }
 

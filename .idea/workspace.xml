@@ -16,10 +16,17 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="Refactor keyboard event handling&#10;&#10;Refactored the keyboard.c to handle key code events for user inputs. This approach provides reliable real-time user input capture.">
-      <change afterPath="$PROJECT_DIR$/keyboard-sdl/main.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/keyboard-sdl/main.h" afterDir="false" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="sdl keyboard events">
+      <change afterPath="$PROJECT_DIR$/keyboard/ScanCodes.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboard/main.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/keyboard/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/emulator.c" beforeDir="false" afterPath="$PROJECT_DIR$/emulator.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard-sdl/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard-sdl/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/Keycodes.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/keyboard.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities_tty.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities_tty.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,6 +49,7 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="MakefileLocalSettings">
     <option name="availableProjects">
@@ -86,25 +94,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;ps-2-keyboard&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/dulat/Documents/cpu/cpu-emulator&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.C/C++&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Native Application.all.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "ps-2-keyboard",
+    "last_opened_file_path": "/home/dulat/Documents/cpu/cpu-emulator",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.C/C++",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/socket" />
@@ -112,6 +121,11 @@
     </key>
   </component>
   <component name="RunManager" selected="Native Application.all">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="all" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flashedSubroutine.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="all" CONFIG_NAME="all" version="1" RUN_PATH="./emulator_socket">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
@@ -174,7 +188,15 @@
       <option name="project" value="LOCAL" />
       <updated>1701841668067</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="sdl keyboard events">
+      <option name="closed" value="true" />
+      <created>1704348879028</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1704348879028</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -207,6 +229,8 @@
     <MESSAGE value="Initial work on unix socket" />
     <MESSAGE value="good idea on key code events,, requires sudo though" />
     <MESSAGE value="Refactor keyboard event handling&#10;&#10;Refactored the keyboard.c to handle key code events for user inputs. This approach provides reliable real-time user input capture." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor keyboard event handling&#10;&#10;Refactored the keyboard.c to handle key code events for user inputs. This approach provides reliable real-time user input capture." />
+    <MESSAGE value="sdl keyboard events" />
+    <MESSAGE value="gitpod" />
+    <option name="LAST_COMMIT_MESSAGE" value="sdl keyboard events" />
   </component>
 </project>
