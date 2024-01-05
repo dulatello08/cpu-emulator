@@ -2,8 +2,7 @@
 // Created by Dulat S on 1/4/24.
 //
 
-#include "./main.h"
-
+#include "main.h"
 
 void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uint8_t* value) {
     SDL_Event event;
@@ -30,7 +29,9 @@ void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uin
             } else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 const int evValue = (event.type == SDL_KEYDOWN) ? 1 : 0;
                 if (event.key.repeat == 0) { // Ignore key repeat events
-                    printf("Key event: code %d value %d\n", event.key.keysym.scancode, evValue);
+                    printf("Key event: sdlCode %d cpuCode %01x value %d\n", event.key.keysym.scancode, sdlToCpuCode(event.key.keysym.scancode), evValue);
+                    *code = sdlToCpuCode(event.key.keysym.scancode);
+                    *value = evValue;
                 }
             }
         }
