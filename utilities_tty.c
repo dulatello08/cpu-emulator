@@ -14,7 +14,7 @@
 #define PAIR_BW       1
 #define BRIGHT_WHITE  15
 
-void keyboard_mode(AppState *appState) {
+void keyboard_mode(__attribute__((unused)) AppState *appState) {
 #ifdef __linux__
     const char *dev = "/dev/input/event5";
     struct input_event ev;

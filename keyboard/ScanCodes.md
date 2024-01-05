@@ -1,78 +1,89 @@
 ## Special Keys (0x01 - 0x30)  
-0x01: Escape (code 41)  
-0x02: F1 (code 58)  
-0x03: F2 (code 59)  
-0x04: F3 (code 60)  
-0x05: F4 (code 61)  
-0x06: F5 (code 62)  
-0x07: F6 (code 63)  
-0x08: F7 (code 64)  
-0x09: F8 (code 65)  
-0x0A: F9 (code 66)  
-0x0B: F10 (code 67)  
-0x0C: F12 (code 69)  
-0x0D: Delete (code 42)  
-0x0E: Tab (code 43)  
-0x0F: Caps Lock (code 57)  
-0x10: Return (code 40)  
-0x11: Left Shift (code 225)  
-0x12: Right Shift (code 229)  
-0x13: Control (code 224)  
-0x14: Left Option (code 226)  
-0x15: Left Command (code 227)  
-0x16: Space (code 44)  
-0x17: Right Command (code 231)  
-0x18: Right Option (code 230)  
-0x19: Left Arrow (code 80)  
-0x1A: Up Arrow (code 82)  
-0x1B: Right Arrow (code 79)  
-0x1C: Down Arrow (code 81)  
+
+| CPU Scan Code | Key           | sdl scan code |
+|---------------|---------------|---------------|
+| 0x01          | Escape        | code 41       |
+| 0x02          | F1            | code 58       |
+| 0x03          | F2            | code 59       |
+| 0x04          | F3            | code 60       |
+| 0x05          | F4            | code 61       |
+| 0x06          | F5            | code 62       |
+| 0x07          | F6            | code 63       |
+| 0x08          | F7            | code 64       |
+| 0x09          | F8            | code 65       |
+| 0x0A          | F9            | code 66       |
+| 0x0B          | F10           | code 67       |
+| 0x0C          | F12           | code 69       |
+| 0x0D          | Delete        | code 42       |
+| 0x0E          | Tab           | code 43       |
+| 0x0F          | Caps Lock     | code 57       |
+| 0x10          | Return        | code 40       |
+| 0x11          | Left Shift    | code 225      |
+| 0x12          | Right Shift   | code 229      |
+| 0x13          | Control       | code 224      |
+| 0x14          | Left Option   | code 226      |
+| 0x15          | Left Command  | code 227      |
+| 0x16          | Space         | code 44       |
+| 0x17          | Right Command | code 231      |
+| 0x18          | Right Option  | code 230      |
+| 0x19          | Left Arrow    | code 80       |
+| 0x1A          | Up Arrow      | code 82       |
+| 0x1B          | Right Arrow   | code 79       |
+| 0x1C          | Down Arrow    | code 81       |
+
 ## Alphabetic Keys (0x31 - 0x4A)  
-0x31: A (code 4)  
-0x32: B (code 5)  
-0x33: C (code 6)  
-0x34: D (code 7)  
-0x35: E (code 8)  
-0x36: F (code 9)  
-0x37: G (code 10)  
-0x38: H (code 11)  
-0x39: I (code 12)  
-0x3A: J (code 13)  
-0x3B: K (code 14)  
-0x3C: L (code 15)  
-0x3D: M (code 16)  
-0x3E: N (code 17)  
-0x3F: O (code 18)  
-0x40: P (code 19)  
-0x41: Q (code 20)  
-0x42: R (code 21)  
-0x43: S (code 22)  
-0x44: T (code 23)  
-0x45: U (code 24)  
-0x46: V (code 25)  
-0x47: W (code 26)  
-0x48: X (code 27)  
-0x49: Y (code 28)  
-0x4A: Z (code 29)  
+
+| CPU Scan Code | Key | sdl scan code |
+|---------------|-----|---------------|
+| 0x31          | A   | code 4        |
+| 0x32          | B   | code 5        |
+| 0x33          | C   | code 6        |
+| 0x34          | D   | code 7        |
+| 0x35          | E   | code 8        |
+| 0x36          | F   | code 9        |
+| 0x37          | G   | code 10       |
+| 0x38          | H   | code 11       |
+| 0x39          | I   | code 12       |
+| 0x3A          | J   | code 13       |
+| 0x3B          | K   | code 14       |
+| 0x3C          | L   | code 15       |
+| 0x3D          | M   | code 16       |
+| 0x3E          | N   | code 17       |
+| 0x3F          | O   | code 18       |
+| 0x40          | P   | code 19       |
+| 0x41          | Q   | code 20       |
+| 0x42          | R   | code 21       |
+| 0x43          | S   | code 22       |
+| 0x44          | T   | code 23       |
+| 0x45          | U   | code 24       |
+| 0x46          | V   | code 25       |
+| 0x47          | W   | code 26       |
+| 0x48          | X   | code 27       |
+| 0x49          | Y   | code 28       |
+| 0x4A          | Z   | code 29       |
+
 ## Numeric and Symbol Keys (0x4B - 0x60)  
-0x4B: ` (code 53)  
-0x4C: 1 (code 30)  
-0x4D: 2 (code 31)  
-0x4E: 3 (code 32)  
-0x4F: 4 (code 33)  
-0x50: 5 (code 34)  
-0x51: 6 (code 35)  
-0x52: 7 (code 36)  
-0x53: 8 (code 37)  
-0x54: 9 (code 38)  
-0x55: 0 (code 39)  
-0x56: - (code 45)  
-0x57: = (code 46)  
-0x58: [ (code 47)  
-0x59: ] (code 48)  
-0x5A: \ (code 49)  
-0x5B: ; (code 51)  
-0x5C: ' (code 52)  
-0x5D: , (code 54)  
-0x5E: . (code 55)  
-0x5F: / (code 56)
+
+| CPU Scan Code | Key | sdl scan code |
+|---------------|-----|---------------|
+| 0x4B          | `   | code 53       |
+| 0x4C          | 1   | code 30       |
+| 0x4D          | 2   | code 31       |
+| 0x4E          | 3   | code 32       |
+| 0x4F          | 4   | code 33       |
+| 0x50          | 5   | code 34       |
+| 0x51          | 6   | code 35       |
+| 0x52          | 7   | code 36       |
+| 0x53          | 8   | code 37       |
+| 0x54          | 9   | code 38       |
+| 0x55          | 0   | code 39       |
+| 0x56          | -   | code 45       |
+| 0x57          | =   | code 46       |
+| 0x58          | [   | code 47       |
+| 0x59          | ]   | code 48       |
+| 0x5A          | \   | code 49       |
+| 0x5B          | ;   | code 51       |
+| 0x5C          | '   | code 52       |
+| 0x5D          | ,   | code 54       |
+| 0x5E          | .   | code 55       |
+| 0x5F          | /   | code 56       |
