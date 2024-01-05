@@ -1,26 +1,26 @@
 //
-// Created by Dulat S on 1/3/24.
+// Created by Dulat S on 1/4/24.
 //
 
-#include "main.h"
+#include "./main.h"
 
-int main(int argc, char *argv[]) {
-    SDL_Window *window;
+
+void keyboard(uint8_t* code, uint8_t* value) {
     SDL_Event event;
     bool quit = false;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
-        return 1;
+        return ;
     }
 
-    window = SDL_CreateWindow("SDL Keyboard Event Example",
+    SDL_Window* window = SDL_CreateWindow("SDL Keyboard Event Example",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               640, 480, SDL_WINDOW_SHOWN);
     if (window == NULL) {
         fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
         SDL_Quit();
-        return 1;
+        return;
     }
 
     while (!quit) {
@@ -28,9 +28,9 @@ int main(int argc, char *argv[]) {
             if (event.type == SDL_QUIT) {
                 quit = true;
             } else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
-                int value = (event.type == SDL_KEYDOWN) ? 1 : 0;
+                const int evValue = (event.type == SDL_KEYDOWN) ? 1 : 0;
                 if (event.key.repeat == 0) { // Ignore key repeat events
-                    printf("Key event: code %d value %d\n", event.key.keysym.sym, value);
+                    printf("Key event: code %d value %d\n", event.key.keysym.scancode, evValue);
                 }
             }
         }
@@ -38,5 +38,4 @@ int main(int argc, char *argv[]) {
 
     SDL_DestroyWindow(window);
     SDL_Quit();
-    return 0;
 }

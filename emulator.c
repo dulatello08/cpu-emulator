@@ -1,7 +1,5 @@
 #include "main.h"
-#include <stdint.h>
-
-int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
+int start(CPUState *state, const size_t program_size, const size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory) {
     //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
 //    bool goOut = false;
@@ -36,9 +34,9 @@ int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t
         if (!state->enable_mask_interrupts || *state->i_queue->size == 0) {
             exitCode = execute_instruction(state);
         } else {
-            uint8_t i_source = pop_interrupt(state->i_queue);
+            const uint8_t i_source = pop_interrupt(state->i_queue);
             printf("source: %02x", i_source);
-            uint16_t i_handler = get_interrupt_handler(state->i_vector_table, i_source);
+            const uint16_t i_handler = get_interrupt_handler(state->i_vector_table, i_source);
             printf("before interrupt pc: %x\n", *state->pc);
             printf("interrupt jump to %x\n", i_handler);
             pushStack(state, *state->pc & 0xFF);

@@ -1,4 +1,6 @@
 #include "main.h"
+
+#include <signal.h>
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
