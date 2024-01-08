@@ -35,7 +35,7 @@ void keyboard(AppState *appState) {
                     printf("Key event: sdlCode %d cpuCode %01x value %d\n", event.key.keysym.scancode, sdlToCpuCode(event.key.keysym.scancode), evValue);
                     *code = sdlToCpuCode(event.key.keysym.scancode);
                     *value = evValue;
-                    push_interrupt(appState->state->i_queue, 0x01);
+                    if(evValue == 1) push_interrupt(appState->state->i_queue, 0x01);
                 }
             }
         }

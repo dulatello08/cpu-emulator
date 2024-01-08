@@ -140,9 +140,10 @@ bool execute_instruction(CPUState *state) {
                 uint16_t realPc;
                 realPc = (uint16_t)(popStack(state, NULL) << 8);
                 realPc |= popStack(state, NULL);
-                *(state->pc) = realPc + 2;
+                *(state->pc) = realPc + 3;
                 *(state->in_subroutine) = false;
                 printf("current pc: %x \n", *state->pc);
+                skipIncrementPC = true;
                 break;
             } else {
                 printf("Jump out of subroutine was called while not in subroutine");
