@@ -2,7 +2,7 @@ UNAME_S := $(shell uname -s)
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -Wpedantic -I. -g -O0 -I/opt/homebrew/include/SDL2 -D_THREAD_SAFE
-LIBS = -lncurses -L/opt/homebrew/lib -lSDL2
+LIBS = -lncurses
 
 ifeq ($(UNAME_S),Linux)
     CFLAGS += -I/usr/include/SDL2
@@ -35,7 +35,7 @@ $(KEYBOARD_DIR)/%.o: $(KEYBOARD_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Targets
-all: emulator emulator_socket
+all: emulator
 
 emulator: $(COMMON_OBJS) $(KEYBOARD_OBJS)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $@

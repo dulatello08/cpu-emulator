@@ -4,9 +4,12 @@
 
 #include "main.h"
 
-void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uint8_t* value) {
+void keyboard(AppState *appState) {
     SDL_Event event;
     bool quit = false;
+    uint8_t *code = &appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4];
+    uint8_t *value = &appState->state->memory[appState->state->mm.peripheralControl.startAddress + 5];
+
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Could not initialize SDL: %s\n", SDL_GetError());
@@ -32,6 +35,7 @@ void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uin
                     printf("Key event: sdlCode %d cpuCode %01x value %d\n", event.key.keysym.scancode, sdlToCpuCode(event.key.keysym.scancode), evValue);
                     *code = sdlToCpuCode(event.key.keysym.scancode);
                     *value = evValue;
+                    push_interrupt(appState->state->i_queue, 0x01);
                 }
             }
         }

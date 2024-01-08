@@ -5,11 +5,12 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <main.h>
 #include <SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 uint8_t sdlToCpuCode(int sdlCode);
-void keyboard(__attribute__((unused)) uint8_t* code, __attribute__((unused)) uint8_t* value);
+void keyboard(AppState *appState);
 
 #endif //MAIN_H
