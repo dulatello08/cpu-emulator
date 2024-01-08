@@ -16,13 +16,14 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="sdl scan codes events">
-      <change afterPath="$PROJECT_DIR$/keyboard/scan_code_map.c" afterDir="false" />
+    <list default="true" id="ed120219-b3df-4d9a-95e0-219a105ddb49" name="Changes" comment="scan code map">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/Instructions.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/keyboard/ScanCodes.md" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/ScanCodes.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/keyboard/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/socket/unix-socket.c" beforeDir="false" afterPath="$PROJECT_DIR$/socket/unix_socket.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keyboard/main.h" beforeDir="false" afterPath="$PROJECT_DIR$/keyboard/main.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utilities_tty.c" beforeDir="false" afterPath="$PROJECT_DIR$/utilities_tty.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -93,6 +94,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Native Application.all.executor": "Run",
+    "Native Application.emulator.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
@@ -116,7 +118,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Native Application.all">
+  <component name="RunManager" selected="Native Application.emulator">
     <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="CLION.EXTERNAL.BUILD" enabled="true" />
@@ -127,7 +129,7 @@
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
       </method>
     </configuration>
-    <configuration name="emulator" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="./emulator -p program.m -m flashedSubroutine.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="emulator" CONFIG_NAME="emulator" version="1" RUN_PATH="/usr/bin/pkexec">
+    <configuration name="emulator" type="CLionNativeAppRunConfigurationType" PROGRAM_PARAMS="-p program.m -m flash_file.m" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cpu-emulator" TARGET_NAME="emulator" CONFIG_NAME="emulator" version="1" RUN_PATH="emulator">
       <method v="2">
         <option name="CLION.COMPOUND.BUILD" enabled="true" />
       </method>
@@ -200,7 +202,23 @@
       <option name="project" value="LOCAL" />
       <updated>1704433077227</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="scan codes complete table">
+      <option name="closed" value="true" />
+      <created>1704469429138</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1704469429138</updated>
+    </task>
+    <task id="LOCAL-00006" summary="scan code map">
+      <option name="closed" value="true" />
+      <created>1704603356330</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1704603356330</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -236,6 +254,8 @@
     <MESSAGE value="sdl keyboard events" />
     <MESSAGE value="gitpod" />
     <MESSAGE value="sdl scan codes events" />
-    <option name="LAST_COMMIT_MESSAGE" value="sdl scan codes events" />
+    <MESSAGE value="scan codes complete table" />
+    <MESSAGE value="scan code map" />
+    <option name="LAST_COMMIT_MESSAGE" value="scan code map" />
   </component>
 </project>
