@@ -44,7 +44,7 @@ int start(CPUState *state, const size_t program_size, const size_t flash_size, c
             *(state->pc) = i_handler;
             *(state->in_subroutine) = true;
         }
-        usleep(100000);
+        // usleep(100000);
     }
     if (*(state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
