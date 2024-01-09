@@ -87,3 +87,36 @@
 | 0x5D          | ,   |
 | 0x5E          | .   |
 | 0x5F          | /   |
+
+
+
+## Special keys Mac
+
+0x01, Escape: 27  
+0x02, F1: 112  
+0x03, F2: 113  
+0x04, F3: 114  
+0x05, F4: 115  
+0x06, F5: 116  
+0x07, F6: 117  
+0x08, F7: 118  
+0x09, F8: 119  
+0x0A, F9: 120  
+0x0B, F10: 121  
+0x0C, F12: 123  
+0x0D, Delete: 127  
+0x0E, Tab: 9  
+0x0F, CapsLock: 10  
+0x10, Return: 13  
+0x11, LeftShift: 14  
+0x12, RightShift: 15  
+0x13, Control: 17  
+0x14, LeftOption: 18  
+0x15, LeftCommand: 19  
+0x16, Space: 32  
+0x17, RightCommand: 33  
+0x18, RightOption: 34  
+0x19, LeftArrow: 37  
+0x1A, UpArrow: 38  
+0x1B, RightArrow: 39  
+0x1C, DownArrow: 40
