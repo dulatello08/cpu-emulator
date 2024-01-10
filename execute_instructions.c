@@ -135,7 +135,7 @@ bool execute_instruction(CPUState *state) {
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
         // Jump out of subroutine using PC appState saved in stack. Set in_subroutine flag to false.
-        case OP_OSR:
+        case OP_OSR: {
             if (state->in_subroutine) {
                 uint16_t realPc;
                 realPc = (uint16_t)(popStack(state, NULL) << 8);
@@ -145,10 +145,10 @@ bool execute_instruction(CPUState *state) {
                 printf("current pc: %x \n", *state->pc);
                 skipIncrementPC = true;
                 break;
-            } else {
-                printf("Jump out of subroutine was called while not in subroutine");
-                return true;
             }
+            printf("Jump out of subroutine was called while not in subroutine");
+            return true;
+        }
         // Relative store register to memory pops off 2 bytes from stack to be used as address
         case OP_RSM: {
             uint16_t relAddr;
