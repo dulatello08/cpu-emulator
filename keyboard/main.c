@@ -31,7 +31,8 @@ void keyboard(AppState *appState) {
                 quit = true;
                 printf("quit");
                 break;
-            } else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+            }
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 const int evValue = (event.type == SDL_KEYDOWN) ? 1 : 0;
                 if (event.key.repeat == 0) { // Ignore key repeat events
                     printf("Key event: sdlCode %d cpuCode %01x value %d\n", event.key.keysym.scancode, sdlToCpuCode(event.key.keysym.scancode), evValue);
@@ -66,5 +67,5 @@ void keyboard(AppState *appState) {
     }
 
     // Quit SDL
-    SDL_Quit();keyboard
+    SDL_Quit();
 }
