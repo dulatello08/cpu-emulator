@@ -79,7 +79,7 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 
                 char *indexStr = bracketPos + 1;
                 if (indexStr[0] == '0' && indexStr[1] == 'x') {
-                    sscanf(indexStr + 2, "%x", &index);  // Parse hex index
+                    sscanf(indexStr + 2, "%x", (uint *) &index);  // Parse hex index
                 } else {
                     sscanf(indexStr, "%d", &index);  // Parse decimal index
                 }

@@ -1,4 +1,4 @@
-## 8-Bit CPU Emulator
+    ## 8-Bit CPU Emulator
 Welcome to the 8-bit CPU emulator! This project is a C-language implementation of an emulator for an 8-bit CPU. The emulator is capable of simulating the behavior of a simple 8-bit CPU, executing instructions and manipulating memory.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

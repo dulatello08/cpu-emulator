@@ -1,7 +1,13 @@
 #include "main.h"
+#include <keyboard/main.h>
+#include <stdint.h>
 
 #define PAIR_BW       1
 #define BRIGHT_WHITE  15
+
+void keyboard_mode(AppState *appState) {
+    keyboard(appState);
+}
 
 void tty_mode(AppState *appState) {
 
