@@ -45,6 +45,14 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data) {
                 y = 0;
             }
         }
+    } else if (data == 0x0A) {
+        // Line Feed character
+        x = 0;
+        y++;
+        if (y == LCD_HEIGHT) {
+            // If we reach the end of the display, wrap around to the top
+            y = 0;
+        }
     } else if (data == 0x01) {
         // Clear display
         clear_display(display);
