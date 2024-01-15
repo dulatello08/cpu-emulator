@@ -2,7 +2,6 @@
 #define INC_8_BIT_CPU_EMULATOR_MAIN_H
 
 #include <stdint.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,7 +12,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <ctype.h>
-#include <ncurses.h>
 
 #define MEMORY 65536
 #define EXPECTED_PROGRAM_WORDS 256
@@ -185,6 +183,5 @@ void push_interrupt(InterruptQueue* queue, uint8_t source);
 uint8_t pop_interrupt(InterruptQueue* queue);
 
 void keyboard_mode(AppState *appState);
-void tty_mode(AppState *appState);
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
