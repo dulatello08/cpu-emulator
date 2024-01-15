@@ -29,7 +29,6 @@ void command_print(AppState *appState, __attribute__((unused)) const char *args)
 void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
-void command_tty_mode(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
 void command_keyboard(AppState *appState, const char *args);
 
@@ -46,7 +45,6 @@ const Command COMMANDS[] = {
         {"exit", command_exit},
         {"ctl_listen", command_ctl_listen},
         {"ctl_l", command_ctl_listen},
-        {"tty", command_tty_mode},
         {"interrupt", command_interrupt},
         {"keyboard", command_keyboard},
         {"kb", command_keyboard},
@@ -330,10 +328,6 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 #else
     printf("Feature not enabled\n");
 #endif
-}
-
-void command_tty_mode(AppState *appState, __attribute__((unused)) const char *args) {
-    tty_mode(appState);
 }
 
 void command_interrupt(AppState *appState, const char *args) {
