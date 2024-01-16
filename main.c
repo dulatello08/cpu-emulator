@@ -221,7 +221,16 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
     printf("exit - exit the program\n");
-    write(appState->gui_pipes.stdin_fd, "DISPLAY(\"help\")\n", 17);
+    //write(appState->gui_pipes.stdin_fd, "D(\"help\")\n", 11);
+    FILE *stream = fdopen(appState->gui_pipes.stdin_fd, "w");
+
+
+    // Use fprintf to write to the stream
+    fprintf(stream, "C()\n");
+    fflush(stream); // Ensure the data is sent immediately
+    usleep(10000);
+    fprintf(stream, "D(\"Hello world!********************\\n********************************\\n********************************\\n********************************\\n\")\n");
+    fflush(stream); // Ensure the data is sent immediately
 }
 
 void command_input(AppState *appState, const char *args) {
