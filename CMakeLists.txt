@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
 # Set the project name
 project(NeoCore C)
 
@@ -12,6 +14,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wpedantic -g -O0 -D_T
 
 # Include directories
 include_directories(.)
+
 
 find_package(SDL2 REQUIRED)
 if(NOT SDL2_FOUND)
@@ -56,7 +59,7 @@ add_executable(gui_subsystem ${GUI_SOURCES})
 target_include_directories(gui_subsystem PRIVATE gui)
 
 # Link against SDL2 for gui_subsystem
-target_link_libraries(gui_subsystem ${SDL2_LIBRARIES} ${SDL2_TTF_LIBRARIES})
+target_link_libraries(gui_subsystem ${SDL2_LIBRARIES} SDL2::TTF)
 
 # Platform-specific settings
 if(UNIX AND NOT APPLE)
