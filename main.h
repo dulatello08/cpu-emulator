@@ -76,6 +76,11 @@
 #define INTERRUPT_TABLE_SIZE 10
 #define INTERRUPT_QUEUE_MAX 10
 
+typedef struct {
+    int stdin_fd;
+    int stdout_fd;
+} process_pipes_t;
+
 struct memory_block {
     uint16_t startAddress;
     uint16_t size;
@@ -143,6 +148,7 @@ typedef struct {
     pid_t emulator_pid;
     uint8_t program_size;
     int flash_size;
+    process_pipes_t gui_pipes;
 } AppState;
 
 int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
@@ -183,5 +189,6 @@ void push_interrupt(InterruptQueue* queue, uint8_t source);
 uint8_t pop_interrupt(InterruptQueue* queue);
 
 void keyboard_mode(AppState *appState);
+void open_gui(AppState *appState);
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H

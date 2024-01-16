@@ -6,8 +6,6 @@
 #define MAIN_H
 
 #include <main.h>
-#include <SDL.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 uint8_t sdlToCpuCode(int sdlCode);
