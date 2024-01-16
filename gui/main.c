@@ -92,10 +92,6 @@ void handleInput(SDL_Renderer *renderer) {
                         // Clear screen
                         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
                         SDL_RenderClear(renderer);
-
-                        // Here you would render the text to the screen
-                        // For simplicity, let's just print it to stdout
-                        fprintf(stderr, "Rendering: %s\n", start + 1);
                         renderText(renderer, start + 1);
 
                         // Update screen
