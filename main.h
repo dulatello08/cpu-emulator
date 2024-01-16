@@ -47,7 +47,8 @@
 #define OP_ENI 0x1A
 #define OP_DSI 0x1B
 
-#define FLAGS_SIZE 0x1
+#define FLAGS_SIZE 0x2
+// flags 1 is reserved, 2 is to rerender display
 #define STACK_SIZE 0xff
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
@@ -151,7 +152,7 @@ typedef struct {
     process_pipes_t gui_pipes;
 } AppState;
 
-int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
+int start(AppState *appState);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
 long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 

@@ -174,8 +174,7 @@ void command_start(AppState *appState, __attribute__((unused)) const char *args)
                 *(appState->emulator_running) = 0;
                 exit(1);
             }
-            start(appState->state, appState->program_size , appState->flash_size,
-                  appState->program_memory, appState->flash_memory, appState->shared_data_memory);
+            start(appState);
             printf(">> ");
             *(appState->emulator_running) = 0;
             exit(0);
