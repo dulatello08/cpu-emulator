@@ -34,6 +34,9 @@ int start(AppState *appState) {
     while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
             FILE* gui_stdin = fdopen(appState->gui_pipes.stdin_fd, "w");
+            char outputString[LCD_HEIGHT * (LCD_WIDTH + 2) + 1]; // +2 for each "\n" and +1 for the null terminator
+            int pos = 0; // Position in the output string
+
             for (int j = 0; j < LCD_HEIGHT; j++) {
                 for (int i = 0; i < LCD_WIDTH; i++) {
                     char character = appState->state->display[i][j];
@@ -41,10 +44,17 @@ int start(AppState *appState) {
                     if (character == '\0') {
                         character = '*';
                     }
-                    fprintf(gui_stdin, "%c", character);
+                    outputString[pos++] = character;
                 }
-                fprintf(gui_stdin, "\n");
+                // Add literal "\n" at the end of each line
+                outputString[pos++] = '\\';
+                outputString[pos++] = 'n';
             }
+            outputString[pos] = '\0'; // Null-terminate the string
+            fprintf(gui_stdin, "C()\n");
+            fprintf(gui_stdin, "D(\"%s\")\n", outputString); // Print the entire string at once
+            fflush(gui_stdin);
+            appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
             exitCode = execute_instruction(appState->state);
@@ -59,7 +69,7 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
-        // usleep(100000);
+        usleep(10000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;

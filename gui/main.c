@@ -13,45 +13,12 @@ int SDLCALL eventFilter(__attribute__((unused))void *userdata, SDL_Event *event)
     return 1;  // Process all other events as usual
 }
 
-int renderText(SDL_Renderer *renderer, TTF_Font *font, const char *text, int x, int y) {
-    // Create a surface from the string
-    SDL_Color textColor = {255, 255, 255, 255}; // White color
-    SDL_Surface *textSurface = TTF_RenderText_Solid(font, text, textColor);
-    if (!textSurface) {
-        fprintf(stderr, "Failed to create text surface: %s\n", TTF_GetError());
-        return 0;
-    }
-
-    // Create a texture from the surface
-    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    SDL_FreeSurface(textSurface);
-    if (!textTexture) {
-        fprintf(stderr, "Failed to create text texture: %s\n", SDL_GetError());
-        return 0;
-    }
-
-    // Get the texture size
-    int textWidth = 0, textHeight = 0;
-    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
-
-    // Set the rendering position
-    SDL_Rect renderQuad = {x, y, textWidth, textHeight};
-
-    // Render the text
-    SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);
-
-    // Clean up
-    SDL_DestroyTexture(textTexture);
-    return textHeight;
-}
-
-
 void handleInput(SDL_Renderer *renderer, TTF_Font *font) {
     static int currentX = 0;
     static int currentY = 0;
-    int lineHeight = 24; // Assuming 24 is the height of each line of text
+    int lineHeight = TTF_FontHeight(font); // Use font height for line height
 
-    char buffer[1024];
+    char buffer[2048];
     fd_set set;
     struct timeval timeout;
 
@@ -68,30 +35,36 @@ void handleInput(SDL_Renderer *renderer, TTF_Font *font) {
     if (result > 0) {
         // Read input from stdin
         if (fgets(buffer, sizeof(buffer), stdin)) {
+            // Implement command handling
             if (strncmp(buffer, "D(", 2) == 0) {
-                // Process the input and display it
-                char *start = strchr(buffer, '"');
-                if (start && start[1] != '\0') {
-                    char *end = strchr(start + 1, '"');
-                    if (end) {
-                        *end = '\0'; // Null-terminate the string
-                        char *nextLine = strchr(start, '\n');
+                // Handle D command
+                char *text = strtok(buffer + 2, "\")");
+                if (text) {
+                    SDL_Color textColor = {255, 255, 255, 255}; // White color
 
-                        if (nextLine) {
-                            *nextLine = '\0'; // Replace newline with null-terminator
-                            currentY += renderText(renderer, font, start + 1, currentX, currentY) + lineHeight;
-                            currentY += lineHeight; // Move down for the next text line
-                            currentX = 0; // Reset X position
-                        } else {
-                            int textWidth = renderText(renderer, font, start + 1, currentX, currentY);
-                            currentX += textWidth; // Move right for the next text
+                    char *line = strtok(text, "\\n");
+                    while (line) {
+                        SDL_Surface* textSurface = TTF_RenderText_Blended(font, line, textColor);
+                        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+                        SDL_Rect textRect = {currentX, currentY, textSurface->w, textSurface->h};
+                        SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+                        SDL_DestroyTexture(textTexture);
+                        SDL_FreeSurface(textSurface);
+
+                        currentY += lineHeight; // Move to next line
+                        if (currentY >= 480 - lineHeight) { // Adjust for screen size
+                            currentY = 0; // Reset to top if we run out of space
                         }
 
-                        // Update screen
-                        SDL_RenderPresent(renderer);
+                        line = strtok(NULL, "\\n");
                     }
                 }
+            } else if (strcmp(buffer, "C()\n") == 0) {
+                // Handle C command
+                SDL_RenderClear(renderer);
+                currentX = currentY = 0;
             }
+            SDL_RenderPresent(renderer);
         }
     }
 }
