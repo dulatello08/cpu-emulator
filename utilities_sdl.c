@@ -34,7 +34,7 @@ void open_gui(AppState *appState) {
         close(stdout_pipe[1]);
 
         // Execute GUI subsystem
-        execlp("cmake-build-debug/gui_subsystem", "gui_subsystem", (char *)NULL);
+        execlp("build/gui_subsystem", "gui_subsystem", (char *)NULL);
         // Exec only returns on error
         perror("execlp");
         exit(EXIT_FAILURE);

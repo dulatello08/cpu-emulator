@@ -37,6 +37,7 @@ void handleInput(SDL_Renderer *renderer, TTF_Font *font) {
         if (fgets(buffer, sizeof(buffer), stdin)) {
             // Implement command handling
             if (strncmp(buffer, "D(", 2) == 0) {
+                fprintf(stderr,"print");
                 // Handle D command
                 char *text = strtok(buffer + 2, "\")");
                 if (text) {
@@ -60,6 +61,7 @@ void handleInput(SDL_Renderer *renderer, TTF_Font *font) {
                     }
                 }
             } else if (strcmp(buffer, "C()\n") == 0) {
+                fprintf(stderr,"clear");
                 // Handle C command
                 SDL_RenderClear(renderer);
                 currentX = currentY = 0;
@@ -87,7 +89,7 @@ int main(void) {
         return 1;
     }
 
-    TTF_Font *font = TTF_OpenFont("/Users/dulat/Documents/Games/X-Plane 12/Resources/fonts/DejaVuSans.ttf", 24); // Adjust font path and size
+    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 24); // Adjust font path and size
     if (!font) {
         fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
         TTF_Quit();

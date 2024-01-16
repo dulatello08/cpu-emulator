@@ -1,4 +1,5 @@
 #include "main.h"
+#include <stdio.h>
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
     //state->reg = malloc(16 * sizeof(uint8_t));
@@ -52,6 +53,8 @@ int start(AppState *appState) {
             }
             outputString[pos] = '\0'; // Null-terminate the string
             fprintf(gui_stdin, "C()\n");
+            fflush(gui_stdin);
+            usleep(10000);
             fprintf(gui_stdin, "D(\"%s\")\n", outputString); // Print the entire string at once
             fflush(gui_stdin);
             appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
@@ -69,7 +72,6 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
-        usleep(10000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
