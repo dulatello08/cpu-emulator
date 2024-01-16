@@ -95,7 +95,7 @@ void handleInput(SDL_Renderer *renderer) {
 
                         // Here you would render the text to the screen
                         // For simplicity, let's just print it to stdout
-                        printf("Rendering: %s\n", start + 1);
+                        fprintf(stderr, "Rendering: %s\n", start + 1);
                         renderText(renderer, start + 1);
 
                         // Update screen
@@ -133,7 +133,6 @@ int main(void) {
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
                 quit = true;
-                printf("quit\n");
                 break;
             }
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
@@ -149,12 +148,8 @@ int main(void) {
     // Destroy the window
     SDL_DestroyWindow(window);
 
-    // Check for errors
-    if (SDL_GetError() != NULL) {
-        fprintf(stderr, "Error in destroying window: %s\n", SDL_GetError());
-    }
-
     // Quit SDL
     SDL_Quit();
+    fprintf(stderr, "quit");
     return 0;
 }

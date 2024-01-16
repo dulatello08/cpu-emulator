@@ -31,24 +31,26 @@ void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unu
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
 void command_keyboard(AppState *appState, const char *args);
+void command_gui(AppState *appState, __attribute__((unused)) const char * args);
 
 const Command COMMANDS[] = {
-        {"start", command_start},
-        {"stop", command_stop},
-        {"program", command_program},
-        {"flash", command_flash},
-        {"help", command_help},
-        {"h", command_help},
-        {"input", command_input},
-        {"print", command_print},
-        {"free", command_free},
-        {"exit", command_exit},
-        {"ctl_listen", command_ctl_listen},
-        {"ctl_l", command_ctl_listen},
-        {"interrupt", command_interrupt},
-        {"keyboard", command_keyboard},
-        {"kb", command_keyboard},
-        {NULL, NULL}
+    {"start", command_start},
+    {"stop", command_stop},
+    {"program", command_program},
+    {"flash", command_flash},
+    {"help", command_help},
+    {"h", command_help},
+    {"input", command_input},
+    {"print", command_print},
+    {"free", command_free},
+    {"exit", command_exit},
+    {"ctl_listen", command_ctl_listen},
+    {"ctl_l", command_ctl_listen},
+    {"interrupt", command_interrupt},
+    {"keyboard", command_keyboard},
+    {"kb", command_keyboard},
+    {"gui", command_gui},
+    {NULL, NULL}
 };
 
 AppState *new_app_state(void) {
@@ -220,6 +222,7 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
     printf("exit - exit the program\n");
+    write(appState->gui_pipes.stdin_fd, "DISPLAY(\"help\")\n", 17);
 }
 
 void command_input(AppState *appState, const char *args) {
@@ -341,4 +344,8 @@ void command_interrupt(AppState *appState, const char *args) {
 
 void command_keyboard(AppState *appState, __attribute__((unused)) const char *args) {
     keyboard_mode(appState);
+}
+
+void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {
+    open_gui(appState);
 }
