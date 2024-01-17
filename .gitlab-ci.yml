@@ -1,7 +1,11 @@
-image: cmake:latest
+image: gcc:latest
 
 stages:          # List of stages for jobs, and their order of execution
   - build
+
+before_script:
+   - apt-get update --yes
+   - apt-get install --yes cmake
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
