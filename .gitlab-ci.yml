@@ -5,7 +5,7 @@ stages:          # List of stages for jobs, and their order of execution
 
 before_script:
    - apt-get update --yes
-   - apt-get install --yes cmake
+   - apt-get install --yes cmake libsdl2-dev libsdl2-ttf-dev
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
