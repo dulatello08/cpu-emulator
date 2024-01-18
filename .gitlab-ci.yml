@@ -13,7 +13,6 @@ build-job:       # This job runs in the build stage, which runs first.
     - mkdir build
     - cd build
     - cmake ..
-    - cmake --build
     - make
   artifacts:
     untracked: false
