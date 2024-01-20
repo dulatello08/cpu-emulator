@@ -30,7 +30,6 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
-void command_keyboard(AppState *appState, const char *args);
 void command_gui(AppState *appState, __attribute__((unused)) const char * args);
 
 const Command COMMANDS[] = {
@@ -47,9 +46,8 @@ const Command COMMANDS[] = {
     {"ctl_listen", command_ctl_listen},
     {"ctl_l", command_ctl_listen},
     {"interrupt", command_interrupt},
-    {"keyboard", command_keyboard},
-    {"kb", command_keyboard},
     {"gui", command_gui},
+    {"g", command_gui},
     {NULL, NULL}
 };
 
@@ -348,10 +346,6 @@ void command_interrupt(AppState *appState, const char *args) {
     push_interrupt(appState->state->i_queue, source);
     //printf("result: %02x\n", pop_interrupt(appState->state->i_queue));
     //kill(appState->emulator_pid, SIGCONT);
-}
-
-void command_keyboard(AppState *appState, __attribute__((unused)) const char *args) {
-    keyboard_mode(appState);
 }
 
 void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {

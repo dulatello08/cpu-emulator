@@ -89,7 +89,7 @@ int main(void) {
         return 1;
     }
 
-    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 24); // Adjust font path and size
+    TTF_Font *font = TTF_OpenFont("/Users/dulat/Downloads/Menlo-Regular-01.ttf", 24); // Adjust font path and size
     if (!font) {
         fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
         TTF_Quit();
@@ -117,7 +117,7 @@ int main(void) {
             if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
                 const int evValue = (event.type == SDL_KEYDOWN) ? 1 : 0;
                 if (event.key.repeat == 0) { // Ignore key repeat events
-                    printf("Key event: sdlCode %d value %d\n", event.key.keysym.scancode, evValue);
+                    printf("Key event: cpu code %d value %d\n", sdlToCpuCode(event.key.keysym.scancode), evValue);
                 }
             }
         }

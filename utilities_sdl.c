@@ -1,9 +1,4 @@
 #include "main.h"
-#include <keyboard/main.h>
-
-void keyboard_mode(AppState *appState) {
-    keyboard(appState);
-}
 
 void open_gui(AppState *appState) {
     int stdin_pipe[2], stdout_pipe[2];

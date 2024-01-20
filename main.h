@@ -189,7 +189,6 @@ uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE
 void push_interrupt(InterruptQueue* queue, uint8_t source);
 uint8_t pop_interrupt(InterruptQueue* queue);
 
-void keyboard_mode(AppState *appState);
 void open_gui(AppState *appState);
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H

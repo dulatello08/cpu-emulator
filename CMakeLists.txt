@@ -41,12 +41,12 @@ file(GLOB GUI_SOURCES "gui/*.c")
 list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
 
 # Add executable for emulator (without socket sources)
-add_executable(emulator ${SOURCES} ${KEYBOARD_SOURCES})
+add_executable(emulator ${SOURCES})
 # Link against libraries
 target_link_libraries(emulator)
 
 # Add executable for emulator_socket (with socket sources)
-add_executable(emulator_socket ${SOURCES} ${SOCKET_SOURCES} ${KEYBOARD_SOURCES})
+add_executable(emulator_socket ${SOURCES} ${SOCKET_SOURCES})
 # Define EMULATOR_SOCKET
 target_compile_definitions(emulator_socket PRIVATE EMULATOR_SOCKET)
 # Link against libraries
@@ -74,5 +74,5 @@ endif()
 
 # Custom target for cleaning extra files (optional)
 add_custom_target(clean-all
-        COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
+        COMMAND
 )
