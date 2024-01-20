@@ -36,24 +36,25 @@ file(GLOB SOURCES "*.c")
 file(GLOB SOCKET_SOURCES "socket/*.c")
 file(GLOB KEYBOARD_SOURCES "keyboard/*.c")
 file(GLOB GUI_SOURCES "gui/*.c")
+file(GLOB IPC_SOURCES "ipc/*.c*")
 
 # Remove socket sources from main emulator sources
-list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
+#list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
 
 # Add executable for emulator (without socket sources)
-add_executable(emulator ${SOURCES})
+add_executable(emulator ${SOURCES} ${IPC_SOURCES})
 # Link against libraries
 target_link_libraries(emulator)
 
 # Add executable for emulator_socket (with socket sources)
-add_executable(emulator_socket ${SOURCES} ${SOCKET_SOURCES})
+add_executable(emulator_socket ${SOURCES} ${SOCKET_SOURCES} ${IPC_SOURCES})
 # Define EMULATOR_SOCKET
 target_compile_definitions(emulator_socket PRIVATE EMULATOR_SOCKET)
 # Link against libraries
 target_link_libraries(emulator_socket)
 
 # Add executable for gui_subsystem
-add_executable(gui_subsystem ${GUI_SOURCES})
+add_executable(gui_subsystem ${GUI_SOURCES} ${IPC_SOURCES})
 
 # Include directories for gui_subsystem
 target_include_directories(gui_subsystem PRIVATE gui)
