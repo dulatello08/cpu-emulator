@@ -2,11 +2,13 @@
 // Created by Dulat S on 1/14/24.
 //
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef GUI_MAIN_H
+#define GUI_MAIN_H
 
 #include <SDL.h>
 #include <stdbool.h>
 #include <SDL_ttf.h>
 
-#endif //MAIN_H
+uint8_t sdlToCpuCode(int sdlCode);
+
+#endif //GUI_MAIN_H
