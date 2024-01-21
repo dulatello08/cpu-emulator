@@ -3,11 +3,14 @@ cmake_minimum_required(VERSION 3.25)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 # Set the project name
-project(NeoCore C)
+project(NeoCore LANGUAGES C CXX)
 
 # Set C standard
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wpedantic -g -O0 -D_THREAD_SAFE")
@@ -34,7 +37,7 @@ include_directories(${SDL2_TTF_INCLUDE_DIRS})
 # Source files
 file(GLOB SOURCES "*.c")
 file(GLOB SOCKET_SOURCES "socket/*.c")
-file(GLOB GUI_SOURCES "gui/*.c")
+file(GLOB GUI_SOURCES "gui/*.c*")
 
 # Remove socket sources from main emulator sources
 #list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
