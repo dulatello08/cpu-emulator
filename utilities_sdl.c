@@ -1,4 +1,5 @@
 #include "main.h"
+#include <fcntl.h>
 
 void open_gui(AppState *appState) {
     int stdin_pipe[2], stdout_pipe[2];
@@ -35,6 +36,18 @@ void open_gui(AppState *appState) {
         exit(EXIT_FAILURE);
     } else {
         // Parent process
+        int flags = fcntl(stdin_pipe[1], F_GETFL, 0); // Get current flags
+        if (flags == -1) {
+            perror("fcntl");
+            exit(EXIT_FAILURE);
+        }
+
+        flags |= O_NONBLOCK; // Add non-blocking flag
+
+        if (fcntl(stdin_pipe[1], F_SETFL, flags) == -1) { // Set new flags
+            perror("fcntl");
+            exit(EXIT_FAILURE);
+        }
 
         // Close unused ends of the pipes
         close(stdin_pipe[0]); // Close reading end of stdin pipe

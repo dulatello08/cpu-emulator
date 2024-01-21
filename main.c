@@ -220,15 +220,18 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("free - free emulator memory\n");
     printf("exit - exit the program\n");
     //write(appState->gui_pipes.stdin_fd, "D(\"help\")\n", 11);
-    FILE *stream = fdopen(appState->gui_pipes.stdin_fd, "w");
+
+    int stdin_fd = appState->gui_pipes.stdin_fd;
+    char buffer[200];  // Buffer for formatted string, adjust the size as needed
+    int len;
+
+    // Format the string and write to the file descriptor
+    len = snprintf(buffer, sizeof(buffer), "C()\n");
+    write(stdin_fd, buffer, len);
 
 
-    // Use fprintf to write to the stream
-    fprintf(stream, "C()\n");
-    fflush(stream); // Ensure the data is sent immediately
-    usleep(10000);
-    fprintf(stream, "D(\"Hello world!********************\\n********************************\\n********************************\\n********************************\\n\")\n");
-    fflush(stream); // Ensure the data is sent immediately
+    len = snprintf(buffer, sizeof(buffer), "D(\"Hello world!********************\\n********************************\\n********************************\\n********************************\\n\")\n");
+    write(stdin_fd, buffer, len);
 }
 
 void command_input(AppState *appState, const char *args) {
