@@ -222,7 +222,9 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
     printf("exit - exit the program\n");
+    clear_display(appState->gui_shm->display);
     write_to_display(appState->gui_shm->display, 0x41);
+
 }
 
 void command_input(AppState *appState, const char *args) {
