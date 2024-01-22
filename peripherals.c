@@ -5,10 +5,10 @@
 #include "main.h"
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]) {
-    // Clear the display by setting all characters to space
+    // Clear the display by setting all characters to \0
     for (int i = 0; i < LCD_WIDTH; i++) {
         for (int j = 0; j < LCD_HEIGHT; j++) {
-            display[i][j] = ' ';
+            display[i][j] = '\0';
         }
     }
 }

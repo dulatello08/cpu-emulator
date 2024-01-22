@@ -15,41 +15,44 @@
 using namespace std;
 
 void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font) {
-    SDL_Color textColor = {255, 255, 255, 255}; // White color for text
-    int currentX = 0;
+    SDL_Color textColor = {255, 255, 255, 255}; // White text color
+    int lineHeight = TTF_FontHeight(font);
     int currentY = 0;
-    int lineHeight = 24; // Adjust as needed
 
-    for (int y = 0; y < LCD_HEIGHT; ++y) {
-        for (int x = 0; x < LCD_WIDTH; ++x) {
-            char charToRender[2] = {display[x][y], '\0'}; // Convert to string for rendering
+    for (int j = 0; j < LCD_HEIGHT; j++) {
+        for (int i = 0; i < LCD_WIDTH; i++) {
+            char character = display[i][j];
+            if (character == '\0') {
+                character = '*'; // Replace null character with '*'
+            }
+            printf("Rendering character: %c at (%d, %d)\n", character, i, j);
 
-            SDL_Surface* textSurface = TTF_RenderText_Blended(font, charToRender, textColor);
+            char str[2] = {character, '\0'}; // Convert char to string for rendering
+            SDL_Surface* textSurface = TTF_RenderText_Blended(font, str, textColor);
             if (textSurface == nullptr) {
-                std::cerr << "Unable to create text surface: " << TTF_GetError() << '\n';
-                continue;
+                fprintf(stderr, "Unable to create text surface: %s\n", TTF_GetError());
+                return;
             }
 
             SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
             if (textTexture == nullptr) {
-                std::cerr << "Unable to create texture from surface: " << SDL_GetError() << '\n';
+                fprintf(stderr, "Unable to create texture from surface: %s\n", SDL_GetError());
                 SDL_FreeSurface(textSurface);
-                continue;
+                return;
             }
 
-            SDL_Rect textRect = {currentX, currentY, textSurface->w, textSurface->h};
+            // Calculate the x position for each character, assuming monospaced font
+            int charWidth = textSurface->w;
+            SDL_Rect textRect = {i * charWidth, currentY, textSurface->w, textSurface->h};
             SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
 
             SDL_DestroyTexture(textTexture);
             SDL_FreeSurface(textSurface);
-
-            currentX += 18;
-            if (currentX >= LCD_WIDTH * 18) {
-                currentX = 0;
-                currentY += lineHeight;
-            }
         }
+        currentY += lineHeight; // Move to the next line
     }
+
+    SDL_RenderPresent(renderer); // Update the screen with rendering performed
 }
 
 int main() {
