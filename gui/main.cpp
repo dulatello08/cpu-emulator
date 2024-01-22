@@ -14,6 +14,17 @@
 
 using namespace std;
 
+void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font);
+
+void sigUsrHandler(int signal, signal_handler_data_t *signal_handler_data) {
+    static signal_handler_data_t *saved = nullptr;
+
+    if (saved == nullptr)
+        saved = signal_handler_data;
+    if (signal == SIGUSR1)
+        update_display(saved->display, saved->renderer, saved->font);
+}
+
 void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font) {
     SDL_Color textColor = {255, 255, 255, 255}; // White text color
     int lineHeight = TTF_FontHeight(font);
@@ -56,6 +67,8 @@ void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer,
 }
 
 int main() {
+    signal(SIGUSR1, (void (*)(int)) sigUsrHandler);
+    signal_handler_data_t signal_handler_data;
     SDL_Event event;
     bool quit = false;
 
@@ -104,6 +117,11 @@ int main() {
         return 1;
     }
 
+    memcpy(signal_handler_data.display, shared_memory->display, sizeof(signal_handler_data.display));
+    signal_handler_data.font = font;
+    signal_handler_data.renderer = renderer;
+
+    sigUsrHandler(SIGUSR2, &signal_handler_data);
 
     while (!quit) {
         while (SDL_PollEvent(&event) != 0) {
@@ -118,7 +136,7 @@ int main() {
                 }
             }
         }
-        update_display(shared_memory->display, renderer, font);
+        memcpy(signal_handler_data.display, shared_memory->display, sizeof(signal_handler_data.display));
     }
     TTF_CloseFont(font);
     TTF_Quit();

@@ -150,6 +150,7 @@ typedef struct {
     uint8_t program_size;
     int flash_size;
     gui_process_shm_t *gui_shm;
+    pid_t gui_pid;
     int gui_shm_fd;
 } AppState;
 

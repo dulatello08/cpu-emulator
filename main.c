@@ -224,7 +224,7 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("exit - exit the program\n");
     clear_display(appState->gui_shm->display);
     write_to_display(appState->gui_shm->display, 0x41);
-
+    kill(appState->gui_pid, SIGUSR1);
 }
 
 void command_input(AppState *appState, const char *args) {

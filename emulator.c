@@ -1,3 +1,5 @@
+#include <signal.h>
+
 #include "main.h"
 #include <stdio.h>
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
@@ -34,7 +36,8 @@ int start(AppState *appState) {
     printf("emulator pointer: %p\n", (void *) appState->state->i_queue);
     while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
-
+            memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
+            kill(appState->gui_pid, SIGUSR1);
             appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
