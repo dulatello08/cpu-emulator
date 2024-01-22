@@ -8,76 +8,46 @@
 #include <regex>
 #include <string>
 #include <iostream>
-
-int SDLCALL eventFilter(void *userdata, SDL_Event *event) {
-    if (event->type == SDL_FINGERDOWN || event->type == SDL_FINGERUP || event->type == SDL_FINGERMOTION) {
-        return 0;  // Ignore touch events
-    }
-    return 1;  // Process all other events as usual
-}
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 using namespace std;
 
-void handleInput(SDL_Renderer *renderer, TTF_Font *font) {
-    static int currentX = 0;
-    static int currentY = 0;
-    int lineHeight = TTF_FontHeight(font);
+void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font) {
+    SDL_Color textColor = {255, 255, 255, 255}; // White color for text
+    int currentX = 0;
+    int currentY = 0;
+    int lineHeight = 24; // Adjust as needed
 
-    string buffer;
-    fd_set set;
-    timeval timeout{};
+    for (int y = 0; y < LCD_HEIGHT; ++y) {
+        for (int x = 0; x < LCD_WIDTH; ++x) {
+            char charToRender[2] = {display[x][y], '\0'}; // Convert to string for rendering
 
-    FD_ZERO(&set);
-    FD_SET(STDIN_FILENO, &set);
-
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 10000;
-
-    if (select(STDIN_FILENO + 1, &set, nullptr, nullptr, &timeout) > 0) {
-        getline(cin, buffer);
-        if (!buffer.empty()) {
-            regex drawCmdRegex(R"(D\((.*)\))");
-            regex clearCmdRegex(R"(C\(\))");
-            smatch matches;
-
-            if (regex_search(buffer, matches, drawCmdRegex) && matches.size() > 1) {
-                string text = matches[1].str();
-                regex newlineRegex(R"(\\n)");
-                sregex_token_iterator it(text.begin(), text.end(), newlineRegex, -1);
-                sregex_token_iterator end;
-
-                SDL_Color textColor = {255, 255, 255, 255};
-                while (it != end) {
-                    string line = *it++;
-                    SDL_Surface* textSurface = TTF_RenderText_Blended(font, line.c_str(), textColor);
-                    if (textSurface == nullptr) {
-                        cerr << "Unable to create text surface: " << TTF_GetError() << '\n';
-                        break;
-                    }
-
-                    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-                    if (textTexture == nullptr) {
-                        cerr << "Unable to create texture from surface: " << SDL_GetError() << '\n';
-                        SDL_FreeSurface(textSurface);
-                        break;
-                    }
-
-                    SDL_Rect textRect = {currentX, currentY, textSurface->w, textSurface->h};
-                    SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
-
-                    SDL_DestroyTexture(textTexture);
-                    SDL_FreeSurface(textSurface);
-
-                    currentY += lineHeight;
-                    if (currentY >= 480 - lineHeight) {
-                        currentY = 0;
-                    }
-                }
-            } else if (regex_match(buffer, clearCmdRegex)) {
-                SDL_RenderClear(renderer);
-                currentX = currentY = 0;
+            SDL_Surface* textSurface = TTF_RenderText_Blended(font, charToRender, textColor);
+            if (textSurface == nullptr) {
+                std::cerr << "Unable to create text surface: " << TTF_GetError() << '\n';
+                continue;
             }
-            SDL_RenderPresent(renderer);
+
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+            if (textTexture == nullptr) {
+                std::cerr << "Unable to create texture from surface: " << SDL_GetError() << '\n';
+                SDL_FreeSurface(textSurface);
+                continue;
+            }
+
+            SDL_Rect textRect = {currentX, currentY, textSurface->w, textSurface->h};
+            SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+
+            SDL_DestroyTexture(textTexture);
+            SDL_FreeSurface(textSurface);
+
+            currentX += 18;
+            if (currentX >= LCD_WIDTH * 18) {
+                currentX = 0;
+                currentY += lineHeight;
+            }
         }
     }
 }
@@ -105,8 +75,7 @@ int main() {
         return 1;
     }
 
-    SDL_SetEventFilter(eventFilter, nullptr);
-    SDL_Window* window = SDL_CreateWindow("SDL Keyboard Event Example",
+    SDL_Window* window = SDL_CreateWindow("NeoCore emulator GUI",
                                           SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           640, 480, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
@@ -115,6 +84,23 @@ int main() {
         SDL_Quit();
         return 1;
     }
+
+    const char *memname = "emulator_gui_shm";
+    const size_t size = sizeof(gui_process_shm_t);
+
+    // Create and open a shared memory object in the parent process
+    int memFd = shm_open(memname, O_RDWR, 0);
+    if (memFd == -1) {
+        perror("shm_open");
+        exit(EXIT_FAILURE);
+    }
+
+    auto *shared_memory = (gui_process_shm_t*) mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, memFd, 0);
+    if (shared_memory == MAP_FAILED) {
+        perror("mmap");
+        return 1;
+    }
+
 
     while (!quit) {
         while (SDL_PollEvent(&event) != 0) {
@@ -129,7 +115,7 @@ int main() {
                 }
             }
         }
-        handleInput(renderer, font);
+        update_display(shared_memory->display, renderer, font);
     }
     TTF_CloseFont(font);
     TTF_Quit();

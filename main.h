@@ -78,9 +78,9 @@
 #define INTERRUPT_QUEUE_MAX 10
 
 typedef struct {
-    int stdin_fd;
-    int stdout_fd;
-} process_pipes_t;
+    char display[LCD_WIDTH][LCD_HEIGHT];
+    uint8_t keyboard_o[2];
+} gui_process_shm_t;
 
 struct memory_block {
     uint16_t startAddress;
@@ -149,7 +149,8 @@ typedef struct {
     pid_t emulator_pid;
     uint8_t program_size;
     int flash_size;
-    process_pipes_t gui_pipes;
+    gui_process_shm_t *gui_shm;
+    int gui_shm_fd;
 } AppState;
 
 int start(AppState *appState);
