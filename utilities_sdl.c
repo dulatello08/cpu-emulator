@@ -41,13 +41,13 @@ void open_gui(AppState *appState) {
     // Store the shared memory pointer in AppState
     appState->gui_shm = (gui_process_shm_t *) shared_memory;
 
-    pid_t pid = fork();
+    appState->gui_pid = fork();
 
-    if (pid == -1) {
+    if (appState->gui_pid == -1) {
         // Handle error
         perror("fork");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+    } else if (appState->gui_pid == 0) {
         // Child process
 
         // Pass the shared memory name to the child process

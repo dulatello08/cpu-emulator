@@ -24,6 +24,11 @@ extern "C" {
         uint8_t keyboard_o[2];
     } gui_process_shm_t;
 
+    typedef struct {
+        char display[LCD_WIDTH][LCD_HEIGHT];
+        SDL_Renderer *renderer;
+        TTF_Font *font;
+    } signal_handler_data_t;
 #ifdef __cplusplus
 }
 #endif
