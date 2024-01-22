@@ -9,12 +9,20 @@
 #include <SDL_ttf.h>
 #include <stdint.h>
 
+#define LCD_WIDTH 32
+#define LCD_HEIGHT 4
+
 // In your_c_header.h
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    uint8_t sdlToCpuCode(int);
+    uint8_t sdlToCpuCode(int scanCode);
+
+    typedef struct {
+        char display[LCD_WIDTH][LCD_HEIGHT];
+        uint8_t keyboard_o[2];
+    } gui_process_shm_t;
 
 #ifdef __cplusplus
 }

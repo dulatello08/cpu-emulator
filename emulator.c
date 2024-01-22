@@ -34,34 +34,6 @@ int start(AppState *appState) {
     printf("emulator pointer: %p\n", (void *) appState->state->i_queue);
     while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
-            int gui_stdin_fd = appState->gui_pipes.stdin_fd;
-            char outputString[LCD_HEIGHT * (LCD_WIDTH + 2) + 1]; // +2 for each "\n" and +1 for the null terminator
-            int pos = 0; // Position in the output string
-
-            for (int j = 0; j < LCD_HEIGHT; j++) {
-                for (int i = 0; i < LCD_WIDTH; i++) {
-                    char character = appState->state->display[i][j];
-                    // Replace null character with '*'
-                    if (character == '\0') {
-                        character = '*';
-                    }
-                    outputString[pos++] = character;
-                }
-                // Add literal "\n" at the end of each line
-                outputString[pos++] = '\n'; // Direct newline character
-            }
-            outputString[pos] = '\0'; // Null-terminate the string
-
-            // Write the commands to the file descriptor
-            char cmd1[] = "C()\n";
-            write(gui_stdin_fd, cmd1, strlen(cmd1));
-
-            usleep(10000);
-
-            // Prepare the second command with the string
-            char cmd2[1024]; // Make sure this buffer is large enough
-            snprintf(cmd2, sizeof(cmd2), "D(\"%s\")\n", outputString);
-            write(gui_stdin_fd, cmd2, strlen(cmd2));
 
             appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
         }

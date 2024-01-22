@@ -89,6 +89,9 @@ void free_app_state(AppState *appState) {
     destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
+    munmap(appState->gui_shm, sizeof(gui_process_shm_t));
+    close(appState->gui_shm_fd);
+    shm_unlink("emulator_gui_shm");
     free(appState);
 }
 
@@ -219,19 +222,7 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
     printf("exit - exit the program\n");
-    //write(appState->gui_pipes.stdin_fd, "D(\"help\")\n", 11);
-
-    int stdin_fd = appState->gui_pipes.stdin_fd;
-    char buffer[200];  // Buffer for formatted string, adjust the size as needed
-    int len;
-
-    // Format the string and write to the file descriptor
-    len = snprintf(buffer, sizeof(buffer), "C()\n");
-    write(stdin_fd, buffer, len);
-
-
-    len = snprintf(buffer, sizeof(buffer), "D(\"Hello world!********************\\n********************************\\n********************************\\n********************************\\n\")\n");
-    write(stdin_fd, buffer, len);
+    write_to_display(appState->gui_shm->display, 0x41);
 }
 
 void command_input(AppState *appState, const char *args) {

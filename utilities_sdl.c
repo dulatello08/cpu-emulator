@@ -1,14 +1,45 @@
 #include "main.h"
 #include <fcntl.h>
+#include <sys/stat.h>
 
 void open_gui(AppState *appState) {
-    int stdin_pipe[2], stdout_pipe[2];
+    const char *memname = "emulator_gui_shm";
+    const size_t size = sizeof(gui_process_shm_t);
 
-    // Create pipes
-    if (pipe(stdin_pipe) == -1 || pipe(stdout_pipe) == -1) {
-        perror("pipe");
+    // Unlink first to ensure the shared memory segment can be resized
+    shm_unlink(memname);
+
+    // Create and open a shared memory object in the parent process
+    int memFd = shm_open(memname, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    if (memFd == -1) {
+        perror("shm_open");
         exit(EXIT_FAILURE);
     }
+
+    // Check the current size of the shared memory object
+    struct stat mapstat;
+    if (-1 != fstat(memFd, &mapstat)) {
+        // Resize only if the current size is zero
+        if (mapstat.st_size == 0) {
+            if (ftruncate(memFd, size) == -1) {
+                perror("ftruncate");
+                exit(EXIT_FAILURE);
+            }
+        }
+    } else {
+        perror("fstat");
+        exit(EXIT_FAILURE);
+    }
+
+    // Map the shared memory object
+    void *shared_memory = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, memFd, 0);
+    if (shared_memory == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+
+    // Store the shared memory pointer in AppState
+    appState->gui_shm = (gui_process_shm_t *) shared_memory;
 
     pid_t pid = fork();
 
@@ -19,42 +50,14 @@ void open_gui(AppState *appState) {
     } else if (pid == 0) {
         // Child process
 
-        // Redirect stdin (close the writing end, duplicate the reading end)
-        close(stdin_pipe[1]);
-        dup2(stdin_pipe[0], STDIN_FILENO);
-        close(stdin_pipe[0]);
-
-        // Redirect stdout (close the reading end, duplicate the writing end)
-        close(stdout_pipe[0]);
-        dup2(stdout_pipe[1], STDOUT_FILENO);
-        close(stdout_pipe[1]);
-
-        // Execute GUI subsystem
-        execlp("build/gui_subsystem", "gui_subsystem", (char *)NULL);
+        // Pass the shared memory name to the child process
+        execlp("build/gui_subsystem", "gui_subsystem", (char *) NULL);
         // Exec only returns on error
-        perror("execlp");
+        perror("exec");
         exit(EXIT_FAILURE);
     } else {
-        // Parent process
-        int flags = fcntl(stdin_pipe[1], F_GETFL, 0); // Get current flags
-        if (flags == -1) {
-            perror("fcntl");
-            exit(EXIT_FAILURE);
-        }
-
-        flags |= O_NONBLOCK; // Add non-blocking flag
-
-        if (fcntl(stdin_pipe[1], F_SETFL, flags) == -1) { // Set new flags
-            perror("fcntl");
-            exit(EXIT_FAILURE);
-        }
-
-        // Close unused ends of the pipes
-        close(stdin_pipe[0]); // Close reading end of stdin pipe
-        close(stdout_pipe[1]); // Close writing end of stdout pipe
-
-        // Store file descriptors in AppState
-        appState->gui_pipes.stdin_fd = stdin_pipe[1]; // Writing end
-        appState->gui_pipes.stdout_fd = stdout_pipe[0]; // Reading end
+        clear_display(appState->gui_shm->display);
+        appState->gui_shm_fd = memFd;
+        // Parent process continues...
     }
 }
