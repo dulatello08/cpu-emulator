@@ -11,6 +11,7 @@
 
 #define LCD_WIDTH 32
 #define LCD_HEIGHT 4
+#define MAX_QUEUE_SIZE 10
 
 // In your_c_header.h
 #ifdef __cplusplus
@@ -28,6 +29,10 @@ extern "C" {
         char display[LCD_WIDTH][LCD_HEIGHT];
         SDL_Renderer *renderer;
         TTF_Font *font;
+        int updateQueue[MAX_QUEUE_SIZE]; // Custom queue for update requests
+        int queueHead; // Index of the first element
+        int queueTail; // Index of the last element
+        int queueCount; // Number of elements in queue
     } signal_handler_data_t;
 #ifdef __cplusplus
 }

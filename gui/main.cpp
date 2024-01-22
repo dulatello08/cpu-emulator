@@ -21,14 +21,27 @@ void sigUsrHandler(int signal, signal_handler_data_t *signal_handler_data) {
 
     if (saved == nullptr)
         saved = signal_handler_data;
-    if (signal == SIGUSR1)
-        update_display(saved->display, saved->renderer, saved->font);
+    if (signal == SIGUSR1) {
+        // Enqueue an update request
+        if (saved->queueCount < MAX_QUEUE_SIZE) {
+            saved->updateQueue[saved->queueTail] = 1; // 1 represents an update request
+            saved->queueTail = (saved->queueTail + 1) % MAX_QUEUE_SIZE;
+            ++saved->queueCount;
+        }
+    }
 }
 
 void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font) {
+    SDL_RenderClear(renderer);
     SDL_Color textColor = {255, 255, 255, 255}; // White text color
     int lineHeight = TTF_FontHeight(font);
     int currentY = 0;
+
+    char sampleChar = 'A';
+    char sampleStr[2] = {sampleChar, '\0'};
+    SDL_Surface* sampleSurface = TTF_RenderText_Blended(font, sampleStr, textColor);
+    int fixedCharWidth = sampleSurface->w + 1;
+    SDL_FreeSurface(sampleSurface);
 
     for (int j = 0; j < LCD_HEIGHT; j++) {
         for (int i = 0; i < LCD_WIDTH; i++) {
@@ -52,9 +65,7 @@ void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer,
                 return;
             }
 
-            // Calculate the x position for each character, assuming monospaced font
-            int charWidth = textSurface->w;
-            SDL_Rect textRect = {i * charWidth, currentY, textSurface->w, textSurface->h};
+            SDL_Rect textRect = {i * fixedCharWidth, currentY, fixedCharWidth, lineHeight};
             SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
 
             SDL_DestroyTexture(textTexture);
@@ -69,6 +80,9 @@ void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer,
 int main() {
     signal(SIGUSR1, (void (*)(int)) sigUsrHandler);
     signal_handler_data_t signal_handler_data;
+    signal_handler_data.queueHead = 0;
+    signal_handler_data.queueTail = 0;
+    signal_handler_data.queueCount = 0;
     SDL_Event event;
     bool quit = false;
 
@@ -135,6 +149,11 @@ int main() {
                     printf("Key event: cpu code %d value %d\n", sdlToCpuCode(event.key.keysym.scancode), evValue);
                 }
             }
+        }
+        if (signal_handler_data.queueCount > 0) {
+            update_display(signal_handler_data.display, signal_handler_data.renderer, signal_handler_data.font);
+            signal_handler_data.queueHead = (signal_handler_data.queueHead + 1) % MAX_QUEUE_SIZE;
+            --signal_handler_data.queueCount;
         }
         memcpy(signal_handler_data.display, shared_memory->display, sizeof(signal_handler_data.display));
     }
