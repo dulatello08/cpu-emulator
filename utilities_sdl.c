@@ -3,6 +3,11 @@
 #include <sys/stat.h>
 
 void open_gui(AppState *appState) {
+    if (*(appState->emulator_running)) {
+        printf("Please restart the emulator to use the GUI subsystem.\n");
+        return; // Exit the function to prevent further execution
+    }
+
     const char *memname = "emulator_gui_shm";
     const size_t size = sizeof(gui_process_shm_t);
 

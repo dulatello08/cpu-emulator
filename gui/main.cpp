@@ -149,6 +149,7 @@ int main() {
                     printf("Key event: cpu code %d value %d\n", sdlToCpuCode(event.key.keysym.scancode), evValue);
                     shared_memory->keyboard_o[0] = sdlToCpuCode(event.key.keysym.scancode);
                     shared_memory->keyboard_o[1] = evValue;
+                    shared_memory->keyboard_o[2] = 1;
                 }
             }
         }

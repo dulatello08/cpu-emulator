@@ -33,19 +33,27 @@ int start(AppState *appState) {
     printf("Starting emulator\n");
     bool exitCode = false;
 
-    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {\
-        if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
-            clear_display(appState->gui_shm->display);
-            memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
-            print_display(appState->gui_shm->display);
-            kill(appState->gui_pid, SIGUSR1);
-            appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
+    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
+        if (appState->gui_shm != NULL) {
+            if (appState->gui_shm->keyboard_o[2]) {
+                appState->gui_shm->keyboard_o[2]--;
+                appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
+                appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
+                push_interrupt(appState->state->i_queue, 0x01);
+            }
+            if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
+                clear_display(appState->gui_shm->display);
+                memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
+                print_display(appState->gui_shm->display);
+                kill(appState->gui_pid, SIGUSR1);
+                appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
+            }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
             exitCode = execute_instruction(appState->state);
-        } else {
+        } else if (*appState->state->i_queue->size != 0 && !*appState->state->in_subroutine) {
             const uint8_t i_source = pop_interrupt(appState->state->i_queue);
-            printf("source: %02x", i_source);
+            printf("source: %02x\n", i_source);
             const uint16_t i_handler = get_interrupt_handler(appState->state->i_vector_table, i_source);
             printf("before interrupt pc: %x\n", *appState->state->pc);
             printf("interrupt jump to %x\n", i_handler);
@@ -54,6 +62,7 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
+        usleep(10000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;

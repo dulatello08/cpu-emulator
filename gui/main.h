@@ -13,7 +13,6 @@
 #define LCD_HEIGHT 4
 #define MAX_QUEUE_SIZE 10
 
-// In your_c_header.h
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,7 +21,7 @@ extern "C" {
 
     typedef struct {
         char display[LCD_WIDTH][LCD_HEIGHT];
-        uint8_t keyboard_o[2];
+        uint8_t keyboard_o[3];
     } gui_process_shm_t;
 
     typedef struct {
