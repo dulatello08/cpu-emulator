@@ -49,7 +49,7 @@ void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer,
             if (character == '\0') {
                 character = '*'; // Replace null character with '*'
             }
-            printf("Rendering character: %c at (%d, %d)\n", character, i, j);
+            //printf("Rendering character: %c at (%d, %d)\n", character, i, j);
 
             char str[2] = {character, '\0'}; // Convert char to string for rendering
             SDL_Surface* textSurface = TTF_RenderText_Blended(font, str, textColor);
@@ -147,6 +147,8 @@ int main() {
                 const int evValue = (event.type == SDL_KEYDOWN) ? 1 : 0;
                 if (event.key.repeat == 0) {
                     printf("Key event: cpu code %d value %d\n", sdlToCpuCode(event.key.keysym.scancode), evValue);
+                    shared_memory->keyboard_o[0] = sdlToCpuCode(event.key.keysym.scancode);
+                    shared_memory->keyboard_o[1] = evValue;
                 }
             }
         }

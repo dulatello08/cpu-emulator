@@ -170,6 +170,7 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t opera
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
+bool hasChanged(int* lastValue, int currentValue);
 
 void setupMmap(CPUState *state, uint8_t program_size);
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
