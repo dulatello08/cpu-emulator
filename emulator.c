@@ -32,9 +32,8 @@ int start(AppState *appState) {
 
     printf("Starting emulator\n");
     bool exitCode = false;
-    
-    printf("emulator pointer: %p\n", (void *) appState->state->i_queue);
-    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
+
+    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {\
         if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
             clear_display(appState->gui_shm->display);
             memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));

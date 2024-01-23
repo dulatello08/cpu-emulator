@@ -56,6 +56,7 @@ void open_gui(AppState *appState) {
         perror("exec");
         exit(EXIT_FAILURE);
     } else {
+        memset(appState->gui_shm->keyboard_o, 0, sizeof(appState->gui_shm->keyboard_o));
         clear_display(appState->gui_shm->display);
         appState->gui_shm_fd = memFd;
         // Parent process continues...
