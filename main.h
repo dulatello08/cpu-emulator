@@ -79,7 +79,7 @@
 
 typedef struct {
     char display[LCD_WIDTH][LCD_HEIGHT];
-    uint8_t keyboard_o[2];
+    uint8_t keyboard_o[3];
 } gui_process_shm_t;
 
 struct memory_block {

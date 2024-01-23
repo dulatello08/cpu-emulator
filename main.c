@@ -62,6 +62,7 @@ AppState *new_app_state(void) {
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
+    appState->gui_shm = NULL;
 
     return appState;
 }
