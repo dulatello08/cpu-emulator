@@ -50,6 +50,7 @@ int start(AppState *appState) {
             }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
+            printf("%04x\n", *appState->state->pc);
             exitCode = execute_instruction(appState->state);
         } else if (*appState->state->i_queue->size != 0 && !*appState->state->in_subroutine) {
             const uint8_t i_source = pop_interrupt(appState->state->i_queue);
@@ -62,7 +63,7 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
-        usleep(10000);
+        usleep(100000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     return 0;
