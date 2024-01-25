@@ -97,7 +97,7 @@ int main() {
         return 1;
     }
 
-    TTF_Font *font = TTF_OpenFont("/Users/dulat/Downloads/Menlo-Regular-01.ttf", 24);
+    TTF_Font *font = TTF_OpenFont("Menlo-Regular.ttf", 24);
     if (!font) {
         cerr << "Failed to load font: " << TTF_GetError() << '\n';
         TTF_Quit();

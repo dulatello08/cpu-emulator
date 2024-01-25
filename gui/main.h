@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <stdint.h>
+#include <signal.h>
 
 #define LCD_WIDTH 32
 #define LCD_HEIGHT 4
