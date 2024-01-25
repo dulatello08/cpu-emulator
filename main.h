@@ -158,8 +158,6 @@ int start(AppState *appState);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
 long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
-void destroyCPUState(CPUState *state);
-
 uint8_t count_leading_zeros(uint8_t x);
 
 bool execute_instruction(CPUState *state);

@@ -76,10 +76,13 @@ void free_app_state(AppState *appState) {
             if (num_written != bytes_to_write) {
                 fprintf(stderr, "Error: Failed to write %ld bytes to output flash file for block %d.\n", bytes_to_write, i);
             }
+            free(appState->flash_memory[i]);
         }
         fclose(appState->fpf);
         free(appState->flash_memory);
+
     }
+    kill(appState->emulator_pid, 15);
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
@@ -87,12 +90,13 @@ void free_app_state(AppState *appState) {
     munmap(appState->state->i_queue->sources, *(appState->state->i_queue->size) * sizeof(uint8_t));
     munmap(appState->state->i_queue->size, sizeof(uint8_t));
     munmap(appState->state->i_queue, sizeof(InterruptQueue));
-    destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
-    munmap(appState->gui_shm, sizeof(gui_process_shm_t));
-    close(appState->gui_shm_fd);
-    shm_unlink("emulator_gui_shm");
+    if (appState->gui_pid) {
+        munmap(appState->gui_shm, sizeof(gui_process_shm_t));
+        close(appState->gui_shm_fd);
+        shm_unlink("emulator_gui_shm");
+    }
     free(appState);
 }
 
@@ -262,6 +266,7 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args){
 
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
     printf("Exiting emulator...\n");
+    free_app_state(appState);
     exit(0);
 }
 

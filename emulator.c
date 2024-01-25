@@ -66,5 +66,6 @@ int start(AppState *appState) {
         usleep(100000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
+    free(appState->state->pc);
     return 0;
 }
