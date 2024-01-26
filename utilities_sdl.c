@@ -45,6 +45,7 @@ void open_gui(AppState *appState) {
 
     // Store the shared memory pointer in AppState
     appState->gui_shm = (gui_process_shm_t *) shared_memory;
+    appState->gui_shm->i_queue = appState->state->i_queue;
 
     appState->gui_pid = fork();
 

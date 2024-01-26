@@ -35,12 +35,8 @@ int start(AppState *appState) {
 
     while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (appState->gui_shm != NULL) {
-            if (appState->gui_shm->keyboard_o[2]) {
-                appState->gui_shm->keyboard_o[2]--;
-                appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
-                appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
-                push_interrupt(appState->state->i_queue, 0x01);
-            }
+            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
+            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
             if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
                 clear_display(appState->gui_shm->display);
                 memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
@@ -50,9 +46,9 @@ int start(AppState *appState) {
             }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
-            printf("%04x\n", *appState->state->pc);
+            //printf("%04x\n", *appState->state->pc);
             exitCode = execute_instruction(appState->state);
-        } else if (*appState->state->i_queue->size != 0 && !*appState->state->in_subroutine) {
+        } else {
             const uint8_t i_source = pop_interrupt(appState->state->i_queue);
             printf("source: %02x\n", i_source);
             const uint16_t i_handler = get_interrupt_handler(appState->state->i_vector_table, i_source);
@@ -63,7 +59,7 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
-        usleep(100000);
+        usleep(1000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     free(appState->state->pc);

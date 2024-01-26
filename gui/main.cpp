@@ -136,6 +136,7 @@ int main() {
     signal_handler_data.renderer = renderer;
 
     sigUsrHandler(SIGUSR2, &signal_handler_data);
+    printf("%p\n", shared_memory->i_queue);
 
     while (!quit) {
         while (SDL_PollEvent(&event) != 0) {
@@ -149,7 +150,7 @@ int main() {
                     printf("Key event: cpu code %d value %d\n", sdlToCpuCode(event.key.keysym.scancode), evValue);
                     shared_memory->keyboard_o[0] = sdlToCpuCode(event.key.keysym.scancode);
                     shared_memory->keyboard_o[1] = evValue;
-                    shared_memory->keyboard_o[2] = 1;
+                    push_interrupt(shared_memory->i_queue, 0x01);
                 }
             }
         }

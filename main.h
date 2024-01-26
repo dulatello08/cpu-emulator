@@ -77,11 +77,6 @@
 #define INTERRUPT_TABLE_SIZE 10
 #define INTERRUPT_QUEUE_MAX 10
 
-typedef struct {
-    char display[LCD_WIDTH][LCD_HEIGHT];
-    uint8_t keyboard_o[3];
-} gui_process_shm_t;
-
 struct memory_block {
     uint16_t startAddress;
     uint16_t size;
@@ -104,6 +99,14 @@ typedef struct {
     uint8_t* sources; // Dynamically allocated array to store interrupt sources
     uint8_t* size; // Index of the top element
 } InterruptQueue;
+
+
+//gui shared memory type
+typedef struct {
+    char display[LCD_WIDTH][LCD_HEIGHT];
+    uint8_t keyboard_o[2];
+    InterruptQueue* i_queue;
+} gui_process_shm_t;
 
 // Define a structure for interrupt vectors
 typedef struct {
