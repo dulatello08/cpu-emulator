@@ -31,6 +31,7 @@ void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unu
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
 void command_gui(AppState *appState, __attribute__((unused)) const char * args);
+void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args);
 
 const Command COMMANDS[] = {
     {"start", command_start},
@@ -48,6 +49,7 @@ const Command COMMANDS[] = {
     {"interrupt", command_interrupt},
     {"gui", command_gui},
     {"g", command_gui},
+    {"gs", command_gui_and_e_start},
     {NULL, NULL}
 };
 
@@ -59,6 +61,7 @@ AppState *new_app_state(void) {
     appState->state->i_queue = mmap(NULL, sizeof(InterruptQueue), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->i_queue->size = mmap(NULL, sizeof(uint8_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->i_queue->sources = mmap(NULL, 10, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    printf("%p\n", (void *) appState->state->i_queue->size);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
@@ -226,10 +229,12 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
-    printf("exit - exit the program\n");
-    clear_display(appState->gui_shm->display);
-    write_to_display(appState->gui_shm->display, 0x41);
-    kill(appState->gui_pid, SIGUSR1);
+    // printf("exit - exit the program\n");
+    // clear_display(appState->gui_shm->display);
+    // write_to_display(appState->gui_shm->display, 0x41);
+    // kill(appState->gui_pid, SIGUSR1);
+
+    printf("Emulator pid %d\n", appState->emulator_pid);
 }
 
 void command_input(AppState *appState, const char *args) {
@@ -352,4 +357,10 @@ void command_interrupt(AppState *appState, const char *args) {
 
 void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {
     open_gui(appState);
+}
+
+void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args) {
+    open_gui(appState);
+    usleep(1000);
+    command_start(appState, args);
 }

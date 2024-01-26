@@ -67,7 +67,7 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
                 uint16_t handler = (uint16_t) (memory_access(state, 0, ivt_start_address + i + 1, 0, 1) << 8);
                 handler |= memory_access(state, 0, ivt_start_address + i + 2, 0, 1);
                 //printf("IVT Start Address: %04x, Adding interrupt vector, source: %02x, handler %04x\n", ivt_start_address, source, handler);
-                //printf("Source: %02x, Handler preview: %02x %02x %02x %02x\n", source, state->memory[handler], state->memory[handler + 1], state->memory[handler + 2], state->memory[handler + 3]);
+                printf("Source: %02x, Handler preview: %02x %02x %02x %02x\n", source, state->memory[handler], state->memory[handler + 1], state->memory[handler + 2], state->memory[handler + 3]);
                 add_interrupt_vector(state->i_vector_table, i/3, source, handler);
             }
         }
