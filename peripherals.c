@@ -5,10 +5,10 @@
 #include "main.h"
 
 void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]) {
-    // Clear the display by setting all characters to space
+    // Clear the display by setting all characters to \0
     for (int i = 0; i < LCD_WIDTH; i++) {
         for (int j = 0; j < LCD_HEIGHT; j++) {
-            display[i][j] = ' ';
+            display[i][j] = '\0';
         }
     }
 }
@@ -37,11 +37,9 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data) {
         display[x][y] = (char) data;
         x++;
         if (x == LCD_WIDTH) {
-            // Move to next line if we reach the end of the row
             x = 0;
             y++;
             if (y == LCD_HEIGHT) {
-                // If we reach the end of the display, wrap around to the top
                 y = 0;
             }
         }
@@ -50,7 +48,6 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data) {
         x = 0;
         y++;
         if (y == LCD_HEIGHT) {
-            // If we reach the end of the display, wrap around to the top
             y = 0;
         }
     } else if (data == 0x01) {
@@ -62,5 +59,14 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data) {
         // Return home
         x = 0;
         y = 0;
+    } else if (data == 0x03) {
+        // Backspace
+        if (x == 0 && y > 0) {
+            y--;
+            x = LCD_WIDTH - 1;
+        } else if (x > 0) {
+            x--;
+        }
+        display[x][y] = '\0'; // Clear the character at the new position
     }
 }

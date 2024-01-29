@@ -109,7 +109,7 @@ bool execute_instruction(CPUState *state) {
         case OP_BRR:
             if (state->reg[operand_rd] == state->reg[operand_rn]) {
                 *(state->pc) = normAddressing;
-                printf("branched to %x", normAddressing);
+                printf("branched to %x\n", normAddressing);
                 skipIncrementPC = true;  // Skip incrementing the program counter
             }
             break;
@@ -146,7 +146,7 @@ bool execute_instruction(CPUState *state) {
                 skipIncrementPC = true;
                 break;
             }
-            printf("Jump out of subroutine was called while not in subroutine");
+            printf("Jump out of subroutine was called while not in subroutine\n");
             return true;
         }
         // Relative store register to memory pops off 2 bytes from stack to be used as address
@@ -163,7 +163,7 @@ bool execute_instruction(CPUState *state) {
             relAddr = (uint16_t) (popStack(state, NULL) << 8);
             relAddr |= popStack(state, NULL);
             memory_access(state, operand_rd, relAddr, 0, 0);
-            printf("rld relAddr: %04x\n", relAddr);
+            //printf("rld relAddr: %04x\n", relAddr);
             break;
         }
         case OP_ENI:
@@ -171,6 +171,7 @@ bool execute_instruction(CPUState *state) {
             state->enable_mask_interrupts = true;
             break;
         case OP_DSI:
+            printf("disabling masked interrupts\n");
             state->enable_mask_interrupts = false;
             break;
 

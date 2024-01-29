@@ -1,10 +1,9 @@
 # Ignore build artifacts
-*.o
-emulator
-emulator_socket
+cmake-build-debug
 # ide
 .idea
 .vscode
 # macos trash
 *.dSYM
 /keyboard/readscancode
+/build/

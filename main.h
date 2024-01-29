@@ -2,7 +2,6 @@
 #define INC_8_BIT_CPU_EMULATOR_MAIN_H
 
 #include <stdint.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,7 +12,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <ctype.h>
-#include <ncurses.h>
 
 #define MEMORY 65536
 #define EXPECTED_PROGRAM_WORDS 256
@@ -49,7 +47,8 @@
 #define OP_ENI 0x1A
 #define OP_DSI 0x1B
 
-#define FLAGS_SIZE 0x1
+#define FLAGS_SIZE 0x2
+// flags 1 is reserved, 2 is to rerender display
 #define STACK_SIZE 0xff
 #define MMU_CONTROL_SIZE 0x0004
 #define PERIPHERAL_CONTROL_SIZE 0x8
@@ -101,6 +100,18 @@ typedef struct {
     uint8_t* size; // Index of the top element
 } InterruptQueue;
 
+typedef struct {
+    uint8_t sources[10];
+    uint8_t size; // Index of the top element
+} GuiInterruptQueue;
+
+//gui shared memory type
+typedef struct {
+    char display[LCD_WIDTH][LCD_HEIGHT];
+    uint8_t keyboard_o[2];
+    GuiInterruptQueue i_queue;
+} gui_process_shm_t;
+
 // Define a structure for interrupt vectors
 typedef struct {
     uint8_t source;
@@ -145,13 +156,14 @@ typedef struct {
     pid_t emulator_pid;
     uint8_t program_size;
     int flash_size;
+    gui_process_shm_t *gui_shm;
+    pid_t gui_pid;
+    int gui_shm_fd;
 } AppState;
 
-int start(CPUState *state, size_t program_size, size_t flash_size, const uint8_t* program_memory, uint8_t** flash_memory, uint8_t* memory);
+int start(AppState *appState);
 uint8_t load_program(const char *program_file, uint8_t **program_memory);
 long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
-
-void destroyCPUState(CPUState *state);
 
 uint8_t count_leading_zeros(uint8_t x);
 
@@ -163,6 +175,7 @@ void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t opera
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
+bool hasChanged(int* lastValue, int currentValue);
 
 void setupMmap(CPUState *state, uint8_t program_size);
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
@@ -184,7 +197,6 @@ uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE
 void push_interrupt(InterruptQueue* queue, uint8_t source);
 uint8_t pop_interrupt(InterruptQueue* queue);
 
-void keyboard_mode(AppState *appState);
-void tty_mode(AppState *appState);
+void open_gui(AppState *appState);
 
 #endif //INC_8_BIT_CPU_EMULATOR_MAIN_H

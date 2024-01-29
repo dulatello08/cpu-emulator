@@ -39,14 +39,14 @@ void push_interrupt(InterruptQueue* queue, uint8_t source) {
 }
 
 uint8_t pop_interrupt(InterruptQueue* queue) {
-
+    printf("popping interrupt, q size %d\n", *queue->size);
     if (queue->size == 0) {
         return 0;
     }
-    printf("q size %d\n", *queue->size);
     uint8_t source = queue->sources[*queue->size - 1];
 
-    queue->size--;
+    (*queue->size)--;
 
+    printf("popped interrupt, q size %d\n", *queue->size);
     return source;
 }
