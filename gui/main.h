@@ -21,14 +21,15 @@ extern "C" {
     uint8_t sdlToCpuCode(int scanCode);
 
     typedef struct {
-        uint8_t* sources; // Dynamically allocated array to store interrupt sources
-        uint8_t* size; // Index of the top element
-    } InterruptQueue;
+        uint8_t sources[10];
+        uint8_t size; // Index of the top element
+    } GuiInterruptQueue;
 
+    //gui shared memory type
     typedef struct {
         char display[LCD_WIDTH][LCD_HEIGHT];
         uint8_t keyboard_o[2];
-        InterruptQueue* i_queue;
+        GuiInterruptQueue i_queue;
     } gui_process_shm_t;
 
     typedef struct {
@@ -41,19 +42,21 @@ extern "C" {
         int queueCount; // Number of elements in queue
     } signal_handler_data_t;
 
-    inline void push_interrupt(InterruptQueue* queue, uint8_t source) {
-        printf("%p\n", (void *) queue->size);
-        if(*queue->size > 0) {
-            for (uint8_t i = *queue->size; i > 0; i--) {
+    inline void push_interrupt(GuiInterruptQueue* queue, uint8_t source) {
+        if(queue->size == MAX_QUEUE_SIZE) {
+            return;
+        } //todo fix macros
+        if(queue->size > 0) {
+            for (uint8_t i = queue->size; i > 0; i--) {
                 queue->sources[i] = queue->sources[i - 1];
             }
         }
         queue->sources[0] = source;
-        (*queue->size)++;
+        queue->size++;
 
-        printf("Size: %d Queue: ", *queue->size);
+        printf("GUI int queue. Size: %d Queue: ", queue->size);
 
-        for (int i = 0; i < *queue->size; i++) {
+        for (int i = 0; i < queue->size; i++) {
             printf("%02x ", queue->sources[i]);
         }
         printf("\n");
