@@ -49,6 +49,7 @@ uint8_t load_program(const char *program_file, uint8_t **program_memory) {
     }
     *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
     memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
+    free(temp);
     current_byte++;
     fclose(fpi);
     return current_byte;
@@ -275,17 +276,6 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
     return value;
 }
 
-void destroyCPUState(CPUState *state) {
-
-    // Deallocate memory for the program counter
-    free(state->pc);
-
-    // Deallocate memory for the in_subroutine flag
-    free(state->in_subroutine);
-
-    state->pc = NULL;
-    state->in_subroutine = NULL;
-}
 
 uint8_t count_leading_zeros(uint8_t x) {
     uint8_t count = 0;
@@ -296,4 +286,10 @@ uint8_t count_leading_zeros(uint8_t x) {
     }
 
     return 8 - count;
+}
+
+bool hasChanged(int* lastValue, int currentValue) {
+    bool changed = (*lastValue != currentValue);
+    *lastValue = currentValue;
+    return changed;
 }

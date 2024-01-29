@@ -53,8 +53,10 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
         uint8_t ranged_address = address - state->mm.peripheralControl.startAddress;
         // Write to peripheral control
         if((ranged_address == 0x0) || (ranged_address == 0x1)) {
+            state->memory[state->mm.flagsBlock.startAddress + 1] = 1;
             write_to_display(state->display, value);
         } else if (ranged_address == 0x2) {
+            printf("write to ivt init addr\n");
             // handle request for initializing interrupt vector table
             uint16_t ivt_start_address;
             ivt_start_address = (uint16_t) (popStack(state, NULL) << 8);
@@ -64,7 +66,7 @@ bool handleWrite(CPUState *state, uint16_t address, uint8_t value) {
                 uint8_t source = memory_access(state, 0, ivt_start_address + i, 0, 1);
                 uint16_t handler = (uint16_t) (memory_access(state, 0, ivt_start_address + i + 1, 0, 1) << 8);
                 handler |= memory_access(state, 0, ivt_start_address + i + 2, 0, 1);
-                ///printf("IVT Start Address: %04x, Adding interrupt vector, source: %02x, handler %04x\n", ivt_start_address, source, handler);
+                //printf("IVT Start Address: %04x, Adding interrupt vector, source: %02x, handler %04x\n", ivt_start_address, source, handler);
                 printf("Source: %02x, Handler preview: %02x %02x %02x %02x\n", source, state->memory[handler], state->memory[handler + 1], state->memory[handler + 2], state->memory[handler + 3]);
                 add_interrupt_vector(state->i_vector_table, i/3, source, handler);
             }

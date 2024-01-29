@@ -29,28 +29,28 @@ void command_print(AppState *appState, __attribute__((unused)) const char *args)
 void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
-void command_tty_mode(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
-void command_keyboard(AppState *appState, const char *args);
+void command_gui(AppState *appState, __attribute__((unused)) const char * args);
+void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args);
 
 const Command COMMANDS[] = {
-        {"start", command_start},
-        {"stop", command_stop},
-        {"program", command_program},
-        {"flash", command_flash},
-        {"help", command_help},
-        {"h", command_help},
-        {"input", command_input},
-        {"print", command_print},
-        {"free", command_free},
-        {"exit", command_exit},
-        {"ctl_listen", command_ctl_listen},
-        {"ctl_l", command_ctl_listen},
-        {"tty", command_tty_mode},
-        {"interrupt", command_interrupt},
-        {"keyboard", command_keyboard},
-        {"kb", command_keyboard},
-        {NULL, NULL}
+    {"start", command_start},
+    {"stop", command_stop},
+    {"program", command_program},
+    {"flash", command_flash},
+    {"help", command_help},
+    {"h", command_help},
+    {"input", command_input},
+    {"print", command_print},
+    {"free", command_free},
+    {"exit", command_exit},
+    {"ctl_listen", command_ctl_listen},
+    {"ctl_l", command_ctl_listen},
+    {"interrupt", command_interrupt},
+    {"gui", command_gui},
+    {"g", command_gui},
+    {"gs", command_gui_and_e_start},
+    {NULL, NULL}
 };
 
 AppState *new_app_state(void) {
@@ -64,6 +64,7 @@ AppState *new_app_state(void) {
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_pid = 0;
+    appState->gui_shm = NULL;
 
     return appState;
 }
@@ -77,10 +78,13 @@ void free_app_state(AppState *appState) {
             if (num_written != bytes_to_write) {
                 fprintf(stderr, "Error: Failed to write %ld bytes to output flash file for block %d.\n", bytes_to_write, i);
             }
+            free(appState->flash_memory[i]);
         }
         fclose(appState->fpf);
         free(appState->flash_memory);
+
     }
+    kill(appState->emulator_pid, 15);
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
@@ -88,9 +92,13 @@ void free_app_state(AppState *appState) {
     munmap(appState->state->i_queue->sources, *(appState->state->i_queue->size) * sizeof(uint8_t));
     munmap(appState->state->i_queue->size, sizeof(uint8_t));
     munmap(appState->state->i_queue, sizeof(InterruptQueue));
-    destroyCPUState(appState->state);
     munmap(appState->state, sizeof(CPUState));
     free(appState->program_memory);
+    if (appState->gui_pid) {
+        munmap(appState->gui_shm, sizeof(gui_process_shm_t));
+        close(appState->gui_shm_fd);
+        shm_unlink("emulator_gui_shm");
+    }
     free(appState);
 }
 
@@ -174,8 +182,7 @@ void command_start(AppState *appState, __attribute__((unused)) const char *args)
                 *(appState->emulator_running) = 0;
                 exit(1);
             }
-            start(appState->state, appState->program_size , appState->flash_size,
-                  appState->program_memory, appState->flash_memory, appState->shared_data_memory);
+            start(appState);
             printf(">> ");
             *(appState->emulator_running) = 0;
             exit(0);
@@ -221,7 +228,12 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
     printf("help or h - display this help message\n");
     printf("free - free emulator memory\n");
-    printf("exit - exit the program\n");
+    // printf("exit - exit the program\n");
+    // clear_display(appState->gui_shm->display);
+    // write_to_display(appState->gui_shm->display, 0x41);
+    // kill(appState->gui_pid, SIGUSR1);
+
+    printf("Emulator pid %d\n", appState->emulator_pid);
 }
 
 void command_input(AppState *appState, const char *args) {
@@ -258,6 +270,7 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args){
 
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
     printf("Exiting emulator...\n");
+    free_app_state(appState);
     exit(0);
 }
 
@@ -332,10 +345,6 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 #endif
 }
 
-void command_tty_mode(AppState *appState, __attribute__((unused)) const char *args) {
-    tty_mode(appState);
-}
-
 void command_interrupt(AppState *appState, const char *args) {
     uint8_t source = strtoul(args, NULL, 0);
     //kill(appState->emulator_pid, SIGSTOP);
@@ -345,6 +354,12 @@ void command_interrupt(AppState *appState, const char *args) {
     //kill(appState->emulator_pid, SIGCONT);
 }
 
-void command_keyboard(AppState *appState, __attribute__((unused)) const char *args) {
-    keyboard_mode(appState);
+void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {
+    open_gui(appState);
+}
+
+void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args) {
+    open_gui(appState);
+    usleep(1000);
+    command_start(appState, args);
 }

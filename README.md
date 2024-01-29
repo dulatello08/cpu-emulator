@@ -1,4 +1,4 @@
-    ## 8-Bit CPU Emulator
+## NeoCore 8x16 8-Bit CPU Emulator
 Welcome to the 8-bit CPU emulator! This project is a C-language implementation of an emulator for an 8-bit CPU. The emulator is capable of simulating the behavior of a simple 8-bit CPU, executing instructions and manipulating memory.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -22,6 +22,10 @@ Detailed documentation for the emulator can be found in the gitlab wiki. This do
 
 # Contributing
 We welcome contributions to the 8-bit CPU emulator! If you have an idea for a new feature or a bug fix, please open an issue or submit a pull request.
+
+## Acknowledgments
+
+This project has been supported by [JetBrains](https://jb.gg/OpenSourceSupport). Their open-source licenses have been invaluable for the development of this project.
 
 # License
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.

@@ -6,7 +6,7 @@ ports:
     onOpen: open-browser
     
 tasks:
-  - init: make
+  - init: sudo apt update && sudo apt install libsdl2-dev libsdl2-ttf-dev cmake
 
 
 # example .gitpod.yml from https://github.com/gitpod-io/demo-multi-repo-frontend
