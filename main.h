@@ -100,12 +100,16 @@ typedef struct {
     uint8_t* size; // Index of the top element
 } InterruptQueue;
 
+typedef struct {
+    uint8_t sources[10];
+    uint8_t size; // Index of the top element
+} GuiInterruptQueue;
 
 //gui shared memory type
 typedef struct {
     char display[LCD_WIDTH][LCD_HEIGHT];
     uint8_t keyboard_o[2];
-    InterruptQueue* i_queue;
+    GuiInterruptQueue i_queue;
 } gui_process_shm_t;
 
 // Define a structure for interrupt vectors
