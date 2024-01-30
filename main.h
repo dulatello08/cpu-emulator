@@ -46,6 +46,12 @@
 #define OP_RLD 0x19
 #define OP_ENI 0x1A
 #define OP_DSI 0x1B
+#define OP_LSH 0x1C
+#define OP_LSR 0x1D
+#define OP_RSH 0x1E
+#define OP_RSR 0x1F
+#define OP_AND 0x20
+#define OP_ORR 0x21
 
 #define FLAGS_SIZE 0x2
 // flags 1 is reserved, 2 is to rerender display
@@ -174,6 +180,10 @@ void increment_pc(CPUState *state, uint8_t opcode);
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
 bool hasChanged(int* lastValue, int currentValue);
 
