@@ -158,7 +158,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
 
 void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode, uint16_t (*operation)(uint8_t, uint16_t)) {
     uint16_t result;
-
+    // mode 0 & 1: result is stored at rd, 2 is at memory address operand2
     if(mode == 0) {
         result = operation(state->reg[operand_rd], operand2);
     } else if(mode == 1) {
@@ -197,6 +197,22 @@ uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
     return (uint16_t)operand1 * operand2;
 }
 
+uint16_t left_shift_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 << operand2;
+}
+
+uint16_t right_shift_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 >> operand2;
+}
+
+uint16_t and_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 & operand2;
+}
+
+uint16_t or_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 | operand2;
+}
+
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
     handle_operation(state, operand_rd, operand_rn, operand2, mode, add_operation);
 }
@@ -207,6 +223,22 @@ void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t 
 
 void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
     handle_operation(state, operand_rd, operand_rn, operand2, mode, multiply_operation);
+}
+
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, left_shift_operation);
+}
+
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, right_shift_operation);
+}
+
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, and_operation);
+}
+
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, operand2, mode, or_operation);
 }
 
 // This function performs a memory access.

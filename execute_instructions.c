@@ -175,6 +175,36 @@ bool execute_instruction(CPUState *state) {
             state->enable_mask_interrupts = false;
             break;
 
+        // Left Shift
+        case OP_LSH:
+            left_shift(state, operand_rd, operand_rn, );
+        break;
+
+        // Left Shift Register to Memory
+        case OP_LSR:
+            left_shift_to_memory(state, operand_rd, operand_rn, normAddressing);
+        break;
+
+        // Right Shift
+        case OP_RSH:
+            right_shift(state, operand_rd, operand2);
+        break;
+
+        // Right Shift Register to Memory
+        case OP_RSR:
+            right_shift_to_memory(state, operand_rd, operand_rn, normAddressing);
+        break;
+
+        // Bitwise AND
+        case OP_AND:
+            bitwise_and(state, operand_rd, operand_rn);
+        break;
+
+        // Bitwise OR
+        case OP_ORR:
+            bitwise_or(state, operand_rd, operand_rn);
+        break;
+
         // SIGILL
         default:
             printf("SIGILL: at state of program counter: %x\n", *(state->pc));
