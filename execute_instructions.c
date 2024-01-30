@@ -177,22 +177,22 @@ bool execute_instruction(CPUState *state) {
 
         // Left Shift
         case OP_LSH:
-            left_shift(state, operand_rd, operand_rn, );
+            left_shift(state, operand_rd, operand_rn, operand2, 0);
         break;
 
         // Left Shift Register to Memory
         case OP_LSR:
-            left_shift_to_memory(state, operand_rd, operand_rn, normAddressing);
+            left_shift(state, operand_rd, operand_rn, normAddressing, 2);
         break;
 
         // Right Shift
         case OP_RSH:
-            right_shift(state, operand_rd, operand2);
+            right_shift(state, operand_rd, operand_rn, operand2, 0);
         break;
 
         // Right Shift Register to Memory
         case OP_RSR:
-            right_shift_to_memory(state, operand_rd, operand_rn, normAddressing);
+            right_shift(state, operand_rd, operand_rn, normAddressing, 2);
         break;
 
         // Bitwise AND

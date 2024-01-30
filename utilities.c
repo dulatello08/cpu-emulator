@@ -171,15 +171,15 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
     state->z_flag = (result == 0);
 
     if(state->v_flag) {
-        if(mode == 0 || mode == 1) {
+        if(mode == 0 || mode == 1 || mode == 3) {
             state->reg[operand_rd] = UINT8_MAX;
-        } else /*if(mode == 2)*/ {
+        } else if (mode == 2) {
             memory_access(state, UINT8_MAX, operand2, 1, 1);
         }
     } else {
-        if(mode == 0 || mode == 1) {
+        if(mode == 0 || mode == 1 || mode == 2) {
             state->reg[operand_rd] = (uint8_t)result;
-        } else /*if(mode == 2)*/ {
+        } else if(mode == 2) {
             memory_access(state, result, operand2, 1, 1);
         }
     }
@@ -233,12 +233,12 @@ void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16
     handle_operation(state, operand_rd, operand_rn, operand2, mode, right_shift_operation);
 }
 
-void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, and_operation);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
+    handle_operation(state, operand_rd, operand_rn, 0, 3, and_operation);
 }
 
-void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, or_operation);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
+    handle_operation(state, operand_rd, operand_rn, 0, 3, or_operation);
 }
 
 // This function performs a memory access.
