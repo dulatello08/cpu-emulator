@@ -178,32 +178,32 @@ bool execute_instruction(CPUState *state) {
         // Left Shift
         case OP_LSH:
             left_shift(state, operand_rd, operand_rn, operand2, 0);
-        break;
+            break;
 
         // Left Shift Register to Memory
         case OP_LSR:
             left_shift(state, operand_rd, operand_rn, normAddressing, 2);
-        break;
+            break;
 
         // Right Shift
         case OP_RSH:
             right_shift(state, operand_rd, operand_rn, operand2, 0);
-        break;
+            break;
 
         // Right Shift Register to Memory
         case OP_RSR:
             right_shift(state, operand_rd, operand_rn, normAddressing, 2);
-        break;
+            break;
 
         // Bitwise AND
         case OP_AND:
             bitwise_and(state, operand_rd, operand_rn);
-        break;
+            break;
 
         // Bitwise OR
         case OP_ORR:
             bitwise_or(state, operand_rd, operand_rn);
-        break;
+            break;
 
         // SIGILL
         default:
