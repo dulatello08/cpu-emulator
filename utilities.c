@@ -139,6 +139,10 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_BRZ:
         case OP_BRO:
         case OP_JSR:
+        case OP_LSH:
+        case OP_RSH:
+        case OP_AND:
+        case OP_ORR:
             *(state->pc) += 3;
             break;
         case OP_ADM:
@@ -151,6 +155,8 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_LDM:
         case OP_BRR:
         case OP_BNR:
+        case OP_LSR:
+        case OP_RSR:
             *(state->pc) += 4;
             break;
     }
@@ -177,7 +183,7 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
             memory_access(state, UINT8_MAX, operand2, 1, 1);
         }
     } else {
-        if(mode == 0 || mode == 1 || mode == 2) {
+        if(mode == 0 || mode == 1 || mode == 3) {
             state->reg[operand_rd] = (uint8_t)result;
         } else if(mode == 2) {
             memory_access(state, result, operand2, 1, 1);
