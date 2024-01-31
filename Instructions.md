@@ -37,7 +37,7 @@
 | RSR         | 0x1F   | Right Shift Register to Memory: Shifts the bits in register Rd to the right by the number of positions in Rn and stores the result in memory at the address in Operand2. | RSR Rd, Rn, Operand2 |
 | AND         | 0x20   | Bitwise AND: Performs a bitwise AND operation between the values in registers Rd and Rn. The result of the AND operation is stored in register Rd.                       | AND Rd, Rn           |
 | ORR         | 0x21   | Bitwise OR: Performs a bitwise OR operation between the values in registers Rd and Rn. The result of the OR operation is stored in register Rd.                          | ORR Rd, Rn           |
-
+| MULL        | 0x22   | Long multiply. multiplies Rn Rs registers and stores low 8 bits in Rlo and high 8 bits in Rhi                                                                            | MULL Rlo Rhi Rn Rs   |
 
 | Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
 |----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
