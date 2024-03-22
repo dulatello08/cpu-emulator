@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 
-uint8_t load_program(const char *program_file, uint8_t **program_memory) {
+size_t load_program(const char *program_file, uint8_t **program_memory) {
     if (program_file == NULL) {
         fprintf(stderr, "Error: input file not specified.\n");
         return 0;
@@ -16,7 +16,7 @@ uint8_t load_program(const char *program_file, uint8_t **program_memory) {
     }
 
     fseek(fpi, 0, SEEK_END);
-    long size = ftell(fpi);
+    unsigned long size = ftell(fpi);
 
     if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint8_t)) {
         fprintf(stderr, "Error: Input program file does not contain %d bytes. It contains %ld bytes\n", EXPECTED_PROGRAM_WORDS, size);
@@ -24,7 +24,7 @@ uint8_t load_program(const char *program_file, uint8_t **program_memory) {
         return 0;
     }
 
-    *program_memory = malloc(sizeof(uint8_t));
+    *program_memory = malloc(size * sizeof(uint8_t));
     if (*program_memory == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
         fclose(fpi);
@@ -32,27 +32,16 @@ uint8_t load_program(const char *program_file, uint8_t **program_memory) {
     }
 
     fseek(fpi, 0, SEEK_SET);
-    uint8_t *temp;
-    temp = calloc(EXPECTED_PROGRAM_WORDS, sizeof(uint8_t));
-    size_t num_read = fread(temp, sizeof(uint8_t), EXPECTED_PROGRAM_WORDS, fpi);
-    if (num_read != EXPECTED_PROGRAM_WORDS) {
-        fprintf(stderr, "Error: Failed to read %d bytes from input program file.\n", EXPECTED_PROGRAM_WORDS);
+    size_t num_read = fread(*program_memory, sizeof(uint8_t), size, fpi);
+    if (num_read != size) {
+        fprintf(stderr, "Error: Failed to read %ld bytes from input program file.\n", size);
         free(*program_memory);
         fclose(fpi);
         return 0;
     }
-    uint8_t current_byte = 0;
-    while (temp[current_byte] != OP_HLT) {
-        *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
-        memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
-        current_byte++;
-    }
-    *program_memory = realloc(*program_memory, sizeof(uint8_t) * (current_byte + 1));
-    memcpy(&(*program_memory)[current_byte], &temp[current_byte], 1);
-    free(temp);
-    current_byte++;
+
     fclose(fpi);
-    return current_byte;
+    return num_read;
 }
 
 long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
@@ -143,6 +132,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_RSH:
         case OP_AND:
         case OP_ORR:
+        case OP_MULL:
             *(state->pc) += 3;
             break;
         case OP_ADM:

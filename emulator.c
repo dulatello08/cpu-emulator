@@ -50,7 +50,7 @@ int start(AppState *appState) {
             }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0 || *appState->state->in_subroutine) {
-            //printf("0x%04x\n", *appState->state->pc);
+            printf("0x%04x\n", *appState->state->pc);
             //printf("queue size %d\n", *appState->state->i_queue->size);
             exitCode = execute_instruction(appState->state);
         } else {
