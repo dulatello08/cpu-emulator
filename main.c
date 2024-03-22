@@ -31,7 +31,7 @@ void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unu
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
 void command_gui(AppState *appState, __attribute__((unused)) const char * args);
-void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args);
+void command_gui_and_start(AppState *appState, __attribute__((unused)) const char * args);
 
 const Command COMMANDS[] = {
     {"start", command_start},
@@ -49,7 +49,7 @@ const Command COMMANDS[] = {
     {"interrupt", command_interrupt},
     {"gui", command_gui},
     {"g", command_gui},
-    {"gs", command_gui_and_e_start},
+    {"gs", command_gui_and_start},
     {NULL, NULL}
 };
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
     // Load program and flash files
     if (appState->program_file) {
         appState->program_size = load_program(appState->program_file, &appState->program_memory);
-        printf("Loaded program %d bytes\n", appState->program_size);
+        printf("Loaded program %lu bytes\n", appState->program_size);
     }
     if (appState->flash_file) {
         appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
@@ -211,7 +211,7 @@ void command_stop(AppState *appState, __attribute__((unused)) const char *args) 
 void command_program(AppState *appState, const char *args){
     const char* filename = args;
     appState->program_size = load_program(filename, &appState->program_memory);
-    printf("Loaded program %d bytes\n", appState->program_size);
+    printf("Loaded program %lu bytes\n", appState->program_size);
 }
 
 void command_flash(AppState *appState, const char *args){
@@ -358,7 +358,7 @@ void command_gui(AppState *appState,  __attribute__((unused)) const char *args) 
     open_gui(appState);
 }
 
-void command_gui_and_e_start(AppState *appState, __attribute__((unused)) const char * args) {
+void command_gui_and_start(AppState *appState, __attribute__((unused)) const char * args) {
     open_gui(appState);
     usleep(1000);
     command_start(appState, args);

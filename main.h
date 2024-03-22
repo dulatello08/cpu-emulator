@@ -52,6 +52,7 @@
 #define OP_RSR 0x1F
 #define OP_AND 0x20
 #define OP_ORR 0x21
+#define OP_MULL 0x22
 
 #define FLAGS_SIZE 0x2
 // flags 1 is reserved, 2 is to rerender display
@@ -160,7 +161,7 @@ typedef struct {
     CPUState *state;
     uint8_t *emulator_running;
     pid_t emulator_pid;
-    uint8_t program_size;
+    size_t program_size;
     int flash_size;
     gui_process_shm_t *gui_shm;
     pid_t gui_pid;
@@ -168,7 +169,7 @@ typedef struct {
 } AppState;
 
 int start(AppState *appState);
-uint8_t load_program(const char *program_file, uint8_t **program_memory);
+size_t load_program(const char *program_file, uint8_t **program_memory);
 long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
