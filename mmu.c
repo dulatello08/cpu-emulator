@@ -8,7 +8,7 @@
     printf("\tStart Address: 0x%04x\n", block.startAddress); \
     printf("\tSize: %x\n", block.size);
 
-void setupMmap(CPUState *state, uint8_t program_size) {
+void setupMmap(CPUState *state, size_t program_size) {
     MemoryMap memoryMap = {
             .programMemory = { .startAddress = PROGRAM_MEMORY_START, .size = PROGRAM_MEMORY_SIZE(program_size) },
             .usableMemory = { .startAddress = USABLE_MEMORY_START(program_size), .size = USABLE_MEMORY_SIZE(program_size) },

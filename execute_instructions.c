@@ -209,7 +209,7 @@ bool execute_instruction(CPUState *state) {
         case OP_MULL: {
             printf("%02x\n", state->reg[1]);
             const uint16_t result = state->reg[(operand2 & 0xF0) >> 5] * state->reg[operand2 & 0x0F];
-            state->reg[operand_rd] = result & 0xFF00;
+            state->reg[operand_rd] = (result & 0xFF00) >> 8;
             state->reg[operand_rn] = result & 0x00FF;
             break;
         }
