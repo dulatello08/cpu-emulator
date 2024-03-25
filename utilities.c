@@ -84,7 +84,7 @@ long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
     fseek(fpf, 0, SEEK_SET);
     __attribute__ ((unused)) int non_zero_count = 0;
     for (int i = 0; i < num_blocks; i++) {
-        size_t bytes_to_read = file_size > BLOCK_SIZE * (i + 1) ? BLOCK_SIZE : file_size % BLOCK_SIZE;
+        size_t bytes_to_read = (file_size > BLOCK_SIZE * (i + 1)) ? BLOCK_SIZE : (file_size % BLOCK_SIZE == 0 ? BLOCK_SIZE : file_size % BLOCK_SIZE);
         size_t num_read = fread((*flash_memory)[i], sizeof(uint8_t), bytes_to_read, fpf);
         if (num_read != bytes_to_read) {
             fprintf(stderr, "Error: Failed to read %ld bytes from input flash file for block %d.\n", bytes_to_read, i);
