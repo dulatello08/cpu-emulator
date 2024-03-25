@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         printf("Loaded program %lu bytes\n", appState->program_size);
     }
     if (appState->flash_file) {
-        appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory) + 4;
+        appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory);
     }
 
     char input[MAX_INPUT_LENGTH];
