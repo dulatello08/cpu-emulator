@@ -160,7 +160,7 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
     } else if(mode == 1) {
         result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
     } else /*if(mode == 2)*/ {
-        result = operation(state->reg[operand_rd], state->reg[operand_rn]);
+        result = (uint8_t) operation(state->reg[operand_rd], state->reg[operand_rn]);
     }
 
     state->v_flag = (result > UINT8_MAX);
@@ -186,7 +186,11 @@ uint16_t add_operation(uint8_t operand1, uint16_t operand2) {
 }
 
 uint16_t subtract_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 - operand2;
+    int16_t result = (int16_t)operand1 - (int16_t)operand2;
+    if (result < 0) {
+        return 0;
+    }
+    return (uint16_t)result;
 }
 
 uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
