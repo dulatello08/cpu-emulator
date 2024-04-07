@@ -6,11 +6,11 @@
 int start(AppState *appState) {
     //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
-    bool goOut = false;
-    while(!goOut) {
-        printf("h\n");
-        sleep(1);
-    }
+//    bool goOut = false;
+//    while(!goOut) {
+//        printf("h\n");
+//        sleep(1);
+//    }
 //    uint8_t interrupt_vector_table;
     appState->state->pc = calloc(1, sizeof(uint16_t));
     appState->state->v_flag = false;
@@ -68,7 +68,6 @@ int start(AppState *appState) {
             *(appState->state->pc) = i_handler;
             *(appState->state->in_subroutine) = true;
         }
-        usleep(100);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     free(appState->state->pc);
