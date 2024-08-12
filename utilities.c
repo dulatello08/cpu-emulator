@@ -213,6 +213,10 @@ uint16_t or_operation(uint8_t operand1, uint16_t operand2) {
     return (uint16_t)operand1 | operand2;
 }
 
+uint16_t xor_operation(uint8_t operand1, uint16_t operand2) {
+    return (uint16_t)operand1 ^ operand2;
+}
+
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
     handle_operation(state, operand_rd, operand_rn, operand2, mode, add_operation);
 }
@@ -239,6 +243,10 @@ void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
 
 void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
     handle_operation(state, operand_rd, operand_rn, 0, 3, or_operation);
+}
+
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
+    handle_operation(state, operand_rd, operand_rn, 0, 3, xor_operation);
 }
 
 // This function performs a memory access.

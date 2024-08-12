@@ -205,6 +205,7 @@ bool execute_instruction(CPUState *state) {
         case OP_ORR:
             bitwise_or(state, operand_rd, operand_rn);
             break;
+
         // Multiply long
         case OP_MULL: {
             printf("%02x\n", state->reg[1]);
@@ -213,6 +214,12 @@ bool execute_instruction(CPUState *state) {
             state->reg[operand_rn] = result & 0x00FF;
             break;
         }
+
+        // Bitwise XOR
+
+        case OP_XOR:
+            bitwise_xor(state, operand_rd, operand_rn);
+            break;
 
         // SIGILL
         default:

@@ -53,6 +53,7 @@
 #define OP_AND 0x20
 #define OP_ORR 0x21
 #define OP_MULL 0x22
+#define OP_XOR 0x23
 
 #define FLAGS_SIZE 0x2
 // flags 1 is reserved, 2 is to rerender display
@@ -185,6 +186,7 @@ void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_
 void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
 void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
 void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
 uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest);
 bool hasChanged(int* lastValue, int currentValue);
 

@@ -38,6 +38,7 @@
 | AND         | 0x20   | Bitwise AND: Performs a bitwise AND operation between the values in registers Rd and Rn. The result of the AND operation is stored in register Rd.                       | AND Rd, Rn           |
 | ORR         | 0x21   | Bitwise OR: Performs a bitwise OR operation between the values in registers Rd and Rn. The result of the OR operation is stored in register Rd.                          | ORR Rd, Rn           |
 | MULL        | 0x22   | Long multiply. multiplies Rn Rs registers and stores low 8 bits in Rlo and high 8 bits in Rhi                                                                            | MULL Rlo Rhi Rn Rs   |
+| XOR         | 0x23   | Bitwise XOR: Performs a bitwise XOR operation between the values in registers Rd and Rn. The result of the XOR operation is stored in register Rd.                       | XOR Rd, Rn           |
 
 | Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
 |----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
