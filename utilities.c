@@ -110,7 +110,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_NOP:
         case OP_HLT:
         case OP_OSR:
-        default:
+        default: //todo add warning
             *(state->pc) += 1;
             break;
         case OP_CLZ:
@@ -120,6 +120,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_RLD:
         case OP_AND:
         case OP_ORR:
+        case OP_XOR:
             *(state->pc) += 2;
             break;
         case OP_ADD:
@@ -160,7 +161,7 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
     } else if(mode == 1) {
         result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
     } else /*if(mode == 2)*/ {
-        result = (uint8_t) operation(state->reg[operand_rd], state->reg[operand_rn]);
+        result = operation(state->reg[operand_rd], state->reg[operand_rn]);
     }
 
     state->v_flag = (result > UINT8_MAX);
