@@ -199,11 +199,11 @@ uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
 }
 
 uint16_t left_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 << operand2;
+    return ((uint16_t)operand1 << operand2) & 0xFF;
 }
 
 uint16_t right_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 >> operand2;
+    return ((uint16_t)operand1 >> operand2) & 0xFF;
 }
 
 uint16_t and_operation(uint8_t operand1, uint16_t operand2) {
