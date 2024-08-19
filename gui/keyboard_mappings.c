@@ -90,14 +90,35 @@ const ScanCodeMap SCAN_CODES[] = {
     {0, 0}      // End marker
 };
 
-// Function to convert SDL scan code to CPU scan code
+// Function to convert SDL scan code to CPU scan code using interpolation search
 uint8_t sdlToCpuCode(int sdlCode) {
-    const ScanCodeMap *map = SCAN_CODES;
-    while (map->sdlCode != 0) {
-        if (map->sdlCode == sdlCode) {
-            return map->cpuCode;
+    int low = 0;
+    int high = sizeof(SCAN_CODES) / sizeof(SCAN_CODES[0]) - 2; // exclude the last marker {0,0}
+
+    while (low <= high && sdlCode >= SCAN_CODES[low].sdlCode && sdlCode <= SCAN_CODES[high].sdlCode) {
+        if (low == high) {
+            if (SCAN_CODES[low].sdlCode == sdlCode) {
+                return SCAN_CODES[low].cpuCode;
+            }
+            break;
         }
-        map++;
+
+        // Estimate the position
+        int pos = low + (((double)(sdlCode - SCAN_CODES[low].sdlCode) /
+                          (SCAN_CODES[high].sdlCode - SCAN_CODES[low].sdlCode)) * (high - low));
+
+        // Check if the estimated position matches the sdlCode
+        if (SCAN_CODES[pos].sdlCode == sdlCode) {
+            return SCAN_CODES[pos].cpuCode;
+        }
+
+        // If sdlCode is larger, search in the upper part
+        if (SCAN_CODES[pos].sdlCode < sdlCode) {
+            low = pos + 1;
+        } else {
+            high = pos - 1;
+        }
     }
+
     return 0; // Return 0 if no matching code is found
 }
