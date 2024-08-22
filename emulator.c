@@ -22,7 +22,6 @@ int start(AppState *appState) {
     memcpy(appState->state->memory, appState->program_memory, appState->program_size);
 
     setupMmap(appState->state, appState->program_size);
-    appState->state->in_subroutine = &(appState->state->memory[appState->state->mm.flagsBlock.startAddress]);
     printf("Flash size: %d\n", appState->flash_size);
     if (appState->flash_size > BLOCK_SIZE) {
         memcpy(&(appState->state->memory[appState->state->mm.currentFlashBlock.startAddress]), appState->flash_memory[0], 4096);
@@ -45,11 +44,10 @@ int start(AppState *appState) {
                 clear_display(appState->gui_shm->display);
                 memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
                 print_display(appState->gui_shm->display);
-                kill(appState->gui_pid, SIGUSR1);
                 appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
             }
         }
-        if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0 || *appState->state->in_subroutine) {
+        if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
 //            printf("0x%04x\n", *appState->state->pc);
             //printf("queue size %d\n", *appState->state->i_queue->size);
             exitCode = execute_instruction(appState->state);
@@ -66,7 +64,6 @@ int start(AppState *appState) {
             pushStack(appState->state, *appState->state->pc & 0xFF);
             pushStack(appState->state, (*appState->state->pc >> 8) & 0xFF);
             *(appState->state->pc) = i_handler;
-            *(appState->state->in_subroutine) = true;
         }
         usleep(10000);
     }

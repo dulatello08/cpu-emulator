@@ -134,7 +134,6 @@ typedef struct {
     uint16_t* pc;
 
     // flags in separate variables
-    uint8_t* in_subroutine;
     bool enable_mask_interrupts;
 
     // Memory

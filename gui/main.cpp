@@ -1,33 +1,13 @@
 #include "main.h"
 
-#include <unistd.h>
-#include <regex>
-#include <string>
 #include <iostream>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <chrono>
-#include <thread>
 
 const int FPS_CAP = 60;
 bool send_interrupts = true;
 
 using namespace std;
-
-void sigUsrHandler(int signal, signal_handler_data_t *signal_handler_data) {
-    static signal_handler_data_t *saved = nullptr;
-
-    if (saved == nullptr)
-        saved = signal_handler_data;
-    if (signal == SIGUSR1) {
-        // Enqueue an update request
-        if (saved->queueCount < MAX_QUEUE_SIZE) {
-            saved->updateQueue[saved->queueTail] = 1; // 1 represents an update request
-            saved->queueTail = (saved->queueTail + 1) % MAX_QUEUE_SIZE;
-            ++saved->queueCount;
-        }
-    }
-}
 
 void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer, TTF_Font *font) {
     // Catppuccin Mocha colors
@@ -107,14 +87,8 @@ void update_display(char display[LCD_WIDTH][LCD_HEIGHT], SDL_Renderer *renderer,
 }
 
 int main() {
-    signal(SIGUSR1, (void (*)(int)) sigUsrHandler);
-    signal_handler_data_t signal_handler_data;
-    signal_handler_data.queueHead = 0;
-    signal_handler_data.queueTail = 0;
-    signal_handler_data.queueCount = 0;
     SDL_Event event;
     bool quit = false;
-    bool need_redraw = true;  // New flag to track when we need to redraw
 
     if (SDL_Init(SDL_INIT_EVENTS) < 0) {
         cerr << "Could not initialize SDL: " << SDL_GetError() << '\n';
@@ -162,12 +136,6 @@ int main() {
         return 1;
     }
 
-    memcpy(signal_handler_data.display, shared_memory->display, sizeof(signal_handler_data.display));
-    signal_handler_data.font = font;
-    signal_handler_data.renderer = renderer;
-
-    sigUsrHandler(SIGUSR2, &signal_handler_data);
-
     while (!quit) {
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
@@ -178,7 +146,6 @@ int main() {
                 if (event.key.keysym.sym == SDLK_i && (event.key.keysym.mod & KMOD_CTRL)) {
                     send_interrupts = !send_interrupts;
                     printf("Interrupts %s\n", send_interrupts ? "enabled" : "disabled");
-                    need_redraw = true;  // Mark the display as needing a redraw
                 } else if (event.key.repeat == 0) {
                     // Handle other key events
                     printf("Key event: cpu code %d value 1\n", sdlToCpuCode(event.key.keysym.scancode));
@@ -196,13 +163,9 @@ int main() {
             }
         }
 
-        if (signal_handler_data.queueCount > 0 || need_redraw) {
-            update_display(signal_handler_data.display, signal_handler_data.renderer, signal_handler_data.font);
-            signal_handler_data.queueHead = (signal_handler_data.queueHead + 1) % MAX_QUEUE_SIZE;
-            --signal_handler_data.queueCount;
-            need_redraw = false;  // Reset the redraw flag after rendering
-        }
-        memcpy(signal_handler_data.display, shared_memory->display, sizeof(signal_handler_data.display));
+        // Update the display every frame
+        memcpy(shared_memory->display, shared_memory->display, sizeof(shared_memory->display));
+        update_display(shared_memory->display, renderer, font);
 
         // Cap the frame rate to FPS_CAP using SDL_Delay
         SDL_Delay(1000 / FPS_CAP);
