@@ -125,30 +125,24 @@ bool execute_instruction(CPUState *state) {
         case OP_HLT:
             printf("Halt at appState of program counter: %d\n", *(state->pc));
             return true;
-        // Jump to subroutine at address of operand 1 and 2. Set in_subroutine flag to true.
+        // Jump to subroutine at address of operand 1 and 2.
         case OP_JSR:
             printf("before subroutine pc: %x\n", *state->pc);
             printf("subroutine jump to %x\n", brnAddressing);
             pushStack(state, *state->pc & 0xFF);
             pushStack(state, (*state->pc >> 8) & 0xFF);
             *(state->pc) = brnAddressing;
-            *(state->in_subroutine) = true;
             skipIncrementPC = true;  // Skip incrementing the program counter
             break;
-        // Jump out of subroutine using PC appState saved in stack. Set in_subroutine flag to false.
+        // Jump out of subroutine using PC appState saved in stack.
         case OP_OSR: {
-            if (state->in_subroutine) {
-                uint16_t realPc;
-                realPc = (uint16_t)(popStack(state, NULL) << 8);
-                realPc |= popStack(state, NULL);
-                *(state->pc) = realPc;
-                *(state->in_subroutine) = false;
-                printf("current pc: %x \n", *state->pc);
-                skipIncrementPC = true;
-                break;
-            }
-            printf("Jump out of subroutine was called while not in subroutine\n");
-            return true;
+            uint16_t realPc;
+            realPc = (uint16_t)(popStack(state, NULL) << 8);
+            realPc |= popStack(state, NULL);
+            *(state->pc) = realPc;
+            printf("current pc: %x \n", *state->pc);
+            skipIncrementPC = true;
+            break;
         }
         // Relative store register to memory pops off 2 bytes from stack to be used as address
         case OP_RSM: {
