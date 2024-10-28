@@ -160,7 +160,7 @@ typedef struct {
     uint8_t *shared_data_memory;
     CPUState *state;
     uint8_t *emulator_running;
-    pid_t emulator_pid;
+    pthread_t emulator_thread;
     size_t program_size;
     int flash_size;
     gui_process_shm_t *gui_shm;

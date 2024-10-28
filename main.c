@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <pthread.h>
 
 #define SOCKET_PATH "/tmp/emulator.sock"
 
@@ -30,27 +31,27 @@ void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
-void command_gui(AppState *appState, __attribute__((unused)) const char * args);
-void command_gui_and_start(AppState *appState, __attribute__((unused)) const char * args);
+void command_gui(AppState *appState, __attribute__((unused)) const char *args);
+void command_gui_and_start(AppState *appState, __attribute__((unused)) const char *args);
 
 const Command COMMANDS[] = {
-    {"start", command_start},
-    {"stop", command_stop},
-    {"program", command_program},
-    {"flash", command_flash},
-    {"help", command_help},
-    {"h", command_help},
-    {"input", command_input},
-    {"print", command_print},
-    {"free", command_free},
-    {"exit", command_exit},
-    {"ctl_listen", command_ctl_listen},
-    {"ctl_l", command_ctl_listen},
-    {"interrupt", command_interrupt},
-    {"gui", command_gui},
-    {"g", command_gui},
-    {"gs", command_gui_and_start},
-    {NULL, NULL}
+        {"start", command_start},
+        {"stop", command_stop},
+        {"program", command_program},
+        {"flash", command_flash},
+        {"help", command_help},
+        {"h", command_help},
+        {"input", command_input},
+        {"print", command_print},
+        {"free", command_free},
+        {"exit", command_exit},
+        {"ctl_listen", command_ctl_listen},
+        {"ctl_l", command_ctl_listen},
+        {"interrupt", command_interrupt},
+        {"gui", command_gui},
+        {"g", command_gui},
+        {"gs", command_gui_and_start},
+        {NULL, NULL}
 };
 
 AppState *new_app_state(void) {
@@ -63,7 +64,7 @@ AppState *new_app_state(void) {
     appState->state->i_queue->sources = mmap(NULL, 10, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
-    appState->emulator_pid = 0;
+    appState->emulator_thread = 0;
     appState->gui_shm = NULL;
 
     return appState;
@@ -76,7 +77,7 @@ void free_app_state(AppState *appState) {
             size_t bytes_to_write = (i == num_blocks - 1) ? appState->flash_size % BLOCK_SIZE : BLOCK_SIZE;
             size_t num_written = fwrite(appState->flash_memory[i], sizeof(uint8_t), bytes_to_write, appState->fpf);
             if (num_written != bytes_to_write) {
-                fprintf(stderr, "Error: Failed to write %ld bytes to output flash file for block %d.\n", bytes_to_write, i);
+                fprintf(stderr, "Error: Failed to write %zu bytes to output flash file for block %d.\n", bytes_to_write, i);
             }
             free(appState->flash_memory[i]);
         }
@@ -84,7 +85,7 @@ void free_app_state(AppState *appState) {
         free(appState->flash_memory);
 
     }
-    kill(appState->emulator_pid, 15);
+    pthread_cancel(appState->emulator_thread);
 
     munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
@@ -100,6 +101,55 @@ void free_app_state(AppState *appState) {
         shm_unlink("emulator_gui_shm");
     }
     free(appState);
+}
+
+void* emulator_thread_func(void* arg) {
+    AppState *appState = (AppState*) arg;
+    if(appState->program_memory == NULL) {
+        printf("Program memory not loaded\n>> ");
+        *(appState->emulator_running) = 0;
+        pthread_exit(NULL);
+    }
+    if(appState->flash_memory == NULL) {
+        printf("Flash memory not loaded\n>> ");
+        *(appState->emulator_running) = 0;
+        pthread_exit(NULL);
+    }
+    start(appState);
+    printf(">> ");
+    *(appState->emulator_running) = 0;
+    pthread_exit(NULL);
+}
+
+void command_start(AppState *appState, __attribute__((unused)) const char *args){
+    if (*(appState->emulator_running) == 0) {
+        pthread_t emulator_thread;
+        *(appState->emulator_running) = 1;
+        if(pthread_create(&emulator_thread, NULL, emulator_thread_func, appState) != 0) {
+            perror("Failed to create emulator thread");
+            *(appState->emulator_running) = 0;
+            return;
+        }
+        appState->emulator_thread = emulator_thread;
+    } else {
+        printf("Emulator already running.\n");
+    }
+}
+
+void command_stop(AppState *appState, __attribute__((unused)) const char *args) {
+    if (*(appState->emulator_running) == 0) {
+        printf("Emulator is not running.\n");
+        return;
+    }
+
+    if (pthread_cancel(appState->emulator_thread) == 0) {
+        // The cancel operation was successful
+        printf("Emulator successfully stopped.\n");
+        *(appState->emulator_running) = 0;
+    } else {
+        // An error occurred during the cancel operation
+        perror("Error stopping emulator");
+    }
 }
 
 void execute_command(AppState *appState, const char *command, const char *args) {
@@ -164,114 +214,6 @@ int main(int argc, char *argv[]) {
 
     free_app_state(appState);
     return 0;
-}
-
-void command_start(AppState *appState, __attribute__((unused)) const char *args){
-    if (*(appState->emulator_running) == 0) {
-        pid_t emulator = fork();
-        appState->emulator_pid = emulator;
-        *(appState->emulator_running) = 1;
-        if(emulator==0) {
-            if(appState->program_memory == NULL) {
-                printf("Program memory not loaded\n>> ");
-                *(appState->emulator_running) = 0;
-                exit(1);
-            }
-            if(appState->flash_memory == NULL) {
-                printf("Flash memory not loaded\n>> ");
-                *(appState->emulator_running) = 0;
-                exit(1);
-            }
-            start(appState);
-            printf(">> ");
-            *(appState->emulator_running) = 0;
-            exit(0);
-        }
-    } else {
-        printf("Emulator already running.\n");
-    }
-}
-
-void command_stop(AppState *appState, __attribute__((unused)) const char *args) {
-    if (appState->emulator_running == 0) {
-        printf("Emulator is not running (PID is 0).\n");
-        return;
-    }
-
-    if (kill(appState->emulator_pid, SIGKILL) == 0) {
-        // The kill operation was successful
-        printf("Emulator successfully stopped.\n");
-        *(appState->emulator_running) = 0;
-    } else {
-        // An error occurred during the kill operation
-        perror("Error stopping emulator");
-    }
-}
-
-void command_program(AppState *appState, const char *args){
-    const char* filename = args;
-    appState->program_size = load_program(filename, &appState->program_memory);
-    printf("Loaded program %lu bytes\n", appState->program_size);
-}
-
-void command_flash(AppState *appState, const char *args){
-    const char* filename = args;
-    appState->flash_size = (int) load_flash(filename, appState->fpf, &appState->flash_memory);
-}
-
-void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
-    printf("Commands:\n");
-    printf("start - start emulator\n");
-    printf("stop - stop emulator \n");
-    printf("program <filename> - load program\n");
-    printf("flash <filename> - load flash\n");
-    printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
-    printf("help or h - display this help message\n");
-    printf("free - free emulator memory\n");
-    // printf("exit - exit the program\n");
-    // clear_display(appState->gui_shm->display);
-    // write_to_display(appState->gui_shm->display, 0x41);
-    // kill(appState->gui_pid, SIGUSR1);
-
-    printf("Emulator pid %d\n", appState->emulator_pid);
-}
-
-void command_input(AppState *appState, const char *args) {
-    if (args == NULL || *args == '\0') {
-        printf("Error: Empty input\n");
-        return;
-    }
-
-    const char *arg = args;
-
-    // Check if input starts with "0x" or "0X", and skip the prefix if present
-    if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
-        arg += 2;
-    }
-
-    char *endptr;
-    unsigned long value = strtoul(arg, &endptr, 16);
-
-    if (endptr == arg || *endptr != '\0' || value > 0xFF) {
-        printf("Error: Invalid hexadecimal byte. Provided: %s\n", args);
-    } else {
-        appState->shared_data_memory[254] = (uint8_t)value;
-    }
-}
-
-void command_print(AppState *appState, __attribute__((unused)) const char *args){
-    print_display(appState->state->display);
-}
-
-void command_free(AppState *appState, __attribute__((unused)) const char *args){
-    printf("Freeing emulator memory...\n");
-    memset(appState->shared_data_memory, 0, MEMORY);
-}
-
-void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
-    printf("Exiting emulator...\n");
-    free_app_state(appState);
-    exit(0);
 }
 
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
@@ -345,6 +287,18 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 #endif
 }
 
+void command_free(AppState *appState, __attribute__((unused)) const char *args){
+    printf("Freeing emulator memory...\n");
+    memset(appState->shared_data_memory, 0, MEMORY);
+}
+
+void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
+    printf("Exiting emulator...\n");
+    free_app_state(appState);
+    exit(0);
+}
+
+
 void command_interrupt(AppState *appState, const char *args) {
     uint8_t source = strtoul(args, NULL, 0);
     //kill(appState->emulator_pid, SIGSTOP);
@@ -362,4 +316,57 @@ void command_gui_and_start(AppState *appState, __attribute__((unused)) const cha
     open_gui(appState);
     usleep(1000);
     command_start(appState, args);
+}
+
+void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
+    printf("Commands:\n");
+    printf("start - start emulator\n");
+    printf("stop - stop emulator \n");
+    printf("program <filename> - load program\n");
+    printf("flash <filename> - load flash\n");
+    printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
+    printf("help or h - display this help message\n");
+    printf("free - free emulator memory\n");
+    // printf("exit - exit the program\n");
+    // clear_display(appState->gui_shm->display);
+    // write_to_display(appState->gui_shm->display, 0x41);
+    // kill(appState->gui_pid, SIGUSR1);
+}
+
+void command_input(AppState *appState, const char *args) {
+    if (args == NULL || *args == '\0') {
+        printf("Error: Empty input\n");
+        return;
+    }
+
+    const char *arg = args;
+
+    // Check if input starts with "0x" or "0X", and skip the prefix if present
+    if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
+        arg += 2;
+    }
+
+    char *endptr;
+    unsigned long value = strtoul(arg, &endptr, 16);
+
+    if (endptr == arg || *endptr != '\0' || value > 0xFF) {
+        printf("Error: Invalid hexadecimal byte. Provided: %s\n", args);
+    } else {
+        appState->shared_data_memory[254] = (uint8_t)value;
+    }
+}
+
+void command_print(AppState *appState, __attribute__((unused)) const char *args){
+    print_display(appState->state->display);
+}
+
+void command_program(AppState *appState, const char *args){
+    const char* filename = args;
+    appState->program_size = load_program(filename, &appState->program_memory);
+    printf("Loaded program %lu bytes\n", appState->program_size);
+}
+
+void command_flash(AppState *appState, const char *args){
+    const char* filename = args;
+    appState->flash_size = (int) load_flash(filename, appState->fpf, &appState->flash_memory);
 }

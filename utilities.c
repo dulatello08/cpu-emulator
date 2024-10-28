@@ -110,7 +110,7 @@ void increment_pc(CPUState *state, uint8_t opcode) {
         case OP_NOP:
         case OP_HLT:
         case OP_OSR:
-        default: //todo add warning
+        default:
             *(state->pc) += 1;
             break;
         case OP_CLZ:
