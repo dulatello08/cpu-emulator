@@ -84,7 +84,7 @@ bool execute_instruction(CPUState *state) {
             break;
         // Pop a value from the stack and store it in the register Rd
         case OP_POP:
-            popStack(state, &(state->reg[operand_rd]));
+            popStack(state, (uint8_t *) &(state->reg[operand_rd]));
             break;
         // Branch to value specified in operand 2
         case OP_BRN:

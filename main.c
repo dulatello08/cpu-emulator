@@ -25,12 +25,19 @@ void command_flash(AppState *appState, const char *args);
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_input(AppState *appState, const char *args);
 void command_print(AppState *appState, __attribute__((unused)) const char *args);
-void command_free(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
 void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
 void command_gui(AppState *appState, __attribute__((unused)) const char *args);
 void command_gui_and_start(AppState *appState, __attribute__((unused)) const char *args);
+void load_config(AppState *appState, const char *filename);
+void display_config(const MemoryConfig *config);
+
+// Command to preview current memory configuration
+void command_view_config(AppState *appState, __attribute__((unused)) const char *args);
+
+// Command to reload configuration at runtime
+void command_reload_config(AppState *appState, const char *args);
 
 const Command COMMANDS[] = {
         {"start", command_start},
@@ -41,7 +48,6 @@ const Command COMMANDS[] = {
         {"h", command_help},
         {"input", command_input},
         {"print", command_print},
-        {"free", command_free},
         {"exit", command_exit},
         {"ctl_listen", command_ctl_listen},
         {"ctl_l", command_ctl_listen},
@@ -49,11 +55,17 @@ const Command COMMANDS[] = {
         {"gui", command_gui},
         {"g", command_gui},
         {"gs", command_gui_and_start},
+        {"config_show", command_view_config},
+        {"config", command_reload_config},
         {NULL, NULL}
 };
 
 AppState *new_app_state(void) {
     AppState *appState = malloc(sizeof(AppState));
+    for (int i = 0; i < NUM_PAGES; i++) {
+        appState->page_table[i].is_allocated = false;
+        appState->page_table[i].page_data = NULL;
+    }
     appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint16_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -65,30 +77,14 @@ AppState *new_app_state(void) {
 }
 
 void free_app_state(AppState *appState) {
-    if(appState->fpf != NULL && appState->flash_memory != NULL) {
-        int num_blocks = (appState->flash_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        for (int i = 0; i < num_blocks; i++) {
-            size_t bytes_to_write = (i == num_blocks - 1) ? appState->flash_size % BLOCK_SIZE : BLOCK_SIZE;
-            size_t num_written = fwrite(appState->flash_memory[i], sizeof(uint8_t), bytes_to_write, appState->fpf);
-            if (num_written != bytes_to_write) {
-                fprintf(stderr, "Error: Failed to write %zu bytes to output flash file for block %d.\n", bytes_to_write, i);
-            }
-            free(appState->flash_memory[i]);
-        }
-        fclose(appState->fpf);
-        free(appState->flash_memory);
-
-    }
     pthread_cancel(appState->emulator_thread);
 
-    munmap(appState->shared_data_memory, MEMORY);
     munmap(appState->emulator_running, 1);
-    munmap(appState->state->reg, 16 * sizeof(uint8_t));
+    munmap(appState->state->reg, 16 * sizeof(uint16_t));
     munmap(appState->state->i_queue->sources, *(appState->state->i_queue->size) * sizeof(uint8_t));
     munmap(appState->state->i_queue->size, sizeof(uint8_t));
     munmap(appState->state->i_queue, sizeof(InterruptQueue));
     munmap(appState->state, sizeof(CPUState));
-    free(appState->program_memory);
     if (appState->gui_pid) {
         munmap(appState->gui_shm, sizeof(gui_process_shm_t));
         close(appState->gui_shm_fd);
@@ -99,16 +95,6 @@ void free_app_state(AppState *appState) {
 
 void* emulator_thread_func(void* arg) {
     AppState *appState = (AppState*) arg;
-    if(appState->program_memory == NULL) {
-        printf("Program memory not loaded\n>> ");
-        *(appState->emulator_running) = 0;
-        pthread_exit(NULL);
-    }
-    if(appState->flash_memory == NULL) {
-        printf("Flash memory not loaded\n>> ");
-        *(appState->emulator_running) = 0;
-        pthread_exit(NULL);
-    }
     start(appState);
     printf(">> ");
     *(appState->emulator_running) = 0;
@@ -166,33 +152,29 @@ int main(int argc, char *argv[]) {
     // Set the SIGINT (Ctrl+C) signal handler to sigintHandler
     signal(SIGINT, sigintHandler);
     AppState *appState = new_app_state();
+    char *config_file = "config.ini";
 
     // Parse arguments
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "--program") == 0) {
-            if (i + 1 < argc) {
-                appState->program_file = argv[i + 1];
-                i++;
-            }
-        } else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--flash") == 0) {
-            if (i + 1 < argc) {
-                appState->flash_file = argv[i + 1];
-                i++;
-            }
+    int opt;
+    while ((opt = getopt(argc, argv, "p:m:c:")) != -1) {
+        switch (opt) {
+            case 'p':
+                appState->program_file = optarg;
+                break;
+            case 'm':
+                appState->flash_file = optarg;
+                break;
+            case 'c':
+                config_file = optarg;
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-p program_file] [-m flash_file] [-c config_file]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
     }
 
-    // Load program and flash files
-    if (appState->program_file) {
-        appState->program_size = load_program(appState->program_file, &appState->program_memory);
-        printf("Loaded program %lu bytes\n", appState->program_size);
-    }
-    if (appState->flash_file) {
-        appState->flash_size = (int) load_flash(appState->flash_file, appState->fpf, &appState->flash_memory);
-    }
-
     char input[MAX_INPUT_LENGTH];
-
+    load_config(appState, config_file);
     while(1) {
         printf(">> ");
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
@@ -281,11 +263,6 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 #endif
 }
 
-void command_free(AppState *appState, __attribute__((unused)) const char *args){
-    printf("Freeing emulator memory...\n");
-    memset(appState->shared_data_memory, 0, MEMORY);
-}
-
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
     printf("Exiting emulator...\n");
     free_app_state(appState);
@@ -320,14 +297,13 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     printf("flash <filename> - load flash\n");
     printf("ctl_l or ctl_listen- start listening for connections on Unix socket\n");
     printf("help or h - display this help message\n");
-    printf("free - free emulator memory\n");
     // printf("exit - exit the program\n");
     // clear_display(appState->gui_shm->display);
     // write_to_display(appState->gui_shm->display, 0x41);
     // kill(appState->gui_pid, SIGUSR1);
 }
 
-void command_input(AppState *appState, const char *args) {
+void command_input(__attribute__((unused)) AppState *appState, const char *args) {
     if (args == NULL || *args == '\0') {
         printf("Error: Empty input\n");
         return;
@@ -346,7 +322,7 @@ void command_input(AppState *appState, const char *args) {
     if (endptr == arg || *endptr != '\0' || value > 0xFF) {
         printf("Error: Invalid hexadecimal byte. Provided: %s\n", args);
     } else {
-        appState->shared_data_memory[254] = (uint8_t)value;
+//        appState->shared_data_memory[254] = (uint8_t)value;
     }
 }
 
@@ -354,13 +330,47 @@ void command_print(AppState *appState, __attribute__((unused)) const char *args)
     print_display(appState->state->display);
 }
 
-void command_program(AppState *appState, const char *args){
-    const char* filename = args;
-    appState->program_size = load_program(filename, &appState->program_memory);
+void command_program(AppState *appState, __attribute__((unused)) const char *args){
+//    const char* filename = args;
+
     printf("Loaded program %lu bytes\n", appState->program_size);
 }
 
-void command_flash(AppState *appState, const char *args){
-    const char* filename = args;
-    appState->flash_size = (int) load_flash(filename, appState->fpf, &appState->flash_memory);
+void command_flash(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
+//    const char* filename = args;
+}
+
+// Function to load the configuration file into appState
+void load_config(AppState *appState, const char *filename) {
+    if (parse_ini_file(filename, &appState->state->memory_config) == 0) {
+        printf("Configuration loaded from %s\n", filename);
+    } else {
+        fprintf(stderr, "Error: Could not load configuration from %s\n", filename);
+    }
+}
+
+// Function to display the current configuration
+void display_config(const MemoryConfig *config) {
+    printf("Current Memory Configuration:\n");
+    for (size_t i = 0; i < config->section_count; i++) {
+        printf("Section: %s\n", config->sections[i].section_name);
+        printf("  Type: %d\n", config->sections[i].type);
+        printf("  Start Address: 0x%X\n", config->sections[i].start_address);
+        printf("  Page Count: %u\n", config->sections[i].page_count);
+        if (config->sections[i].type == MMIO_PAGE) {
+            printf("  Device: %s\n", config->sections[i].device);
+        }
+    }
+}
+
+void command_view_config(AppState *appState, __attribute__((unused)) const char *args) {
+    display_config(&appState->state->memory_config);
+}
+
+void command_reload_config(AppState *appState, const char *args) {
+    if (parse_ini_file(args, &appState->state->memory_config) == 0) {
+        printf("Configuration reloaded from %s\n", args);
+    } else {
+        printf("Error: Could not reload configuration from %s\n", args);
+    }
 }
