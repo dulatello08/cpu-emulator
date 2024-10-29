@@ -15,20 +15,9 @@ int start(AppState *appState) {
     appState->state->pc = calloc(1, sizeof(uint16_t));
     appState->state->v_flag = false;
     appState->state->z_flag = false;
-    appState->state->memory = appState->shared_data_memory;
     appState->state->enable_mask_interrupts = false;
-    //*state->i_queue->size = 0;
-    //printf("From emulator, register pointer: %p\n", (void *) state->reg);
-    memcpy(appState->state->memory, appState->program_memory, appState->program_size);
 
     setupMmap(appState->state, appState->program_size);
-    printf("Flash size: %d\n", appState->flash_size);
-    if (appState->flash_size > BLOCK_SIZE) {
-        memcpy(&(appState->state->memory[appState->state->mm.currentFlashBlock.startAddress]), appState->flash_memory[0], 4096);
-    } else {
-        memcpy(&(appState->state->memory[appState->state->mm.currentFlashBlock.startAddress]), appState->flash_memory[0], appState->flash_size);
-    }
-
     printf("Starting emulator\n");
     bool exitCode = false;
 

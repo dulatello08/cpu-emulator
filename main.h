@@ -1,5 +1,5 @@
-#ifndef INC_8_BIT_CPU_EMULATOR_MAIN_H
-#define INC_8_BIT_CPU_EMULATOR_MAIN_H
+#ifndef INC_16_BIT_CPU_EMULATOR_MAIN_H
+#define INC_16_BIT_CPU_EMULATOR_MAIN_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -13,10 +13,10 @@
 #include <sys/types.h>
 #include <ctype.h>
 
-#define MEMORY 65536
-#define EXPECTED_PROGRAM_WORDS 256
-#define BLOCK_SIZE 4096
 #define MAX_INPUT_LENGTH 1024
+
+#define PAGE_SIZE 4096
+#define NUM_PAGES (1 << 20) // For a 32-bit address space and 4 KB pages
 
 #define OP_NOP 0x00
 #define OP_ADD 0x01
@@ -62,7 +62,7 @@
 #define PERIPHERAL_CONTROL_SIZE 0x8
 #define FLASH_CONTROL_SIZE 0x1
 #define FLASH_BLOCK_SIZE 0x1000
-
+#define MEMORY 65536
 #define PROGRAM_MEMORY_START 0x0000
 #define PROGRAM_MEMORY_SIZE(program_size) program_size
 #define USABLE_MEMORY_START(program_size) (program_size)
@@ -84,6 +84,35 @@
 
 #define INTERRUPT_TABLE_SIZE 10
 #define INTERRUPT_QUEUE_MAX 10
+
+#define MAX_SECTIONS 64
+typedef struct {
+    uint8_t* page_data; // Points to the actual data for this page in physical memory
+    bool is_allocated;  // Indicates if the page is allocated
+} PageTableEntry;
+
+// Enum for page type
+typedef enum {
+    BOOT_SECTOR,
+    USABLE_MEMORY,
+    MMIO_PAGE,
+    FLASH,
+    UNKNOWN_TYPE
+} PageType;
+
+// Struct to hold parsed memory configuration
+typedef struct {
+    char section_name[64];
+    PageType type;
+    unsigned int start_address;
+    unsigned int page_count;
+    char device[64];  // Optional device information for MMIO pages
+} MemorySection;
+
+typedef struct {
+    MemorySection sections[MAX_SECTIONS];
+    size_t section_count;
+} MemoryConfig;
 
 struct memory_block {
     uint16_t startAddress;
@@ -137,6 +166,7 @@ typedef struct {
 
     // Memory
     uint8_t* memory;
+    MemoryConfig memory_config;
 
     // ALU Flags register
     bool z_flag;
@@ -154,6 +184,7 @@ typedef struct {
     char *program_file;
     char *flash_file;
     FILE *fpf;
+    PageTableEntry page_table[NUM_PAGES];
     CPUState *state;
     uint8_t *emulator_running;
     pthread_t emulator_thread;
@@ -165,8 +196,6 @@ typedef struct {
 } AppState;
 
 int start(AppState *appState);
-size_t load_program(const char *program_file, uint8_t **program_memory);
-long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory);
 
 uint8_t count_leading_zeros(uint8_t x);
 
@@ -206,4 +235,6 @@ uint8_t pop_interrupt(InterruptQueue* queue);
 
 void open_gui(AppState *appState);
 
-#endif //INC_8_BIT_CPU_EMULATOR_MAIN_H
+int parse_ini_file(const char *filename, MemoryConfig *config);
+
+#endif //INC_16_BIT_CPU_EMULATOR_MAIN_H
