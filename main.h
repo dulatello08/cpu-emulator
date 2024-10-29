@@ -130,10 +130,9 @@ typedef struct {
     // Memory map
     MemoryMap mm;
     // General-purpose registers + 16 is PC
-    uint8_t* reg;
+    uint16_t* reg;
     uint16_t* pc;
 
-    // flags in separate variables
     bool enable_mask_interrupts;
 
     // Memory
@@ -154,10 +153,7 @@ typedef struct {
 typedef struct {
     char *program_file;
     char *flash_file;
-    uint8_t *program_memory;
-    uint8_t **flash_memory;
     FILE *fpf;
-    uint8_t *shared_data_memory;
     CPUState *state;
     uint8_t *emulator_running;
     pthread_t emulator_thread;
