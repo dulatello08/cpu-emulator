@@ -328,9 +328,3 @@ uint8_t count_leading_zeros(uint8_t x) {
 
     return 8 - count;
 }
-
-bool hasChanged(int* lastValue, int currentValue) {
-    bool changed = (*lastValue != currentValue);
-    *lastValue = currentValue;
-    return changed;
-}
