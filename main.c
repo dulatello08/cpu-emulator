@@ -62,10 +62,7 @@ const Command COMMANDS[] = {
 
 AppState *new_app_state(void) {
     AppState *appState = malloc(sizeof(AppState));
-    for (int i = 0; i < NUM_PAGES; i++) {
-        appState->page_table[i].is_allocated = false;
-        appState->page_table[i].page_data = NULL;
-    }
+
     appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint16_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
