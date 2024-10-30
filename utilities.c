@@ -216,12 +216,10 @@ uint8_t popStack(CPUState *state, uint8_t *out) {
 
 
 uint8_t count_leading_zeros(uint8_t x) {
-    uint8_t count = 0;
-
-    while (x != 0) {
-        x >>= 1;
-        count++;
-    }
-
-    return 8 - count;
+    if (x == 0) return 8;
+    uint8_t n = 0;
+    if ((x & 0xF0) == 0) { n += 4; x <<= 4; }
+    if ((x & 0xC0) == 0) { n += 2; x <<= 2; }
+    if ((x & 0x80) == 0) { n += 1; }
+    return n;
 }
