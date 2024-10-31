@@ -93,8 +93,7 @@ typedef struct {
 // -- CPU State -- //
 typedef struct {
     MemoryMap mm;
-    PageTableEntry *page_table; // Pointer to the page table
-    size_t num_pages;           // Number of pages in the table
+    PageTable *page_table; // Pointer to the page table
     MemoryConfig memory_config;
 
     uint16_t* reg;
@@ -146,8 +145,11 @@ void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
 // Page Table Management
 PageTable* create_page_table(void);
 PageTableEntry* allocate_page(PageTable *table, uint32_t page_index);
-void free_page(PageTableEntry *page);
-static inline uint16_t get_memory(CPUState *state, uint32_t address);
+uint16_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated);
+uint16_t get_memory(CPUState *state, uint32_t address);
+void set_memory(CPUState *state, uint32_t address, uint16_t value);
+void bulk_copy_memory(CPUState *state, uint32_t address, const uint16_t *buffer, size_t length);
+static inline void free_page(PageTable* table, PageTableEntry* page);
 void setupMmap(CPUState *state, size_t program_size);
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
