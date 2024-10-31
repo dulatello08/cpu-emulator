@@ -122,7 +122,7 @@ static inline PageTableEntry* find_or_allocate_page(PageTable *table, uint32_t p
  * Optimized helper function to get a pointer to the memory location.
  * Returns NULL if the address is invalid.
  */
-static inline uint16_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated) {
+uint16_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated) {
     uint32_t page_index = address >> PAGE_SHIFT;
     uint32_t offset = address & (PAGE_SIZE - 1);
 
@@ -142,7 +142,7 @@ static inline uint16_t* get_memory_ptr(CPUState *state, uint32_t address, bool a
 /**
  * Optimized function to get a 16-bit value from the specified address.
  */
-static inline uint16_t get_memory(CPUState *state, uint32_t address) {
+uint16_t get_memory(CPUState *state, uint32_t address) {
     uint16_t *mem_ptr = get_memory_ptr(state, address, false);
 
     // Handle invalid memory access
@@ -158,7 +158,7 @@ static inline uint16_t get_memory(CPUState *state, uint32_t address) {
 /**
  * Optimized function to set a 16-bit value at the specified address, allocating the page if necessary.
  */
-static inline void set_memory(CPUState *state, uint32_t address, uint16_t value) {
+void set_memory(CPUState *state, uint32_t address, uint16_t value) {
     uint16_t *mem_ptr = get_memory_ptr(state, address, true); // Request allocation if needed
 
     // Handle invalid memory access
