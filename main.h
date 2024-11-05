@@ -111,7 +111,6 @@ typedef struct {
 typedef struct {
     char *program_file;
     char *flash_file;
-    FILE *fpf;
     CPUState *state;
     uint8_t *emulator_running;
     pthread_t emulator_thread;

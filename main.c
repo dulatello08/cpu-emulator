@@ -69,6 +69,7 @@ AppState *new_app_state(void) {
     *appState->emulator_running = 0;
     appState->emulator_thread = 0;
     appState->gui_shm = NULL;
+    appState->state->page_table = create_page_table();
 
     return appState;
 }
