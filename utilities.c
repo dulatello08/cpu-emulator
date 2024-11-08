@@ -1,6 +1,8 @@
 #include "main.h"
 #include <curses.h>
 #include <stdint.h>
+#include <sys/fcntl.h>
+#include <sys/stat.h>
 
 void increment_pc(CPUState *state, uint8_t opcode) {
     switch (opcode) {
@@ -56,7 +58,7 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
     if(mode == 0) {
         result = operation(state->reg[operand_rd], operand2);
     } else if(mode == 1) {
-        result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
+        result = operation(state->reg[operand_rn], 0);
     } else /*if(mode == 2)*/ {
         result = operation(state->reg[operand_rd], state->reg[operand_rn]);
     }
@@ -68,13 +70,13 @@ void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, u
         if(mode == 0 || mode == 1 || mode == 3) {
             state->reg[operand_rd] = UINT8_MAX;
         } else if (mode == 2) {
-            memory_access(state, UINT8_MAX, operand2, 1, 1);
+//            memory_access(state, UINT8_MAX, operand2, 1, 1);
         }
     } else {
         if(mode == 0 || mode == 1 || mode == 3) {
             state->reg[operand_rd] = (uint8_t)result;
         } else if(mode == 2) {
-            memory_access(state, result, operand2, 1, 1);
+//            memory_access(state, result, operand2, 1, 1);
         }
     }
 }
@@ -164,54 +166,37 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
         case 0:
             // Read mode
             if(!srcDest) {
-                state->reg[reg] = state->memory[address];
+//                state->reg[reg] = state->memory[address];
             }
             break;
         case 1:
             // Write mode
             if(!srcDest) {
                 handleWrite(state, address, state->reg[reg]);
-                state->memory[address] = state->reg[reg];
+//                state->memory[address] = state->reg[reg];
             } else {
                 handleWrite(state, address, reg);
-                state->memory[address] = reg;
+//                state->memory[address] = reg;
             }
             break;
         default:
             break;
     }
-    return state->memory[address];
+    return 0;
 }
 
 void pushStack(CPUState *state, uint8_t value) {
-    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+    (void)state, (void) value;
+//    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
 
     // Shift existing values up by one position
-    for (uint8_t i = stackTop; i > 0; i--) {
-        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
+    for (uint8_t i = 0; i > 0; i--) {
+//        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
     }
 
     // Store the new value at the top of the stack
-    state->memory[state->mm.stackMemory.startAddress + 1] = value;
-    state->memory[state->mm.stackMemory.startAddress]++;
-}
-
-uint8_t popStack(CPUState *state, uint8_t *out) {
-    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
-    uint8_t value = state->memory[state->mm.stackMemory.startAddress + 1];
-
-    // Shift values down by one position
-    for (uint8_t i = 1; i < stackTop; i++) {
-        state->memory[state->mm.stackMemory.startAddress + i] = state->memory[state->mm.stackMemory.startAddress + i + 1];
-    }
-
-    state->memory[state->mm.stackMemory.startAddress]--;
-
-    if (out != NULL) {
-        *out = value;
-    }
-
-    return value;
+//    state->memory[state->mm.stackMemory.startAddress + 1] = value;
+//    state->memory[state->mm.stackMemory.startAddress]++;
 }
 
 
@@ -222,4 +207,37 @@ uint8_t count_leading_zeros(uint8_t x) {
     if ((x & 0xC0) == 0) { n += 2; x <<= 2; }
     if ((x & 0x80) == 0) { n += 1; }
     return n;
+}
+
+size_t load_program(const char *filename, uint8_t **buffer) {
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+        *buffer = NULL;
+        return 0;
+    }
+
+    struct stat sb;
+    if (fstat(fd, &sb) == -1) {
+        close(fd);
+        *buffer = NULL;
+        return 0;
+    }
+
+    size_t size = sb.st_size;
+    *buffer = (uint8_t *)malloc(size);
+    if (!*buffer) {
+        close(fd);
+        return 0;
+    }
+
+    ssize_t bytes_read = read(fd, *buffer, size);
+    close(fd);
+
+    if ((size_t)bytes_read != size) {
+        free(*buffer);
+        *buffer = NULL;
+        return 0;
+    }
+
+    return size;
 }

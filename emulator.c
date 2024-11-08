@@ -4,14 +4,7 @@
 #include <stdio.h>
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
-    //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
-//    bool goOut = false;
-//    while(!goOut) {
-//        printf("h\n");
-//        sleep(1);
-//    }
-//    uint8_t interrupt_vector_table;
     appState->state->pc = calloc(1, sizeof(uint16_t));
     appState->state->v_flag = false;
     appState->state->z_flag = false;
@@ -23,18 +16,18 @@ int start(AppState *appState) {
 
     while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
         if (appState->gui_shm != NULL) {
-            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
-            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
-            if (appState->gui_shm->i_queue.size > 0) {
-                memcpy(appState->state->i_queue->sources, appState->gui_shm->i_queue.sources, INTERRUPT_QUEUE_MAX);
-                *(appState->state->i_queue->size) = appState->gui_shm->i_queue.size;
-            }
-            if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
-                clear_display(appState->gui_shm->display);
-                memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
-                print_display(appState->gui_shm->display);
-                appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
-            }
+//            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
+//            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
+//            if (appState->gui_shm->i_queue.size > 0) {
+//                memcpy(appState->state->i_queue->sources, appState->gui_shm->i_queue.sources, INTERRUPT_QUEUE_MAX);
+//                *(appState->state->i_queue->size) = appState->gui_shm->i_queue.size;
+//            }
+//            if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
+//                clear_display(appState->gui_shm->display);
+//                memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
+//                print_display(appState->gui_shm->display);
+//                appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
+//            }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
 //            printf("0x%04x\n", *appState->state->pc);

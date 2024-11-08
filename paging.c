@@ -172,41 +172,41 @@ void set_memory(CPUState *state, uint32_t address, uint16_t value) {
 }
 
 // Optimized function to free a specific page and remove it from the page table
-static inline void free_page(PageTable* table, PageTableEntry* page) {
-    if (!page || !page->is_allocated) return;
-
-    // Free the page data
-    free(page->page_data);
-    page->page_data = NULL;
-    page->is_allocated = false;
-
-    // Remove the page from the linked list
-    if (page->prev) {
-        page->prev->next = page->next;
-    } else {
-        table->head = page->next; // Page is the head
-    }
-
-    if (page->next) {
-        page->next->prev = page->prev;
-    } else {
-        table->tail = page->prev; // Page is the tail
-    }
-
-    table->page_count--;
-    free(page);
-}
+//static inline void free_page(PageTable* table, PageTableEntry* page) {
+//    if (!page || !page->is_allocated) return;
+//
+//    // Free the page data
+//    free(page->page_data);
+//    page->page_data = NULL;
+//    page->is_allocated = false;
+//
+//    // Remove the page from the linked list
+//    if (page->prev) {
+//        page->prev->next = page->next;
+//    } else {
+//        table->head = page->next; // Page is the head
+//    }
+//
+//    if (page->next) {
+//        page->next->prev = page->prev;
+//    } else {
+//        table->tail = page->prev; // Page is the tail
+//    }
+//
+//    table->page_count--;
+//    free(page);
+//}
 
 /**
  * Optimized function to free all pages in the page table
  */
-static inline void free_all_pages(PageTable *table) {
-    PageTableEntry *current = table->head;
-    while (current) {
-        PageTableEntry *next = current->next;
-        free(current->page_data);
-        free(current);
-        current = next;
-    }
-    free(table);
-}
+//static inline void free_all_pages(PageTable *table) {
+//    PageTableEntry *current = table->head;
+//    while (current) {
+//        PageTableEntry *next = current->next;
+//        free(current->page_data);
+//        free(current);
+//        current = next;
+//    }
+//    free(table);
+//}
