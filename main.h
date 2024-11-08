@@ -111,11 +111,15 @@ typedef struct {
 typedef struct {
     char *program_file;
     char *flash_file;
+
     CPUState *state;
+
     uint8_t *emulator_running;
     pthread_t emulator_thread;
+
     size_t program_size;
-    int flash_size;
+    size_t flash_size;
+
     gui_process_shm_t *gui_shm;
     pid_t gui_pid;
     int gui_shm_fd;
@@ -149,6 +153,8 @@ uint16_t get_memory(CPUState *state, uint32_t address);
 void set_memory(CPUState *state, uint32_t address, uint16_t value);
 void bulk_copy_memory(CPUState *state, uint32_t address, const uint16_t *buffer, size_t length);
 static inline void free_page(PageTable* table, PageTableEntry* page);
+void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size);
+
 void setupMmap(CPUState *state, size_t program_size);
 bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
@@ -174,5 +180,6 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 
 // Utility
 uint8_t count_leading_zeros(uint8_t x);
+size_t load_program(const char *filename, uint8_t **buffer);
 
 #endif //INC_16_BIT_CPU_EMULATOR_MAIN_H

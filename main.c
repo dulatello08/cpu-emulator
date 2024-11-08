@@ -79,9 +79,6 @@ void free_app_state(AppState *appState) {
 
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
-    munmap(appState->state->i_queue->sources, *(appState->state->i_queue->size) * sizeof(uint8_t));
-    munmap(appState->state->i_queue->size, sizeof(uint8_t));
-    munmap(appState->state->i_queue, sizeof(InterruptQueue));
     munmap(appState->state, sizeof(CPUState));
     if (appState->gui_pid) {
         munmap(appState->gui_shm, sizeof(gui_process_shm_t));
@@ -158,6 +155,10 @@ int main(int argc, char *argv[]) {
         switch (opt) {
             case 'p':
                 appState->program_file = optarg;
+                    uint8_t *program_memory;
+                    appState->program_size = load_program(appState->program_file, &program_memory);
+                    initialize_page_table(appState->state, program_memory, appState->program_size);
+                    free(program_memory);
                 break;
             case 'm':
                 appState->flash_file = optarg;
@@ -329,8 +330,11 @@ void command_print(AppState *appState, __attribute__((unused)) const char *args)
 }
 
 void command_program(AppState *appState, __attribute__((unused)) const char *args){
-//    const char* filename = args;
-
+    appState->program_file = (char*) args;
+    uint8_t *program_memory;
+    appState->program_size = load_program(appState->program_file, &program_memory);
+    initialize_page_table(appState->state, program_memory, appState->program_size);
+    free(program_memory);
     printf("Loaded program %lu bytes\n", appState->program_size);
 }
 
