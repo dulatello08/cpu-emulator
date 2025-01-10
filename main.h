@@ -52,23 +52,6 @@ typedef struct {
 } MemoryConfig;
 
 typedef struct {
-    uint16_t startAddress;
-    uint16_t size;
-} MemoryBlock;
-
-typedef struct {
-    MemoryBlock programMemory;
-    MemoryBlock usableMemory;
-    MemoryBlock flagsBlock;
-    MemoryBlock stackMemory;
-    MemoryBlock mmuControl;
-    MemoryBlock peripheralControl;
-    MemoryBlock flashControl;
-    MemoryBlock currentFlashBlock;
-} MemoryMap;
-
-
-typedef struct {
     uint8_t source;
     uint16_t handler;
 } InterruptVectors;
@@ -93,7 +76,6 @@ typedef struct {
 
 // -- CPU State -- //
 typedef struct {
-    MemoryMap mm;
     PageTable *page_table; // Pointer to the page table
     MemoryConfig memory_config;
 

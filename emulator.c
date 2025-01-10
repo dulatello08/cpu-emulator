@@ -10,7 +10,6 @@ int start(AppState *appState) {
     appState->state->z_flag = false;
     appState->state->enable_mask_interrupts = false;
 
-    setupMmap(appState->state, appState->program_size);
     printf("Starting emulator\n");
     bool exitCode = false;
 
