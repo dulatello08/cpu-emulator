@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 
 bool execute_instruction(CPUState *state) {
+
     // uint8_t opcode = state->memory[*(state->pc)];
     //
     // //might be unused
