@@ -34,6 +34,7 @@ typedef enum {
     USABLE_MEMORY,
     MMIO_PAGE,
     FLASH,
+    USABLE_SECTOR,
     UNKNOWN_TYPE
 } PageType;
 
