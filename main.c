@@ -155,10 +155,6 @@ int main(int argc, char *argv[]) {
         switch (opt) {
             case 'p':
                 appState->program_file = optarg;
-                    uint8_t *program_memory;
-                    appState->program_size = load_program(appState->program_file, &program_memory);
-                    initialize_page_table(appState->state, program_memory, appState->program_size);
-                    free(program_memory);
                 break;
             case 'm':
                 appState->flash_file = optarg;
@@ -172,8 +168,15 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    char input[MAX_INPUT_LENGTH];
     load_config(appState, config_file);
+
+    uint8_t *program_memory;
+    appState->program_size = load_program(appState->program_file, &program_memory);
+    initialize_page_table(appState->state, program_memory, appState->program_size);
+    free(program_memory);
+    printf("Loaded program %lu bytes\n", appState->program_size);
+
+    char input[MAX_INPUT_LENGTH];
     while(1) {
         printf(">> ");
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
