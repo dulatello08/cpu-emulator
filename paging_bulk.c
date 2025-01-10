@@ -86,20 +86,31 @@ void bulk_copy_memory(CPUState *state, uint32_t address, const uint16_t *buffer,
     size_t buffer_offset = 0;
 
     while (address < end_address) {
-        // Calculate offset within the page
+        // Calculate offset within the current page
         uint32_t offset_in_page = address & (PAGE_SIZE - 1);
 
-        // Calculate number of bytes we can write in this page
+        // Calculate how many bytes can be written in the current page
         uint32_t bytes_in_page = PAGE_SIZE - offset_in_page;
         uint32_t bytes_remaining = end_address - address;
         uint32_t bytes_to_write = bytes_in_page < bytes_remaining ? bytes_in_page : bytes_remaining;
+
+        // If there aren't enough bytes for a full 16-bit word, handle the remainder and exit loop
+        if (bytes_to_write < sizeof(uint16_t)) {
+            // Get pointer to the final memory location
+            uint8_t *final_mem_ptr = (uint8_t *)get_memory_ptr(state, address, true);
+            if (!final_mem_ptr) {
+                fprintf(stderr, "Failed to get memory pointer at address 0x%08x\n", address);
+                return;
+            }
+            // Copy any remaining bytes directly
+            memcpy(final_mem_ptr, (const uint8_t *)buffer + buffer_offset, bytes_to_write);
+            break;
+        }
 
         size_t words_to_write = bytes_to_write / sizeof(uint16_t);
 
         // Get pointer to memory location, allocate if necessary
         uint16_t *mem_ptr = get_memory_ptr(state, address, true);
-
-        // Handle invalid memory access
         if (!mem_ptr) {
             fprintf(stderr, "Failed to get memory pointer at address 0x%08x\n", address);
             return;
@@ -108,7 +119,7 @@ void bulk_copy_memory(CPUState *state, uint32_t address, const uint16_t *buffer,
         // Copy memory using the optimized memcpy_simd function
         memcpy_simd(mem_ptr, buffer + buffer_offset, words_to_write);
 
-        // Update address and buffer offset
+        // Update address and buffer offset for next iteration
         address += words_to_write * sizeof(uint16_t);
         buffer_offset += words_to_write;
     }
