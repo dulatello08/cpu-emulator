@@ -7,17 +7,27 @@
 #include <sys/stat.h>
 
 bool execute_instruction(CPUState *state) {
+    uint16_t instruction = get_memory(state, *(state->pc));
+    uint8_t specifier = (instruction >> 8) & 0xFF;  // Extract the higher byte
+    uint8_t opcode    = instruction & 0xFF;         // Extract the lower byte
 
-    // uint8_t opcode = state->memory[*(state->pc)];
-    //
-    // //might be unused
-    // uint8_t operand_rd = (state->memory[*(state->pc) + 1] >> 4) & 0xF;
-    // uint8_t operand_rn = state->memory[*(state->pc) + 1] & 0xF;
-    // uint8_t operand2 = state->memory[*(state->pc) + 2];
-    // uint16_t brnAddressing = state->memory[*(state->pc) + 1] << 8 | state->memory[*(state->pc) + 2];
-    // uint16_t normAddressing = state->memory[*(state->pc) + 2] << 8 | state->memory[*(state->pc) + 3];
-    //
-    // bool skipIncrementPC = false;  // Flag to skip incrementing the program counter
+    // Read two 8-bit register operands packed in a single 16-bit word:
+    uint16_t regs   = get_memory(state, *(state->pc) + 1);
+    uint8_t operand_rd  = (uint8_t)(regs >> 8);     // Higher byte: destination register
+    uint8_t operand_rn  = (uint8_t)(regs & 0xFF);   // Lower byte: source register
+
+    // Read a 16-bit operand2:
+    uint16_t operand2 = get_memory(state, *(state->pc) + 2);
+
+    // For 32-bit branch addressing composed of two sequential 16-bit words:
+    uint32_t brnAddressing = ((uint32_t) get_memory(state, *(state->pc) + 1) << 16)
+                             | get_memory(state, *(state->pc) + 2);
+
+    // For 32-bit normal addressing using the next two sequential 16-bit words:
+    uint32_t normAddressing = ((uint32_t) get_memory(state, *(state->pc) + 2) << 16)
+                              | get_memory(state, *(state->pc) + 3);
+
+    bool skipIncrementPC = false;  // Flag to skip incrementing the program counter
     //
     // switch (opcode) {
     //     // Do nothing

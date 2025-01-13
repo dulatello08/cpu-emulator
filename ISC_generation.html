@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instruction Set Designer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar styling for dark mode visibility */
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 4px; }
+        textarea::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 text-gray-800 p-6">
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Instruction Set Designer</h1>
+    <button id="toggleDarkMode" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 focus:outline-none">
+        Toggle Dark Mode
+    </button>
+</div>
+
+<div class="flex flex-col md:flex-row gap-6">
+    <!-- Left Pane: Instruction Designer -->
+    <div class="flex-1">
+        <div id="instructionsContainer" class="space-y-6"></div>
+        <div class="space-x-4 my-4">
+            <button id="addInstructionBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+                Add New Instruction
+            </button>
+            <button id="generateMarkdownBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none">
+                Generate Markdown
+            </button>
+        </div>
+        <h2 class="text-2xl font-semibold mt-8">Generated Markdown</h2>
+        <textarea id="markdownOutput" rows="10" readonly
+                  class="w-full mt-2 p-4 border border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 font-mono focus:outline-none"></textarea>
+    </div>
+
+    <!-- Right Pane: Checklist and Import -->
+    <div class="flex-1 space-y-6">
+        <h2 class="text-2xl font-semibold">Instruction Checklist</h2>
+        <div class="max-h-64 overflow-auto border border-gray-300 dark:border-gray-700 rounded p-4 bg-white dark:bg-gray-800">
+            <table class="w-full text-sm">
+                <thead>
+                <tr>
+                    <th class="text-left pb-2">Instruction</th>
+                    <th class="text-left pb-2">Included</th>
+                </tr>
+                </thead>
+                <tbody id="checklistTable" class="divide-y divide-gray-200 dark:divide-gray-700">
+                <!-- Checklist rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="text-2xl font-semibold mt-6">Import Markdown</h2>
+        <textarea id="importMarkdown" rows="6" placeholder="Paste Markdown here..."
+                  class="w-full mt-2 p-4 border border-gray-300 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 font-mono focus:outline-none"></textarea>
+        <button id="importMarkdownBtn" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 focus:outline-none">
+            Import Markdown
+        </button>
+    </div>
+</div>
+
+<script>
+    // Dark mode toggle
+    const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
+    toggleDarkModeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+    });
+
+    // Predefined instructions for the checklist
+    const predefinedInstructions = [
+        "NOP", "ADD", "SUB", "MUL", "ADM", "SBM", "MLM", "ADR", "SBR", "MLR",
+        "CLZ", "STO", "STM", "LDM", "PSH", "POP", "BRN", "BRZ", "BRO", "BRR",
+        "BNR", "HLT", "JSR", "OSR", "RSM", "RLD", "ENI", "DSI", "LSH", "LSR",
+        "RSH", "RSR", "AND", "ORR", "MULL", "XOR"
+    ];
+
+    const checklistTable = document.getElementById('checklistTable');
+    const checklistRows = {};
+    // Initialize checklist rows with clickable checkboxes
+    predefinedInstructions.forEach(instr => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td class="py-2">${instr}</td>
+        <td class="py-2">
+          <input type="checkbox" class="instrCheckbox" data-instr="${instr}">
+        </td>
+      `;
+        checklistTable.appendChild(row);
+        checklistRows[instr] = row.querySelector('.instrCheckbox');
+    });
+
+    // Instruction Designer (Left Pane) logic
+    const instructionsContainer = document.getElementById('instructionsContainer');
+    let nextOpcode = 0;
+
+    document.getElementById('addInstructionBtn').addEventListener('click', addInstructionBlock);
+    document.getElementById('generateMarkdownBtn').addEventListener('click', generateMarkdown);
+
+    function addInstructionBlock() {
+        const instrDiv = document.createElement('div');
+        instrDiv.className = 'instruction bg-white dark:bg-gray-800 p-6 rounded shadow space-y-4';
+        instrDiv.dataset.opcode = nextOpcode;
+
+        instrDiv.innerHTML = `
+        <div class="text-xl font-semibold">Opcode: 0x${nextOpcode.toString(16).padStart(2, '0')}</div>
+        <label class="block">
+          <span class="text-gray-700 dark:text-gray-300">Name:</span>
+          <input type="text" class="instrName mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="Instruction Name" tabindex="0">
+        </label>
+        <label class="block">
+          <span class="text-gray-700 dark:text-gray-300">General Description:</span>
+          <textarea rows="2" class="instrDescription mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-700 dark:text-gray-100" placeholder="General description of the instruction" tabindex="0"></textarea>
+        </label>
+
+        <div>
+          <div class="font-medium mb-2 text-gray-700 dark:text-gray-300">Specifiers:</div>
+          <div class="specifiersContainer space-y-4 mb-2"></div>
+          <button type="button" class="addSpecifierBtn px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none" tabindex="0">Add Specifier</button>
+        </div>
+
+        <div>
+          <div class="font-medium mb-2 text-gray-700 dark:text-gray-300">Operands:</div>
+          <div class="operandsContainer space-y-4 mb-2"></div>
+          <button type="button" class="addOperandBtn px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600 focus:outline-none" tabindex="0">Add Operand</button>
+        </div>
+      `;
+        instructionsContainer.appendChild(instrDiv);
+        nextOpcode++;
+
+        instrDiv.querySelector('.addOperandBtn').addEventListener('click', () => {
+            addOperandBlock(instrDiv.querySelector('.operandsContainer'));
+        });
+
+        instrDiv.querySelector('.addSpecifierBtn').addEventListener('click', () => {
+            addSpecifierBlock(instrDiv.querySelector('.specifiersContainer'));
+        });
+    }
+
+    function addOperandBlock(container) {
+        const opDiv = document.createElement('div');
+        opDiv.className = 'operand border p-4 rounded bg-gray-50 dark:bg-gray-700';
+        opDiv.innerHTML = `
+        <label class="block">
+          <span class="text-gray-700 dark:text-gray-300">Operand Name:</span>
+          <input type="text" class="operandName mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-600 dark:text-gray-100" placeholder="e.g. rd, rn" tabindex="0">
+        </label>
+        <label class="block mt-2">
+          <span class="text-gray-700 dark:text-gray-300">Bit Width:</span>
+          <input type="number" class="operandWidth mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-600 dark:text-gray-100" value="8" min="1" tabindex="0">
+        </label>
+        <label class="block mt-2">
+          <span class="text-gray-700 dark:text-gray-300">Description:</span>
+          <input type="text" class="operandDescription mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-600 dark:text-gray-100" placeholder="Operand description" tabindex="0">
+        </label>
+        <button type="button" class="removeOperandBtn mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none" tabindex="0">Remove Operand</button>
+      `;
+        container.appendChild(opDiv);
+
+        opDiv.querySelector('.removeOperandBtn').addEventListener('click', () => {
+            container.removeChild(opDiv);
+        });
+    }
+
+    function addSpecifierBlock(container) {
+        const specDiv = document.createElement('div');
+        specDiv.className = 'specifier border p-4 rounded bg-gray-50 dark:bg-gray-700';
+        specDiv.innerHTML = `
+        <label class="block">
+          <span class="text-gray-700 dark:text-gray-300">Specifier:</span>
+          <input type="text" class="specifierValue mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-600 dark:text-gray-100" placeholder="e.g. condition code" tabindex="0">
+        </label>
+        <label class="block mt-2">
+          <span class="text-gray-700 dark:text-gray-300">Description:</span>
+          <input type="text" class="specifierDescription mt-1 block w-full p-2 border rounded bg-white dark:bg-gray-600 dark:text-gray-100" placeholder="Specifier description" tabindex="0">
+        </label>
+        <button type="button" class="removeSpecifierBtn mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none" tabindex="0">Remove Specifier</button>
+      `;
+        container.appendChild(specDiv);
+
+        specDiv.querySelector('.removeSpecifierBtn').addEventListener('click', () => {
+            container.removeChild(specDiv);
+        });
+    }
+
+    function generateMarkdown() {
+        const instrDivs = document.querySelectorAll('.instruction');
+        let instructions = [];
+
+        instrDivs.forEach(div => {
+            const opcode = div.dataset.opcode;
+            const name = div.querySelector('.instrName').value.trim();
+            const generalDesc = div.querySelector('.instrDescription').value.trim();
+
+            let specifiers = [];
+            div.querySelectorAll('.specifier').forEach(spec => {
+                const value = spec.querySelector('.specifierValue').value.trim();
+                const desc = spec.querySelector('.specifierDescription').value.trim();
+                specifiers.push({ value, description: desc });
+            });
+
+            let operands = [];
+            div.querySelectorAll('.operand').forEach(op => {
+                const opName = op.querySelector('.operandName').value.trim();
+                const opWidth = op.querySelector('.operandWidth').value;
+                const opDesc = op.querySelector('.operandDescription').value.trim();
+                operands.push({ name: opName, width: opWidth, description: opDesc });
+            });
+
+            instructions.push({ opcode, name, generalDesc, specifiers, operands });
+        });
+
+        let markdown = '';
+        instructions.forEach(instr => {
+            markdown += `### Instruction: ${instr.name || 'Unnamed'}\n`;
+            markdown += `**Opcode:** 0x${parseInt(instr.opcode).toString(16).padStart(2, '0')}\n\n`;
+            if (instr.generalDesc) markdown += `**General Description:** ${instr.generalDesc}\n\n`;
+
+            if (instr.specifiers.length > 0) {
+                markdown += `**Specifiers:**\n`;
+                instr.specifiers.forEach(spec => {
+                    markdown += `- **${spec.value || 'Unnamed Specifier'}**: ${spec.description}\n`;
+                });
+                markdown += `\n`;
+            }
+
+            if (instr.operands.length > 0) {
+                markdown += `**Operands:**\n`;
+                instr.operands.forEach(op => {
+                    markdown += `- **${op.name || 'Unnamed'}** (${op.width}-bit): ${op.description}\n`;
+                });
+                markdown += `\n`;
+            }
+            markdown += `---\n\n`;
+        });
+
+        document.getElementById('markdownOutput').value = markdown;
+        updateChecklistBasedOnMarkdown(markdown);
+    }
+
+    function updateChecklistBasedOnMarkdown(markdown) {
+        // Clear all checkboxes first
+        predefinedInstructions.forEach(instr => {
+            if (checklistRows[instr]) {
+                checklistRows[instr].checked = false;
+            }
+        });
+        // Check instructions found in the markdown
+        const regex = /^### Instruction:\s*(.+)$/gm;
+        let match;
+        while ((match = regex.exec(markdown)) !== null) {
+            const instrName = match[1].trim();
+            if (checklistRows[instrName]) {
+                checklistRows[instrName].checked = true;
+            }
+        }
+    }
+
+    function parseMarkdown(mdText) {
+        const instructions = [];
+        const blocks = mdText.split('---').map(b => b.trim()).filter(Boolean);
+        blocks.forEach(block => {
+            const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+            let name = '', opcode = '', generalDesc = '';
+            let specifiers = [], operands = [];
+            let lineIndex = 0;
+
+            const nameMatch = lines[lineIndex++]?.match(/^### Instruction:\s*(.*)$/);
+            if(nameMatch) name = nameMatch[1].trim();
+
+            const opMatch = lines[lineIndex++]?.match(/\*\*Opcode:\*\*\s*(0x[0-9a-fA-F]+)/);
+            if(opMatch) opcode = opMatch[1];
+
+            if(lines[lineIndex]?.startsWith('**General Description:**')) {
+                generalDesc = lines[lineIndex++].replace('**General Description:**', '').trim();
+            }
+
+            if(lines[lineIndex]?.startsWith('**Specifiers:**')) {
+                lineIndex++;
+                while(lines[lineIndex] && lines[lineIndex].startsWith('- **')) {
+                    const specLine = lines[lineIndex++];
+                    const specMatch = specLine.match(/- \*\*(.+?)\*\*:\s*(.*)/);
+                    if(specMatch) specifiers.push({ value: specMatch[1].trim(), description: specMatch[2].trim() });
+                }
+            }
+
+            if(lines[lineIndex]?.startsWith('**Operands:**')) {
+                lineIndex++;
+                while(lines[lineIndex] && lines[lineIndex].startsWith('- **')) {
+                    const operandLine = lines[lineIndex++];
+                    const operandMatch = operandLine.match(/- \*\*(.+?)\*\*\s*\((\d+)-bit\):\s*(.*)/);
+                    if(operandMatch) {
+                        operands.push({ name: operandMatch[1].trim(), width: operandMatch[2].trim(), description: operandMatch[3].trim() });
+                    }
+                }
+            }
+
+            instructions.push({ name, opcode, generalDesc, specifiers, operands });
+        });
+        return instructions;
+    }
+
+    document.getElementById('importMarkdownBtn').addEventListener('click', () => {
+        const importedText = document.getElementById('importMarkdown').value;
+        const instructions = parseMarkdown(importedText);
+        // Clear left pane and reset opcode counter
+        instructionsContainer.innerHTML = '';
+        nextOpcode = 0;
+
+        instructions.forEach(instr => {
+            addInstructionBlock();
+            // Get the most recently added block
+            const currentBlock = instructionsContainer.lastElementChild;
+            if(!currentBlock) return;
+            currentBlock.querySelector('.instrName').value = instr.name;
+            currentBlock.querySelector('.instrDescription').value = instr.generalDesc;
+
+            // Populate specifiers
+            const specCont = currentBlock.querySelector('.specifiersContainer');
+            specCont.innerHTML = '';
+            instr.specifiers.forEach(spec => {
+                addSpecifierBlock(specCont);
+                const newSpec = specCont.lastElementChild;
+                newSpec.querySelector('.specifierValue').value = spec.value;
+                newSpec.querySelector('.specifierDescription').value = spec.description;
+            });
+
+            // Populate operands
+            const opCont = currentBlock.querySelector('.operandsContainer');
+            opCont.innerHTML = '';
+            instr.operands.forEach(op => {
+                addOperandBlock(opCont);
+                const newOp = opCont.lastElementChild;
+                newOp.querySelector('.operandName').value = op.name;
+                newOp.querySelector('.operandWidth').value = op.width;
+                newOp.querySelector('.operandDescription').value = op.description;
+            });
+        });
+
+        updateChecklistBasedOnMarkdown(importedText);
+    });
+</script>
+</body>
+</html>
