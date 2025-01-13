@@ -70,16 +70,96 @@ Address range is including start address but excluding end address.
 ### Instruction: ADD
 **Opcode:** 0x01
 
-**General Description:** Add two 16 bit values.
+**General Description:** Add two 16-bit values.
 
 **Specifiers:**
-- **00**: mode 00, add immediate 16 bit value (operand 2) to Rd, leave Rn empty, 3 word length
-- **01**: mode 01, add value from Rn to Rd, 2 word length
-- **02**: mode 02, add value at address of normAddressing to Rd, 3 word length
+- **00**: mode 00, add immediate 16-bit value (operand 2) to Rd. Leave Rn empty. 3-word length.
+- **01**: mode 01, add value from Rn to Rd. 2-word length.
+- **02**: mode 02, add value at address of normAddressing to Rd. 3-word length.
 
 **Operands:**
-- **rd** (8-bit): in specifiers 00, 01, 02, it is the destination for add operation, along with being the second addend
-- **rn** (8-bit): in 00 not used, in 01 is source addend, in 02 not used
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the add operation, along with being the second addend.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source addend, in 02 not used.
+
+---
+
+### Instruction: SUB
+**Opcode:** 0x02
+
+**General Description:** Subtract two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, subtract immediate 16-bit value (operand 2) from Rd. Leave Rn empty. 3-word length.
+- **01**: mode 01, subtract value from Rn from Rd. 2-word length.
+- **02**: mode 02, subtract value at address of normAddressing from Rd. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the subtract operation and the first operand.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source subtrahend, in 02 not used.
+
+---
+
+### Instruction: MUL
+**Opcode:** 0x03
+
+**General Description:** Multiply two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, multiply Rd by immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, multiply Rd by value from Rn. 2-word length.
+- **02**: mode 02, multiply Rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the multiply operation and the first operand.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source multiplier, in 02 not used.
+
+---
+
+### Instruction: AND
+**Opcode:** 0x04
+
+**General Description:** Bitwise AND of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise AND Rd with immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, bitwise AND Rd with value from Rn. 2-word length.
+- **02**: mode 02, bitwise AND Rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the AND operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+
+---
+
+### Instruction: OR
+**Opcode:** 0x05
+
+**General Description:** Bitwise OR of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise OR Rd with immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, bitwise OR Rd with value from Rn. 2-word length.
+- **02**: mode 02, bitwise OR Rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the OR operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+
+---
+
+### Instruction: XOR
+**Opcode:** 0x06
+
+**General Description:** Bitwise XOR of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise XOR Rd with immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, bitwise XOR Rd with value from Rn. 2-word length.
+- **02**: mode 02, bitwise XOR Rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the XOR operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
 
 ---
 
