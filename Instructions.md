@@ -58,3 +58,28 @@ Address range is including start address but excluding end address.
 | 0xEFF7 - 0xEFFF | Peripheral Control                      |
 | 0xEFFF - 0xEFFF | Memory Block                            |
 | 0xF000 - 0xFFFF | Reserved for Flash Memory (4,097 bytes) |
+
+
+### Instruction: NOP
+**Opcode:** 0x00
+
+**General Description:** No operation.
+
+---
+
+### Instruction: ADD
+**Opcode:** 0x01
+
+**General Description:** Add two 16 bit values.
+
+**Specifiers:**
+- **00**: mode 00, add immediate 16 bit value (operand 2) to Rd, leave Rn empty, 3 word length
+- **01**: mode 01, add value from Rn to Rd, 2 word length
+- **02**: mode 02, add value at address of normAddressing to Rd, 3 word length
+
+**Operands:**
+- **rd** (8-bit): in specifiers 00, 01, 02, it is the destination for add operation, along with being the second addend
+- **rn** (8-bit): in 00 not used, in 01 is source addend, in 02 not used
+
+---
+
