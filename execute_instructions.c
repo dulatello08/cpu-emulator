@@ -28,47 +28,50 @@ bool execute_instruction(CPUState *state) {
                               | get_memory(state, *(state->pc) + 3);
 
     bool skipIncrementPC = false;  // Flag to skip incrementing the program counter
-    //
-    // switch (opcode) {
-    //     // Do nothing
-    //     case OP_NOP:
-    //         break;
-    //     // Add operand 2 to the value in the operand Rd
-    //     case OP_ADD:
-    //         add(state, operand_rd, operand_rn, operand2, 0);
-    //         break;
-    //     // Subtract operand 2 from the value in the operand Rd
-    //     case OP_SUB:
-    //         subtract(state, operand_rd, operand_rn, operand2, 0);
-    //         break;
-    //     // Multiply the value in the operand Rd by operand 2
-    //     case OP_MUL:
-    //         multiply(state, operand_rd, operand_rn, operand2, 0);
-    //         break;
-    //     // Store sum of memory address at operand 2 and register Rn in register Rd
-    //     case OP_ADM:
-    //         add(state, operand_rd, operand_rn, normAddressing, 1);
-    //         break;
-    //     // Store difference of memory address at operand2 and register Rn in register Rd
-    //     case OP_SBM:
-    //         subtract(state, operand_rd, operand_rn, normAddressing, 1);
-    //         break;
-    //     // Multiply register Rn by memory address at operand 2 and store in register Rd
-    //     case OP_MLM:
-    //         multiply(state, operand_rd, operand_rn, normAddressing, 1);
-    //         break;
-    //     // Store sum of registers Rd and Rn in memory address at operand 2
-    //     case OP_ADR:
-    //         add(state, operand_rd, operand_rn, normAddressing, 2);
-    //         break;
-    //     // Store difference of registers Rd and Rn in memory address at operand 2
-    //     case OP_SBR:
-    //         subtract(state, operand_rd, operand_rn, normAddressing, 2);
-    //         break;
-    //     // Multiply registers Rd and Rn and store in memory address at operand 2
-    //     case OP_MLR:
-    //         multiply(state, operand_rd, operand_rn, normAddressing, 2);
-    //         break;
+
+    switch (opcode) {
+        case OP_NOP:
+            // No operation, nothing to do.
+            break;
+
+        case OP_ADD:
+            add(state, operand_rd, operand_rn, operand2, specifier);
+            break;
+
+        case OP_SUB:
+            subtract(state, operand_rd, operand_rn, operand2, specifier);
+        break;
+
+        case OP_MUL:
+            multiply(state, operand_rd, operand_rn, operand2, specifier);
+        break;
+
+        case OP_LSH:
+            left_shift(state, operand_rd, operand_rn, operand2, specifier);
+        break;
+
+        case OP_RSH:
+            right_shift(state, operand_rd, operand_rn, operand2, specifier);
+        break;
+
+        case OP_AND:
+            // For bitwise operations, specifier may not matter or is passed as mode 3
+                bitwise_and(state, operand_rd, operand_rn);
+        break;
+
+        case OP_ORR:
+            bitwise_or(state, operand_rd, operand_rn);
+        break;
+
+        case OP_XOR:
+            bitwise_xor(state, operand_rd, operand_rn);
+        break;
+
+        // Add additional opcodes here...
+        default:
+            printf("Unhandled opcode: %02x\n", opcode);
+        break;
+    }
     //     // Count the number of leading zeros at register Rn and store at Rd
     //     case OP_CLZ:
     //         state->reg[operand_rd] = count_leading_zeros(state->reg[operand_rn]);

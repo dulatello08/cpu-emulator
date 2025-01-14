@@ -52,69 +52,91 @@ void increment_pc(CPUState *state, uint8_t opcode) {
     }
 }
 
-void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode, uint16_t (*operation)(uint8_t, uint16_t)) {
-    uint16_t result;
-    // mode 0 & 1: result is stored at rd, 2 is at memory address operand2
-    if(mode == 0) {
-        result = operation(state->reg[operand_rd], operand2);
-    } else if(mode == 1) {
-        result = operation(state->reg[operand_rn], 0);
-    } else /*if(mode == 2)*/ {
-        result = operation(state->reg[operand_rd], state->reg[operand_rn]);
+void handle_operation(
+    CPUState *state,
+    uint8_t operand_rd,
+    uint8_t operand_rn,
+    uint32_t operand2,
+    uint8_t mode,
+    uint32_t (*operation)(uint8_t, uint16_t)
+) {
+    uint32_t result = 0;
+
+    // Determine result based on mode using a switch-case.
+    switch (mode) {
+        case 0:
+            // Mode 0: Use operand_rd and immediate operand2.
+            result = operation(state->reg[operand_rd], operand2);
+            break;
+        case 1:
+            // Mode 1: Use operand_rn, second operand as zero.
+            result = operation(state->reg[operand_rn], state->reg[operand_rd]);
+            break;
+        case 2:
+            // Mode 2: Use operand_rd and operand_rn.
+            result = operation(state->reg[operand_rd], get_memory(state, operand2));
+            break;
+        default:
+            printf("Unsupported mode: %d\n", mode);
+            return;
     }
 
-    state->v_flag = (result > UINT8_MAX);
+    // Update flags based on the result.
+    state->v_flag = (result > UINT16_MAX);
     state->z_flag = (result == 0);
 
-    if(state->v_flag) {
-        if(mode == 0 || mode == 1 || mode == 3) {
-            state->reg[operand_rd] = UINT8_MAX;
-        } else if (mode == 2) {
-//            memory_access(state, UINT8_MAX, operand2, 1, 1);
-        }
-    } else {
-        if(mode == 0 || mode == 1 || mode == 3) {
-            state->reg[operand_rd] = (uint8_t)result;
-        } else if(mode == 2) {
-//            memory_access(state, result, operand2, 1, 1);
-        }
+    // Store the result or handle overflow based on mode.
+    switch (mode) {
+        case 0:
+        case 1:
+        case 2:
+            // For modes 0, 1, and 2, store to register.
+            if (state->v_flag) {
+                state->reg[operand_rd] = UINT16_MAX;
+            } else {
+                state->reg[operand_rd] = (uint16_t) result;
+            }
+            break;
+        default:
+            // Already handled unsupported modes above.
+            break;
     }
 }
 
 uint16_t add_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 + operand2;
+    return (uint16_t) operand1 + operand2;
 }
 
 uint16_t subtract_operation(uint8_t operand1, uint16_t operand2) {
-    int16_t result = (int16_t)operand1 - (int16_t)operand2;
+    int16_t result = (int16_t) operand1 - (int16_t) operand2;
     if (result < 0) {
         return 0;
     }
-    return (uint16_t)result;
+    return (uint16_t) result;
 }
 
 uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 * operand2;
+    return (uint16_t) operand1 * operand2;
 }
 
 uint16_t left_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return ((uint16_t)operand1 << operand2) & 0xFF;
+    return ((uint16_t) operand1 << operand2) & 0xFF;
 }
 
 uint16_t right_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return ((uint16_t)operand1 >> operand2) & 0xFF;
+    return ((uint16_t) operand1 >> operand2) & 0xFF;
 }
 
 uint16_t and_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 & operand2;
+    return (uint16_t) operand1 & operand2;
 }
 
 uint16_t or_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 | operand2;
+    return (uint16_t) operand1 | operand2;
 }
 
 uint16_t xor_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 ^ operand2;
+    return (uint16_t) operand1 ^ operand2;
 }
 
 void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
@@ -166,18 +188,18 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
     switch (mode) {
         case 0:
             // Read mode
-            if(!srcDest) {
-//                state->reg[reg] = state->memory[address];
+            if (!srcDest) {
+                //                state->reg[reg] = state->memory[address];
             }
             break;
         case 1:
             // Write mode
-            if(!srcDest) {
+            if (!srcDest) {
                 // handleWrite(state, address, state->reg[reg]);
-//                state->memory[address] = state->reg[reg];
+                //                state->memory[address] = state->reg[reg];
             } else {
                 // handleWrite(state, address, reg);
-//                state->memory[address] = reg;
+                //                state->memory[address] = reg;
             }
             break;
         default:
@@ -187,25 +209,31 @@ uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mo
 }
 
 void pushStack(CPUState *state, uint8_t value) {
-    (void)state, (void) value;
-//    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+    (void) state, (void) value;
+    //    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
 
     // Shift existing values up by one position
     for (uint8_t i = 0; i > 0; i--) {
-//        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
+        //        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
     }
 
     // Store the new value at the top of the stack
-//    state->memory[state->mm.stackMemory.startAddress + 1] = value;
-//    state->memory[state->mm.stackMemory.startAddress]++;
+    //    state->memory[state->mm.stackMemory.startAddress + 1] = value;
+    //    state->memory[state->mm.stackMemory.startAddress]++;
 }
 
 
 uint8_t count_leading_zeros(uint8_t x) {
     if (x == 0) return 8;
     uint8_t n = 0;
-    if ((x & 0xF0) == 0) { n += 4; x <<= 4; }
-    if ((x & 0xC0) == 0) { n += 2; x <<= 2; }
+    if ((x & 0xF0) == 0) {
+        n += 4;
+        x <<= 4;
+    }
+    if ((x & 0xC0) == 0) {
+        n += 2;
+        x <<= 2;
+    }
     if ((x & 0x80) == 0) { n += 1; }
     return n;
 }
@@ -225,7 +253,7 @@ size_t load_program(const char *filename, uint8_t **buffer) {
     }
 
     size_t size = sb.st_size;
-    *buffer = (uint8_t *)malloc(size);
+    *buffer = (uint8_t *) malloc(size);
     if (!*buffer) {
         close(fd);
         return 0;
@@ -234,7 +262,7 @@ size_t load_program(const char *filename, uint8_t **buffer) {
     ssize_t bytes_read = read(fd, *buffer, size);
     close(fd);
 
-    if ((size_t)bytes_read != size) {
+    if ((size_t) bytes_read != size) {
         free(*buffer);
         *buffer = NULL;
         return 0;

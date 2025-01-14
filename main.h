@@ -80,7 +80,7 @@ typedef struct {
     MemoryConfig memory_config;
 
     uint16_t* reg;
-    uint16_t* pc;
+    uint32_t* pc;
     bool enable_mask_interrupts;
     bool z_flag;
     bool v_flag;
