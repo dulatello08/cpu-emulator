@@ -76,7 +76,7 @@ AppState *new_app_state(void) {
 
 void free_app_state(AppState *appState) {
     pthread_cancel(appState->emulator_thread);
-
+    free_all_pages(appState->state->page_table);
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
     munmap(appState->state, sizeof(CPUState));

@@ -5,7 +5,7 @@
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
     // debug stuff
-    appState->state->pc = calloc(1, sizeof(uint16_t));
+    appState->state->pc = calloc(1, sizeof(uint32_t));
     appState->state->v_flag = false;
     appState->state->z_flag = false;
     appState->state->enable_mask_interrupts = false;

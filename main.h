@@ -135,7 +135,8 @@ uint8_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unal
 uint16_t get_memory(CPUState *state, uint32_t address);
 void set_memory(CPUState *state, uint32_t address, uint16_t value);
 void bulk_copy_memory(CPUState *state, uint32_t address, const uint8_t *buffer, size_t length);
-static inline void free_page(PageTable* table, PageTableEntry* page);
+// static void free_page(PageTable* table, PageTableEntry* page);
+void free_all_pages(PageTable* table);
 void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size);
 
 void setupMmap(CPUState *state, size_t program_size);

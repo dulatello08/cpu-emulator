@@ -194,10 +194,7 @@ void set_memory(CPUState* state, uint32_t address, uint8_t value) {
     *mem_ptr = value;
 }
 
-// -----------------------------------------------------------------------------
-// (Optional) Freeing Logic
-// -----------------------------------------------------------------------------
-// static inline void free_page(PageTable* table, PageTableEntry* page) {
+// static void free_page(PageTable* table, PageTableEntry* page) {
 //     if (!page || !page->is_allocated) return;
 //
 //     free(page->page_data);
@@ -217,14 +214,14 @@ void set_memory(CPUState* state, uint32_t address, uint8_t value) {
 //     table->page_count--;
 //     free(page);
 // }
-//
-// static inline void free_all_pages(PageTable* table) {
-//     PageTableEntry* current = table->head;
-//     while (current) {
-//         PageTableEntry* next = current->next;
-//         free(current->page_data);
-//         free(current);
-//         current = next;
-//     }
-//     free(table);
-// }
+
+void free_all_pages(PageTable* table) {
+    PageTableEntry* current = table->head;
+    while (current) {
+        PageTableEntry* next = current->next;
+        free(current->page_data);
+        free(current);
+        current = next;
+    }
+    free(table);
+}
