@@ -152,7 +152,7 @@ uint16_t get_memory(CPUState *state, uint32_t address) {
     }
 
     // Read and return the value
-    return *mem_ptr;
+    return ntohs(*mem_ptr);
 }
 
 /**

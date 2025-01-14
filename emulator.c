@@ -13,7 +13,7 @@ int start(AppState *appState) {
     printf("Starting emulator\n");
     bool exitCode = false;
 
-    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
+    while (*(appState->state->pc) + 1 < UINT32_MAX && !exitCode) {
         if (appState->gui_shm != NULL) {
 //            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
 //            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
