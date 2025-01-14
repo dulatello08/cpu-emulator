@@ -91,7 +91,6 @@ void free_app_state(AppState *appState) {
 void* emulator_thread_func(void* arg) {
     AppState *appState = (AppState*) arg;
     start(appState);
-    printf(">> ");
     *(appState->emulator_running) = 0;
     pthread_exit(NULL);
 }

@@ -116,17 +116,17 @@ int parse_ini_file(const char *filename, MemoryConfig *config);
 
 // CPU Execution and Memory Operations
 bool execute_instruction(CPUState *state);
-void increment_pc(CPUState *state, uint8_t opcode);
+void increment_pc(CPUState *state, uint8_t opcode, uint8_t specifier);
 
 // ALU Operations
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode);
-void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
-void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
-void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
 
 // Page Table Management
 PageTable* create_page_table(void);
@@ -139,7 +139,6 @@ static inline void free_page(PageTable* table, PageTableEntry* page);
 void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size);
 
 void setupMmap(CPUState *state, size_t program_size);
-bool handleWrite(CPUState *state, uint16_t address, uint8_t value);
 
 // MMU and Stack Operations
 void mmuControl(CPUState *state, uint8_t value);

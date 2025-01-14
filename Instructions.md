@@ -78,8 +78,10 @@ Address range is including start address but excluding end address.
 - **02**: mode 02, add value at address of normAddressing to Rd. 3-word length.
 
 **Operands:**
-- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the add operation, along with being the second addend.
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the add operation and the second addend.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the source addend, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to be added to Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and added to Rd.
 
 ---
 
@@ -96,6 +98,8 @@ Address range is including start address but excluding end address.
 **Operands:**
 - **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the subtract operation and the first operand.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the source subtrahend, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to be subtracted from Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and subtracted from Rd.
 
 ---
 
@@ -112,6 +116,8 @@ Address range is including start address but excluding end address.
 **Operands:**
 - **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the multiply operation and the first operand.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the source multiplier, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to multiply with Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and multiplied with Rd.
 
 ---
 
@@ -128,6 +134,8 @@ Address range is including start address but excluding end address.
 **Operands:**
 - **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the AND operation and one of the operands.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to AND with Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and ANDed with Rd.
 
 ---
 
@@ -144,6 +152,8 @@ Address range is including start address but excluding end address.
 **Operands:**
 - **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the OR operation and one of the operands.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to OR with Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and ORed with Rd.
 
 ---
 
@@ -160,5 +170,43 @@ Address range is including start address but excluding end address.
 **Operands:**
 - **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the XOR operation and one of the operands.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to XOR with Rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and XORed with Rd.
+
+---
+
+### Instruction: LSH
+**Opcode:** 0x07
+
+**General Description:** Left shift a 16-bit value.
+
+**Specifiers:**
+- **00**: mode 00, left shift Rd by immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, left shift Rd by value from Rn. 2-word length.
+- **02**: mode 02, left shift Rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the left shift operation and the value to be shifted.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source of the shift amount, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value for the shift amount.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and used as the shift amount.
+
+---
+
+### Instruction: RSH
+**Opcode:** 0x08
+
+**General Description:** Right shift a 16-bit value.
+
+**Specifiers:**
+- **00**: mode 00, right shift Rd by immediate 16-bit value (operand 2). Leave Rn empty. 3-word length.
+- **01**: mode 01, right shift Rd by value from Rn. 2-word length.
+- **02**: mode 02, right shift Rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the right shift operation and the value to be shifted.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source of the shift amount, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value for the shift amount.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and used as the shift amount.
 
 ---

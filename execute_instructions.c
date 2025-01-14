@@ -8,26 +8,27 @@
 
 bool execute_instruction(CPUState *state) {
     uint16_t instruction = get_memory(state, *(state->pc));
-    uint8_t specifier = (instruction >> 8) & 0xFF;  // Extract the higher byte
-    uint8_t opcode    = instruction & 0xFF;         // Extract the lower byte
+    uint8_t specifier = (instruction >> 8) & 0xFF; // Extract the higher byte
+    uint8_t opcode = instruction & 0xFF; // Extract the lower byte
 
     // Read two 8-bit register operands packed in a single 16-bit word:
-    uint16_t regs   = get_memory(state, *(state->pc) + 1);
-    uint8_t operand_rd  = (uint8_t)(regs >> 8);     // Higher byte: destination register
-    uint8_t operand_rn  = (uint8_t)(regs & 0xFF);   // Lower byte: source register
+    uint16_t regs = get_memory(state, *(state->pc) + 1);
+    uint8_t operand_rd = (uint8_t) (regs >> 8); // Higher byte: destination register
+    uint8_t operand_rn = (uint8_t) (regs & 0xFF); // Lower byte: source register
 
     // Read a 16-bit operand2:
-    uint16_t operand2 = get_memory(state, *(state->pc) + 2);
+    uint32_t operand2 = ((uint32_t) get_memory(state, *(state->pc) + 2) << 16)
+                        | get_memory(state, *(state->pc) + 3);
 
     // For 32-bit branch addressing composed of two sequential 16-bit words:
-    uint32_t brnAddressing = ((uint32_t) get_memory(state, *(state->pc) + 1) << 16)
-                             | get_memory(state, *(state->pc) + 2);
-
+    // uint32_t brnAddressing = ((uint32_t) get_memory(state, *(state->pc) + 1) << 16)
+    //                          | get_memory(state, *(state->pc) + 2);
+    //
     // For 32-bit normal addressing using the next two sequential 16-bit words:
-    uint32_t normAddressing = ((uint32_t) get_memory(state, *(state->pc) + 2) << 16)
-                              | get_memory(state, *(state->pc) + 3);
+    // uint32_t normAddressing = ((uint32_t) get_memory(state, *(state->pc) + 2) << 16)
+    //                           | get_memory(state, *(state->pc) + 3);
 
-    bool skipIncrementPC = false;  // Flag to skip incrementing the program counter
+    bool skipIncrementPC = false; // Flag to skip incrementing the program counter
 
     switch (opcode) {
         case OP_NOP:
@@ -40,37 +41,36 @@ bool execute_instruction(CPUState *state) {
 
         case OP_SUB:
             subtract(state, operand_rd, operand_rn, operand2, specifier);
-        break;
+            break;
 
         case OP_MUL:
             multiply(state, operand_rd, operand_rn, operand2, specifier);
-        break;
+            break;
 
         case OP_LSH:
             left_shift(state, operand_rd, operand_rn, operand2, specifier);
-        break;
+            break;
 
         case OP_RSH:
             right_shift(state, operand_rd, operand_rn, operand2, specifier);
-        break;
+            break;
 
         case OP_AND:
-            // For bitwise operations, specifier may not matter or is passed as mode 3
-                bitwise_and(state, operand_rd, operand_rn);
-        break;
+            bitwise_and(state, operand_rd, operand_rn, operand2, specifier);
+            break;
 
-        case OP_ORR:
-            bitwise_or(state, operand_rd, operand_rn);
-        break;
+        case OP_OR:
+            bitwise_or(state, operand_rd, operand_rn, operand2, specifier);
+            break;
 
         case OP_XOR:
-            bitwise_xor(state, operand_rd, operand_rn);
-        break;
+            bitwise_xor(state, operand_rd, operand_rn, operand2, specifier);
+            break;
 
         // Add additional opcodes here...
         default:
             printf("Unhandled opcode: %02x\n", opcode);
-        break;
+            break;
     }
     //     // Count the number of leading zeros at register Rn and store at Rd
     //     case OP_CLZ:
@@ -237,9 +237,8 @@ bool execute_instruction(CPUState *state) {
     //         return true;
     // }
     //
-    // if (!skipIncrementPC) {
-    //     increment_pc(state, opcode);  // Increment the program counter if not skipped
-    // }
-    (void) state;
+    if (!skipIncrementPC) {
+        increment_pc(state, opcode, specifier); // Increment the program counter if not skipped
+    }
     return true;
 }
