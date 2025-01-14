@@ -1,15 +1,17 @@
-image: gcc:latest
+image: silkeh/clang:latest
 
 stages:          # List of stages for jobs, and their order of execution
   - build
 
 before_script:
-   - apt-get update --yes
-   - apt-get install --yes cmake libsdl2-dev libsdl2-ttf-dev
+  - apt-get update --yes
+  - apt-get install --yes cmake libsdl2-dev libsdl2-ttf-dev
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
   script:
+    - export CC=clang         # Set Clang as the C compiler
+    - export CXX=clang++      # Set Clang++ as the C++ compiler
     - mkdir build
     - cd build
     - cmake ..
@@ -17,6 +19,6 @@ build-job:       # This job runs in the build stage, which runs first.
   artifacts:
     untracked: false
     when: on_success
-    expire_in: 30 days  
+    expire_in: 30 days
     paths:
       - "build/emulator"
