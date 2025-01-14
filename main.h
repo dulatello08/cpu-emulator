@@ -131,10 +131,10 @@ void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32
 // Page Table Management
 PageTable* create_page_table(void);
 PageTableEntry* allocate_page(PageTable *table, uint32_t page_index);
-uint16_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated);
+uint8_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated);
 uint16_t get_memory(CPUState *state, uint32_t address);
 void set_memory(CPUState *state, uint32_t address, uint16_t value);
-void bulk_copy_memory(CPUState *state, uint32_t address, const uint16_t *buffer, size_t length);
+void bulk_copy_memory(CPUState *state, uint32_t address, const uint8_t *buffer, size_t length);
 static inline void free_page(PageTable* table, PageTableEntry* page);
 void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size);
 
