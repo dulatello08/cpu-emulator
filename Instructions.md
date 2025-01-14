@@ -162,4 +162,3 @@ Address range is including start address but excluding end address.
 - **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
 
 ---
-
