@@ -14,7 +14,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wpedantic -g -D_THREAD_SAFE")
-
+# Check for x86 or x86_64 architectures
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|i[3-6]86)$")
+    # Add AVX2 flag for x86 architectures
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
+endif()
 # Include directories
 include_directories(.)
 
