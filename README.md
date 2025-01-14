@@ -8,7 +8,7 @@ Emulation of a simple 16-bit CPU
 Execution of a variety of 16-bit instructions
 Memory manipulation and access
 # Requirements
-A C compiler (such as GCC or Clang)
+A C compiler (such as GCC or Clang) Only clang works currently.
 Make (optional, but recommended for building)
 # Building and Running
 To build the emulator, navigate to the root directory of the project and run make. This will create an executable file called emulator.
