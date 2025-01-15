@@ -210,3 +210,36 @@ Address range is including start address but excluding end address.
 - **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and used as the shift amount.
 
 ---
+
+### Instruction: MOV
+**Opcode:** 0x00
+
+**General Description:** Move data between registers and memory with various widths and addressing modes, as determined by the specifier.
+
+**Specifiers:**
+- **0x00**: Move immediate into Rd(any width, 16 or 8). Syntax: `MOV 1, #0x1234`
+- **0x01**: Move Rd to Rn (full width, 16). Syntax: `MOV 1, 2`
+- **0x02**: Move 8-bit value from memory (normAddressing) to Rd.L. Syntax: `MOV 1.L, [0x2000]`
+- **0x03**: Move 8-bit value from memory (normAddressing) to Rd.H. Syntax: `MOV 1.H, [0x2001]`
+- **0x04**: Move 16-bit value from memory (normAddressing) to Rd. Syntax: `MOV 1, [0x3000]`
+- **0x05**: Move 32-bit value from memory (normAddressing) into Rd (upper 16 bits) and Rd2 (lower 16 bits). Syntax: `MOV 1, 2, [0x4000]`
+- **0x06**: Move 8-bit value from Rd.L to memory (normAddressing). Syntax: `MOV [0x5000], 1.L`
+- **0x07**: Move 8-bit value from Rd.H to memory (normAddressing). Syntax: `MOV [0x5001], 1.H`
+- **0x08**: Move 16-bit value from Rd to memory (normAddressing). Syntax: `MOV [0x6000], 1`
+- **0x09**: Move 32-bit value from Rd (upper 16 bits) and Rd2 (lower 16 bits) to memory (normAddressing). Syntax: `MOV [0x7000], 1, 2`
+- **0x0A**: Move 8-bit value from memory (Rn + Offset) to Rd.L. Syntax: `MOV 1.L, [3 + 0x10]`
+- **0x0B**: Move 8-bit value from memory (Rn + Offset) to Rd.H. Syntax: `MOV 1.H, [3 + 0x10]`
+- **0x0C**: Move 16-bit value from memory (Rn + Offset) to Rd. Syntax: `MOV 1, [3 + 0x20]`
+- **0x0D**: Move 32-bit value from memory (Rn + Offset) to Rd and Rd2. Syntax: `MOV 1, 2, [3 + 0x30]`
+- **0x0E**: Move 8-bit value from Rd.L to memory (Rn + Offset). Syntax: `MOV [3 + 0x40], 1.L`
+- **0x0F**: Move 8-bit value from Rd.H to memory (Rn + Offset). Syntax: `MOV [3 + 0x40], 1.H`
+- **0x10**: Move 16-bit value from Rd to memory (Rn + Offset). Syntax: `MOV [3 + 0x50], 1`
+- **0x11**: Move 32-bit value from Rd and Rd2 to memory (Rn + Offset). Syntax: `MOV [3 + 0x60], 1, 2`
+
+**Operands:**
+- **rd** (8-bit): Destination or source register depending on the specifier.
+- **rn** (8-bit): Used as a base register with offset in specifiers 0x0A–0x11.
+- **rn1** (8-bit): Secondary register used in 32-bit operations (specifiers 0x05, 0x09, 0x0D, 0x11).
+- **normAddressing** (32-bit): Base memory address used in specifiers 0x02–0x09.
+
+---
