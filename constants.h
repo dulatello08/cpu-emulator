@@ -20,6 +20,12 @@
 #define OP_XOR  0x06
 #define OP_LSH  0x07
 #define OP_RSH  0x08
+#define OP_MOV  0x09
+#define OP_B  0x0A
+#define OP_BE  0x0B
+#define OP_BNE  0x0C
+#define OP_BLT  0x0D
+#define OP_BGT  0x0E
 
 // Memory Map Constants
 #define FLAGS_SIZE 0x2

@@ -119,14 +119,14 @@ bool execute_instruction(CPUState *state);
 void increment_pc(CPUState *state, uint8_t opcode, uint8_t specifier);
 
 // ALU Operations
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
-void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
 
 // Page Table Management
 PageTable* create_page_table(void);
@@ -164,5 +164,14 @@ void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memo
 // Utility
 uint8_t count_leading_zeros(uint8_t x);
 size_t load_program(const char *filename, uint8_t **buffer);
+
+void mov(CPUState *state,
+         uint8_t rd,
+         uint8_t rn,
+         uint8_t rn1,
+         uint16_t immediate,
+         uint32_t normAddress,
+         uint32_t offset,
+         uint8_t specifier);
 
 #endif //INC_16_BIT_CPU_EMULATOR_MAIN_H

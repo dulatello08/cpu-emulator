@@ -7,7 +7,8 @@
 static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
     switch (opcode) {
         case OP_NOP:
-            return 1;
+            return 2;
+
         case OP_ADD:
         case OP_SUB:
         case OP_MUL:
@@ -16,28 +17,49 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_XOR:
         case OP_LSH:
         case OP_RSH:
-            /*
-             * specifiers:
-             *   0x00 => 3 words
-             *   0x01 => 2 words
-             *   0x02 => 3 words
-             */
             switch (specifier) {
-                case 0x00:
-                case 0x02:
-                    return 3;
-                case 0x01:
-                    return 2;
-                default: ;
+                case 0x00: return 5;
+                case 0x01: return 4;
+                case 0x02: return 7;
+                default:   return 1;
             }
 
-        /* Default / unknown opcode */
+        case OP_MOV:
+            switch (specifier) {
+                case 0x00: return 5;
+                case 0x01: return 4;
+                case 0x02:
+                case 0x03:
+                case 0x04: return 7;
+                case 0x05: return 8;
+                case 0x06:
+                case 0x07:
+                case 0x08: return 7;
+                case 0x09: return 8;
+                case 0x0A:
+                case 0x0B:
+                case 0x0C: return 5;
+                case 0x0D: return 6;
+                case 0x0E:
+                case 0x0F:
+                case 0x10: return 5;
+                case 0x11: return 6;
+                default:   return 1;
+            }
+
+        case OP_B:
+            return 6;
+
+        case OP_BE:
+        case OP_BNE:
+        case OP_BLT:
+        case OP_BGT:
+            return 8;
+
         default:
-            // Handle unknown opcodes: set to 1 or handle as an error
             return 1;
     }
 }
-
 /* Increments the CPUState's PC by the instruction's word length */
 void increment_pc(CPUState *state, uint8_t opcode, uint8_t specifier) {
     *(state->pc) += get_instruction_length(opcode, specifier);
@@ -47,6 +69,7 @@ void handle_operation(
     CPUState *state,
     uint8_t operand_rd,
     uint8_t operand_rn,
+    uint16_t immediate,
     uint32_t operand2,
     uint8_t mode,
     uint32_t (*operation)(uint16_t, uint32_t)
@@ -57,7 +80,7 @@ void handle_operation(
     switch (mode) {
         case 0:
             // Mode 0: Use operand_rd and immediate operand2.
-            result = operation(state->reg[operand_rd], operand2);
+            result = operation(state->reg[operand_rd], immediate);
             break;
         case 1:
             // Mode 1: Use operand_rn, second operand as zero.
@@ -130,36 +153,43 @@ uint32_t xor_operation(uint16_t operand1, uint32_t operand2) {
     return (uint32_t) operand1 ^ operand2;
 }
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, add_operation);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, add_operation);
 }
 
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, subtract_operation);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+              uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, subtract_operation);
 }
 
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, multiply_operation);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+              uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, multiply_operation);
 }
 
-void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, left_shift_operation);
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, left_shift_operation);
 }
 
-void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, right_shift_operation);
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, right_shift_operation);
 }
 
-void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, and_operation);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, and_operation);
 }
 
-void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, or_operation);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, or_operation);
 }
 
-void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint32_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, xor_operation);
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, xor_operation);
 }
 
 // This function performs a memory access.
