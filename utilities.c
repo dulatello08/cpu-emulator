@@ -38,13 +38,13 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
                 case 0x09: return 8;
                 case 0x0A:
                 case 0x0B:
-                case 0x0C: return 5;
-                case 0x0D: return 6;
+                case 0x0C: return 8;
+                case 0x0D: return 9;
                 case 0x0E:
                 case 0x0F:
-                case 0x10: return 5;
-                case 0x11: return 6;
-                default:   return 1;
+                case 0x10: return 8;
+                case 0x11: return 9;
+                default: return 1;
             }
 
         case OP_B:
