@@ -47,7 +47,8 @@ file(GLOB GUI_SOURCES "gui/*.c*")
 #list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
 
 # Add executable for emulator (without socket sources)
-add_executable(emulator ${SOURCES})
+add_executable(emulator ${SOURCES}
+        mov.c)
 # Link against libraries
 target_link_libraries(emulator)
 
