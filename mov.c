@@ -109,92 +109,100 @@ void mov(CPUState *state,
          uint8_t specifier)
 {
     switch (specifier) {
-        // 0x00: Move immediate into rd (any width, 16 or 8).
+        // 0x01: Move immediate into rd (any width, 16 or 8).
         // Syntax: mov 1, #0x1234
         case 0x00:
             state->reg[rd] = immediate;
+        break;
+        // 0x00: Move immediate into rd and rn.
+        // 32-bit immediate: upper 16 bits go to rd, lower 16 bits go to rn.
+        // Syntax: mov 1, #0x12345678
+        case 0x01:
+            state->reg[rd] = (offset >> 16) & 0xFFFF;
+            state->reg[rn] = offset & 0xFFFF;
             break;
 
-        // 0x01: Move rd to rn (full width, 16).
-        // Syntax: mov 1, 2  ->  state->reg[rn] = state->reg[rd]
-        case 0x01:
+        // 0x02: Move rd to rn (full width, 16).
+        // Syntax: mov 1, 2
+        case 0x02:
             state->reg[rn] = state->reg[rd];
             break;
 
-        // 0x02: Move 8-bit value from memory (normAddressing) to rd.L.
+        // 0x03: Move 8-bit value from memory (normAddressing) to rd.L.
         // Syntax: mov 1.L, [0x2000]
-        case 0x02: {
-            uint8_t regIndex = rd & 0x3F;  // clear bits 7 and 6 for .L access
+        case 0x03: {
+            uint8_t regIndex = rd & 0x3F;  // clear any .H/.L selection bits
             uint8_t value = read8(state, normAddress);
             // Replace low 8 bits; keep the high 8 bits.
             state->reg[regIndex] = (state->reg[regIndex] & 0xFF00) | value;
             break;
         }
 
-        // 0x03: Move 8-bit value from memory (normAddressing) to rd.H.
+        // 0x04: Move 8-bit value from memory (normAddressing) to rd.H.
         // Syntax: mov 1.H, [0x2001]
-        case 0x03: {
-            uint8_t regIndex = rd & 0x3F;  // clear bits for .H access
+        case 0x04: {
+            uint8_t regIndex = rd & 0x3F;
             uint8_t value = read8(state, normAddress);
             // Replace high 8 bits; keep the low 8 bits.
             state->reg[regIndex] = (state->reg[regIndex] & 0x00FF) | (value << 8);
             break;
         }
 
-        // 0x04: Move 16-bit value from memory (normAddressing) to rd.
+        // 0x05: Move 16-bit value from memory (normAddressing) to rd.
         // Syntax: mov 1, [0x3000]
-        case 0x04:
+        case 0x05:
             state->reg[rd] = read16(state, normAddress);
             break;
 
-        // 0x05: Move 32-bit value from memory (normAddressing) into rd and rn1.
+        // 0x06: Move 32-bit value from memory (normAddressing) into rd and rn1.
         // Upper 16 bits go to rd, lower 16 bits go to rn1.
         // Syntax: mov 1, 2, [0x4000]
-        case 0x05: {
+        case 0x06: {
             uint32_t value = read32(state, normAddress);
             state->reg[rd]  = (uint16_t)(value >> 16);
             state->reg[rn1] = (uint16_t)(value & 0xFFFF);
             break;
         }
 
-        // 0x06: Move 8-bit value from rd.L to memory (normAddressing).
+        // 0x07: Move 8-bit value from rd.L to memory (normAddressing).
         // Syntax: mov [0x5000], 1.L
-        case 0x06: {
+        case 0x07: {
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = state->reg[regIndex] & 0x00FF;
+            // (Optional) Print the character representation.
             printf("%c", value);
             fflush(stdout);
             write8(state, normAddress, value);
             break;
         }
 
-        // 0x07: Move 8-bit value from rd.H to memory (normAddressing).
+        // 0x08: Move 8-bit value from rd.H to memory (normAddressing).
         // Syntax: mov [0x5001], 1.H
-        case 0x07: {
+        case 0x08: {
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = (state->reg[regIndex] >> 8) & 0x00FF;
             write8(state, normAddress, value);
             break;
         }
 
-        // 0x08: Move 16-bit value from rd to memory (normAddressing).
+        // 0x09: Move 16-bit value from rd to memory (normAddressing).
         // Syntax: mov [0x6000], 1
-        case 0x08:
+        case 0x09:
             write16(state, normAddress, state->reg[rd]);
             break;
 
-        // 0x09: Move 32-bit value from rd and rn1 to memory (normAddressing).
+        // 0x0A: Move 32-bit value from rd and rn1 to memory (normAddressing).
         // rd provides the upper 16 bits, rn1 the lower 16 bits.
         // Syntax: mov [0x7000], 1, 2
-        case 0x09: {
+        case 0x0A: {
             uint32_t value = ((uint32_t)state->reg[rd] << 16) | state->reg[rn1];
             write32(state, normAddress, value);
             break;
         }
 
-        // 0x0A: Move 8-bit value from memory (rn + offset) to rd.L.
+        // 0x0B: Move 8-bit value from memory (rn + offset) to rd.L.
         // Syntax: mov 1.L, [3 + 0x10]
-        case 0x0A: {
+        case 0x0B: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint8_t value = read8(state, effectiveAddress);
             uint8_t regIndex = rd & 0x3F;
@@ -202,9 +210,9 @@ void mov(CPUState *state,
             break;
         }
 
-        // 0x0B: Move 8-bit value from memory (rn + offset) to rd.H.
+        // 0x0C: Move 8-bit value from memory (rn + offset) to rd.H.
         // Syntax: mov 1.H, [3 + 0x10]
-        case 0x0B: {
+        case 0x0C: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint8_t value = read8(state, effectiveAddress);
             uint8_t regIndex = rd & 0x3F;
@@ -212,17 +220,17 @@ void mov(CPUState *state,
             break;
         }
 
-        // 0x0C: Move 16-bit value from memory (rn + offset) to rd.
+        // 0x0D: Move 16-bit value from memory (rn + offset) to rd.
         // Syntax: mov 1, [3 + 0x20]
-        case 0x0C: {
+        case 0x0D: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             state->reg[rd] = read16(state, effectiveAddress);
             break;
         }
 
-        // 0x0D: Move 32-bit value from memory (rn + offset) to rd and rn1.
+        // 0x0E: Move 32-bit value from memory (rn + offset) to rd and rn1.
         // Syntax: mov 1, 2, [3 + 0x30]
-        case 0x0D: {
+        case 0x0E: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint32_t value = read32(state, effectiveAddress);
             state->reg[rd]  = (uint16_t)(value >> 16);
@@ -230,19 +238,20 @@ void mov(CPUState *state,
             break;
         }
 
-        // 0x0E: Move 8-bit value from rd.L to memory (rn + offset).
+        // 0x0F: Move 8-bit value from rd.L to memory (rn + offset).
         // Syntax: mov [3 + 0x40], 1.L
-        case 0x0E: {
+        case 0x0F: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = state->reg[regIndex] & 0x00FF;
             write8(state, effectiveAddress, value);
+            printf("%c", value);
             break;
         }
 
-        // 0x0F: Move 8-bit value from rd.H to memory (rn + offset).
+        // 0x10: Move 8-bit value from rd.H to memory (rn + offset).
         // Syntax: mov [3 + 0x40], 1.H
-        case 0x0F: {
+        case 0x10: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = (state->reg[regIndex] >> 8) & 0x00FF;
@@ -250,17 +259,17 @@ void mov(CPUState *state,
             break;
         }
 
-        // 0x10: Move 16-bit value from rd to memory (rn + offset).
+        // 0x11: Move 16-bit value from rd to memory (rn + offset).
         // Syntax: mov [3 + 0x50], 1
-        case 0x10: {
+        case 0x11: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             write16(state, effectiveAddress, state->reg[rd]);
             break;
         }
 
-        // 0x11: Move 32-bit value from rd and rn1 to memory (rn + offset).
+        // 0x12: Move 32-bit value from rd and rn1 to memory (rn + offset).
         // Syntax: mov [3 + 0x60], 1, 2
-        case 0x11: {
+        case 0x12: {
             uint32_t effectiveAddress = state->reg[rn] + offset;
             uint32_t value = ((uint32_t)state->reg[rd] << 16) | state->reg[rn1];
             write32(state, effectiveAddress, value);
