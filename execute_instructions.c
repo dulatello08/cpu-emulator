@@ -39,16 +39,16 @@ bool execute_instruction(CPUState *state) {
 
     // Branch instructions use a 32-bit label.
     // The "b" instruction (length 6) uses bytes 2-5.
-    // uint32_t label_b = ((uint32_t) pc_ptr[2] << 24) |
-    //                    ((uint32_t) pc_ptr[3] << 16) |
-    //                    ((uint32_t) pc_ptr[4] << 8) |
-    //                    pc_ptr[5];
+    uint32_t label_b = ((uint32_t) pc_ptr[2] << 24) |
+                       ((uint32_t) pc_ptr[3] << 16) |
+                       ((uint32_t) pc_ptr[4] << 8) |
+                       pc_ptr[5];
 
     // Other branch instructions (be, bne, blt, bgt) use a 32-bit label from bytes 4-7.
-    // uint32_t label_branch = ((uint32_t) pc_ptr[4] << 24) |
-    //                         ((uint32_t) pc_ptr[5] << 16) |
-    //                         ((uint32_t) pc_ptr[6] << 8) |
-    //                         pc_ptr[7];
+    uint32_t label_branch = ((uint32_t) pc_ptr[4] << 24) |
+                            ((uint32_t) pc_ptr[5] << 16) |
+                            ((uint32_t) pc_ptr[6] << 8) |
+                            pc_ptr[7];
 
     // Some mov instruction variants use an offset.
     // For example, "mov %rd.L, [%rn + #offset]" (length 8) has an offset in bytes 4-7.
@@ -110,6 +110,51 @@ bool execute_instruction(CPUState *state) {
         case OP_MOV:
             mov(state, rd, rn, rn1, immediate, normAddressing, offset, specifier);
             break;
+
+        case OP_B: {
+            // Unconditional branch.
+            *(state->pc) = label_b;
+            skipIncrementPC = true;
+            break;
+        }
+
+        case OP_BE: {
+            // Branch if equal.
+            // If the value in register rd equals the value in register rn, branch.
+            if (state->reg[rd] == state->reg[rn]) {
+                *(state->pc) = label_branch;
+                skipIncrementPC = true;
+            }
+            break;
+        }
+
+        case OP_BNE: {
+            // Branch if not equal.
+            if (state->reg[rd] != state->reg[rn]) {
+                *(state->pc) = label_branch;
+                skipIncrementPC = true;
+            }
+            break;
+        }
+
+        case OP_BLT: {
+            // Branch if less than.
+            // Compare as unsigned 16-bit values.
+            if (state->reg[rd] < state->reg[rn]) {
+                *(state->pc) = label_branch;
+                skipIncrementPC = true;
+            }
+            break;
+        }
+
+        case OP_BGT: {
+            // Branch if greater than.
+            if (state->reg[rd] > state->reg[rn]) {
+                *(state->pc) = label_branch;
+                skipIncrementPC = true;
+            }
+            break;
+        }
 
         // Add additional opcodes here...
         default:
