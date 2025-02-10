@@ -5,34 +5,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <main.h>
 
 // -----------------------------------------------------------------------------
 // Configuration
 // -----------------------------------------------------------------------------
 #define PAGE_SHIFT 12               // Log2 of PAGE_SIZE
-#define PAGE_SIZE  (1 << PAGE_SHIFT)
-
-// -----------------------------------------------------------------------------
-// Data Structures
-// -----------------------------------------------------------------------------
-typedef struct PageTableEntry {
-    struct PageTableEntry* next;
-    struct PageTableEntry* prev;
-    bool     is_allocated;
-    uint32_t page_index;
-    uint8_t* page_data; // Byte array for this page
-} PageTableEntry;
-
-typedef struct PageTable {
-    PageTableEntry* head;
-    PageTableEntry* tail;
-    uint32_t        page_count;
-} PageTable;
-
-typedef struct CPUState {
-    PageTable* page_table;
-    // other CPU fields as needed
-} CPUState;
 
 // -----------------------------------------------------------------------------
 // Page Table Management

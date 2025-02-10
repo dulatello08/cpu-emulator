@@ -34,7 +34,6 @@ typedef enum {
     USABLE_MEMORY,
     MMIO_PAGE,
     FLASH,
-    USABLE_SECTOR,
     UNKNOWN_TYPE
 } PageType;
 
@@ -132,8 +131,8 @@ void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16
 PageTable* create_page_table(void);
 PageTableEntry* allocate_page(PageTable *table, uint32_t page_index);
 uint8_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unallocated);
-uint16_t get_memory(CPUState *state, uint32_t address);
-void set_memory(CPUState *state, uint32_t address, uint16_t value);
+uint8_t get_memory(CPUState *state, uint32_t address);
+void set_memory(CPUState *state, uint32_t address, uint8_t value);
 void bulk_copy_memory(CPUState *state, uint32_t address, const uint8_t *buffer, size_t length);
 // static void free_page(PageTable* table, PageTableEntry* page);
 void free_all_pages(PageTable* table);

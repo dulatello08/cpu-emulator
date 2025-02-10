@@ -27,23 +27,24 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_MOV:
             switch (specifier) {
                 case 0x00: return 5;
-                case 0x01: return 4;
-                case 0x02:
+                case 0x01: return 8;
+                case 0x02: return 4;
                 case 0x03:
-                case 0x04: return 7;
-                case 0x05: return 8;
-                case 0x06:
+                case 0x04:
+                case 0x05: return 7;
+                case 0x06: return 8;
                 case 0x07:
-                case 0x08: return 7;
-                case 0x09: return 8;
+                case 0x08:
+                case 0x09: return 7;
                 case 0x0A:
                 case 0x0B:
-                case 0x0C: return 8;
-                case 0x0D: return 9;
-                case 0x0E:
+                case 0x0C:
+                case 0x0D: return 8;
+                case 0x0E: return 9;
                 case 0x0F:
-                case 0x10: return 8;
-                case 0x11: return 9;
+                case 0x10:
+                case 0x11: return 8;
+                case 0x12: return 9;
                 default: return 1;
             }
 
