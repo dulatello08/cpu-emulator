@@ -37,7 +37,7 @@ int parse_ini_file(const char *filename, MemoryConfig *config) {
     MemorySection *current_section = NULL;
     memset(config, 0, sizeof(MemoryConfig)); // Clear memory
     for (int i = 0; i < MAX_SECTIONS; i++) { // Assuming MAX_SECTIONS is defined
-        config->sections[i].type = USABLE_SECTOR; // Default type
+        config->sections[i].type = USABLE_MEMORY; // Default type
         config->sections[i].start_address = 0; // Default start address
         config->sections[i].page_count = 0; // Default page count
         config->sections[i].device[0] = '\0'; // Default empty device

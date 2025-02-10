@@ -12,6 +12,21 @@ int start(AppState *appState) {
 
     printf("Starting emulator\n");
     bool exitCode = false;
+    MemoryConfig *mc = &appState->state->memory_config;
+    printf("Memory Config: %zu sections\n", mc->section_count);
+
+    for (size_t i = 0; i < mc->section_count; i++) {
+        MemorySection *sec = &mc->sections[i];
+        printf("  [%zu] %s - Type: %d, Start: 0x%X, Pages: %u",
+               i,
+               sec->section_name,
+               sec->type,
+               sec->start_address,
+               sec->page_count);
+        if (sec->device[0])  // Only print device info if non-empty
+            printf(", Device: %s", sec->device);
+        printf("\n");
+    }
 
     while (*(appState->state->pc) + 1 < UINT32_MAX && !exitCode) {
         if (appState->gui_shm != NULL) {

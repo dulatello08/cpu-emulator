@@ -169,9 +169,6 @@ void mov(CPUState *state,
         case 0x07: {
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = state->reg[regIndex] & 0x00FF;
-            // (Optional) Print the character representation.
-            printf("%c", value);
-            fflush(stdout);
             write8(state, normAddress, value);
             break;
         }
@@ -245,7 +242,6 @@ void mov(CPUState *state,
             uint8_t regIndex = rd & 0x3F;
             uint8_t value = state->reg[regIndex] & 0x00FF;
             write8(state, effectiveAddress, value);
-            printf("%c", value);
             break;
         }
 
