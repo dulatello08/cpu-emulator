@@ -64,6 +64,8 @@ void write8(CPUState* state, uint32_t address, uint8_t value) {
     uint8_t* ptr = get_memory_ptr(state, address, true);
     if (ptr) {
         *ptr = value;
+        // Call trigger with the 8-bit value promoted to 32 bits.
+        memory_write_trigger(state, address, (uint32_t)value);
     }
 }
 
@@ -77,8 +79,9 @@ void write8(CPUState* state, uint32_t address, uint8_t value) {
 void write16(CPUState* state, uint32_t address, uint16_t value) {
     uint8_t* ptr = get_memory_ptr(state, address, true);
     if (ptr) {
-        ptr[0] = (value >> 8) & 0xFF;
-        ptr[1] = value & 0xFF;
+        ptr[0] = (value >> 8) & 0xFF;  // Most-significant byte
+        ptr[1] = value & 0xFF;         // Least-significant byte
+        memory_write_trigger(state, address, (uint32_t)value);
     }
 }
 
@@ -92,10 +95,11 @@ void write16(CPUState* state, uint32_t address, uint16_t value) {
 void write32(CPUState* state, uint32_t address, uint32_t value) {
     uint8_t* ptr = get_memory_ptr(state, address, true);
     if (ptr) {
-        ptr[0] = (value >> 24) & 0xFF;
-        ptr[1] = (value >> 16) & 0xFF;
-        ptr[2] = (value >> 8)  & 0xFF;
-        ptr[3] = value & 0xFF;
+        ptr[0] = (value >> 24) & 0xFF; // Byte 3: Most-significant
+        ptr[1] = (value >> 16) & 0xFF; // Byte 2
+        ptr[2] = (value >> 8)  & 0xFF; // Byte 1
+        ptr[3] = value & 0xFF;         // Byte 0: Least-significant
+        memory_write_trigger(state, address, value);
     }
 }
 

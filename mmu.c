@@ -24,7 +24,7 @@ void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
 
     // Check if we found a section and if the address is within its bounds.
     if (section != NULL) {
-        uint32_t sec_start = section->start_address;
+        // uint32_t sec_start = section->start_address;
         uint32_t sec_end = section->start_address + section->page_count * PAGE_SIZE;
         if (address < sec_end) {
             if ((section->type == BOOT_SECTOR) || (section->type == USABLE_MEMORY)) {

@@ -8,3 +8,4 @@ cmake-build-debug
 /keyboard/readscancode
 /build/
 /cmake-build-minsizerel/
+/cmake-build-release/
