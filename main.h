@@ -172,5 +172,6 @@ void mov(CPUState *state,
          uint32_t normAddress,
          uint32_t offset,
          uint8_t specifier);
+void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value);
 
 #endif //INC_16_BIT_CPU_EMULATOR_MAIN_H
