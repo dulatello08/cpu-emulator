@@ -72,7 +72,7 @@ bool execute_instruction(CPUState *state) {
     switch (opcode) {
         case OP_NOP:
             // No operation, nothing to do.
-            printf("Halt\n");
+            printf("\nHalt\n");
             return true;
 
         case OP_ADD:
