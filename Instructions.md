@@ -44,7 +44,7 @@
 ### Instruction: mul
 **Opcode:** 0x03
 
-**General Description:** Multiply two 16-bit values.
+**General Description:** Multiply two 16-bit values. Warning: output is truncated 16 bit number.
 
 **Specifiers:**
 - **00**: mode 00, multiply rd by immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
@@ -157,7 +157,7 @@
 **Specifiers:**
 - **0x00**: Move immediate into rd(any width, 16 or 8). Syntax: `mov 1, #0x1234`
 - **0x01**: Move 32 bit immediate into rd and rn. Syntax: `mov 1, 2 #0xDEADBEEF` or `mov 1, 2 label`
-- **0x02**: Move (copy) rd to rn (full width, 16). Syntax: `mov 1, 2`
+- **0x02**: Move (copy) rd to rn (full width, 16). Syntax: `mov 1, 2`. Warning: reversed semantics.
 - **0x03**: Move 8-bit value from memory (normAddressing) to rd.L. Syntax: `mov 1.L, [0x2000]`
 - **0x04**: Move 8-bit value from memory (normAddressing) to rd.H. Syntax: `mov 1.H, [0x2001]`
 - **0x05**: Move 16-bit value from memory (normAddressing) to rd. Syntax: `mov 1, [0x3000]`

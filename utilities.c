@@ -106,11 +106,7 @@ void handle_operation(
         case 1:
         case 2:
             // For modes 0, 1, and 2, store to register.
-            if (state->v_flag) {
-                state->reg[operand_rd] = UINT16_MAX;
-            } else {
-                state->reg[operand_rd] = (uint16_t) result;
-            }
+            state->reg[operand_rd] = (uint16_t) result;
             break;
         default:
             // Already handled unsupported modes above.
