@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <main.h>
+#include "main.h"
 
 // -----------------------------------------------------------------------------
 // Configuration

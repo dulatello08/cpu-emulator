@@ -65,6 +65,7 @@ AppState *new_app_state(void) {
 
     appState->state = mmap(NULL, sizeof(CPUState), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     appState->state->reg = mmap(NULL, 16 * sizeof(uint16_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    memset(appState->state->reg, 0, 16 * sizeof(uint16_t));
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_thread = 0;

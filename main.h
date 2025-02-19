@@ -74,7 +74,7 @@ typedef struct {
 } gui_process_shm_t;
 
 // -- CPU State -- //
-typedef struct {
+typedef struct CPUState {
     PageTable *page_table; // Pointer to the page table
     MemoryConfig memory_config;
 
