@@ -127,6 +127,9 @@ void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16
 void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
 void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode);
 
+void umull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn);
+void smull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn);
+
 // Page Table Management
 PageTable* create_page_table(void);
 PageTableEntry* allocate_page(PageTable *table, uint32_t page_index);

@@ -22,9 +22,11 @@ bool execute_instruction(CPUState *state) {
     // Many instructions use a destination register.
     // (For instructions that are shorter than 3 bytes, this would be invalid.)
     uint8_t rd = pc_ptr[2];
+    uint8_t mull_rn = pc_ptr[4];
 
     // Some instructions use a source register at offset 3.
     uint8_t rn = pc_ptr[3];
+
 
     // Some instructions use an immediate 16-bit value.
     // For example: "add %rd, #immediate" uses bytes 3 and 4.
@@ -72,8 +74,7 @@ bool execute_instruction(CPUState *state) {
     switch (opcode) {
         case OP_NOP:
             // No operation, nothing to do.
-            printf("\nHalt\n");
-            return true;
+            break;
 
         case OP_ADD:
             add(state, rd, rn, immediate, normAddressing, specifier);
@@ -156,6 +157,17 @@ bool execute_instruction(CPUState *state) {
             break;
         }
 
+        case OP_BRO: {
+            if (state->v_flag) *(state->pc) = label_b;
+            skipIncrementPC = true;
+            break;
+        }
+        case OP_UMULL:
+            umull(&state->reg[rd], &state->reg[rn1], &state->reg[mull_rn]);
+        case OP_SMULL:
+            smull(&state->reg[rd], &state->reg[rn1], &state->reg[mull_rn]);
+        case OP_HLT:
+            return true;
         // Add additional opcodes here...
         default:
             printf("Unhandled opcode: %02x\n", opcode);

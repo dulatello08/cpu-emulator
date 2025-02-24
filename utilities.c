@@ -19,7 +19,9 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_RSH:
             switch (specifier) {
                 case 0x00: return 5;
-                case 0x01: return 4;
+                case 0x01:
+                case 0x03:
+                    return 4;
                 case 0x02: return 7;
                 default:   return 1;
             }
@@ -97,7 +99,7 @@ void handle_operation(
     }
 
     // Update flags based on the result.
-    state->v_flag = (result > UINT16_MAX);
+    state->v_flag = result > UINT16_MAX;
     state->z_flag = (result == 0);
 
     // Store the result or handle overflow based on mode.
@@ -189,42 +191,20 @@ void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16
     handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, xor_operation);
 }
 
-// This function performs a memory access.
-//
-// Parameters:
-//   state: A pointer to the CPU state.
-//   reg: The register to be accessed.
-//   address: The memory address to be accessed.
-//   mode: The access mode.
-//   srcDest: The source or destination of the access.
-//
-// Returns:
-//   The value of the memory location at the specified address.
-
-uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
-    (void) state, (void) reg, (void) address, (void) srcDest;
-    switch (mode) {
-        case 0:
-            // Read mode
-            if (!srcDest) {
-                //                state->reg[reg] = state->memory[address];
-            }
-            break;
-        case 1:
-            // Write mode
-            if (!srcDest) {
-                // handleWrite(state, address, state->reg[reg]);
-                //                state->memory[address] = state->reg[reg];
-            } else {
-                // handleWrite(state, address, reg);
-                //                state->memory[address] = reg;
-            }
-            break;
-        default:
-            break;
-    }
-    return 0;
+// Unsigned Multiply Long Long (UMULL)
+void umull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn) {
+    uint32_t result = (uint32_t)(*rd) * (uint32_t)(*rn);  // Perform 16x16 unsigned multiplication
+    *rd = (uint16_t)(result & 0xFFFF);   // Store lower 16 bits in rd
+    *rn1 = (uint16_t)(result >> 16);     // Store upper 16 bits in rn1
 }
+
+// Signed Multiply Long Long (SMULL)
+void smull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn) {
+    int32_t result = (int32_t)((int16_t)(*rd)) * (int32_t)((int16_t)(*rn));  // Perform 16x16 signed multiplication
+    *rd = (uint16_t)(result & 0xFFFF);   // Store lower 16 bits in rd
+    *rn1 = (uint16_t)(result >> 16);     // Store upper 16 bits in rn1
+}
+
 
 void pushStack(CPUState *state, uint8_t value) {
     (void) state, (void) value;

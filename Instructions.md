@@ -44,7 +44,7 @@
 ### Instruction: mul
 **Opcode:** 0x03
 
-**General Description:** Multiply two 16-bit values. Warning: output is truncated 16 bit number.
+**General Description:** Multiply two 16-bit values. Warning: output truncated 16 bit number.
 
 **Specifiers:**
 - **00**: mode 00, multiply rd by immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
@@ -52,8 +52,8 @@
 - **02**: mode 02, multiply rd by value at address of normAddressing. 3-word length.
 
 **Operands:**
-- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the multiply operation and the first operand.
-- **rn** (8-bit): In specifier 00 not used, in 01 is the source multiplier, in 02 not used.
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the multiply operation and the multiplicand.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source multiplier, in 02 not used. in 03, is both a multiplier and product.
 - **operand 2** (16-bit): In specifier 00, it is the immediate value to multiply with rd.
 - **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and multiplied with rd.
 
@@ -251,4 +251,17 @@
 **Operands:**
 - **rd** (8-bit): First register for comparison.
 - **rn** (8-bit): Second register for comparison.
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: bro
+**Opcode:** 0x0F
+
+**General Description:** Branch if overflow is set.
+
+**Specifiers:**
+- **00**: Syntax: `bro label`
+
+**Operands:**
 - **label** (32-bit): Branch target address.

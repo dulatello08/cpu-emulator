@@ -26,6 +26,10 @@
 #define OP_BNE  0x0C
 #define OP_BLT  0x0D
 #define OP_BGT  0x0E
+#define OP_BRO  0x0F
+#define OP_UMULL 0x10
+#define OP_SMULL 0x11
+#define OP_HLT 0x12
 
 // Peripheral and Display Definitions
 #define LCD_WIDTH 32
