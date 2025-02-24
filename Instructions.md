@@ -265,3 +265,45 @@
 
 **Operands:**
 - **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: umull
+**Opcode:** 0x10
+
+**General Description:** Performs an **unsigned** 16-bit multiplication. Stores the **lower 16 bits** of the result in `rd` and the **upper 16 bits** in `rn1`. 2-word length.
+
+**Specifiers:**
+- **00**: mode 00, multiply `rd` and `rn`, store **lower** result in `rd`, **upper** in `rn1`. Syntax: `umull r1, r2, r3`
+
+**Operands:**
+- **rd** (8-bit): Destination register for the **lower** 16 bits of the result.
+- **rn1** (8-bit): Destination register for the **upper** 16 bits of the result.
+- **rn** (8-bit): Register holding the second multiplicand.
+
+---
+
+### Instruction: smull
+**Opcode:** 0x11
+
+**General Description:** Performs a **signed** 16-bit multiplication. Stores the **lower 16 bits** of the result in `rd` and the **upper 16 bits** in `rn1`. 2-word length.
+
+**Specifiers:**
+- **00**: mode 00, multiply `rd` and `rn`, store **lower** result in `rd`, **upper** in `rn1`. Syntax: `smull r1, r2, r3`
+
+**Operands:**
+- **rd** (8-bit): Destination register for the **lower** 16 bits of the result.
+- **rn1** (8-bit): Destination register for the **upper** 16 bits of the result.
+- **rn** (8-bit): Register holding the second multiplicand.
+
+---
+
+### Instruction: hlt
+**Opcode:** 0x12
+
+**General Description:** Stops execution immediately. The CPU enters a halted state until reset.
+
+**Specifiers:**
+- **00**: mode 00, halt execution. 2-word length.
+
+**Operands:** None.
