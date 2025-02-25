@@ -7,6 +7,7 @@
 static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
     switch (opcode) {
         case OP_NOP:
+        case OP_HLT:
             return 2;
 
         case OP_ADD:
@@ -17,6 +18,8 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_XOR:
         case OP_LSH:
         case OP_RSH:
+        case OP_UMULL:
+        case OP_SMULL:
             switch (specifier) {
                 case 0x00: return 5;
                 case 0x01:

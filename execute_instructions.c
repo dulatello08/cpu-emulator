@@ -164,9 +164,12 @@ bool execute_instruction(CPUState *state) {
         }
         case OP_UMULL:
             umull(&state->reg[rd], &state->reg[rn1], &state->reg[mull_rn]);
+            break;
         case OP_SMULL:
             smull(&state->reg[rd], &state->reg[rn1], &state->reg[mull_rn]);
+            break;
         case OP_HLT:
+            printf("Halt\n");
             return true;
         // Add additional opcodes here...
         default:
