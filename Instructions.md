@@ -307,3 +307,27 @@
 - **00**: mode 00, halt execution. 2-word length.
 
 **Operands:** None.
+
+### Instruction: psh
+**Opcode:** 0x13
+
+**General Description:** Pushes a 16-bit value onto the stack. The stack pointer is automatically adjusted after the operation.
+
+**Specifiers:**
+- **00**: Syntax: `psh rd`
+
+**Operands:**
+- **rd** (8-bit): The register whose value will be pushed onto the stack.
+
+---
+
+### Instruction: pop
+**Opcode:** 0x14
+
+**General Description:** Pops a 16-bit value from the stack into a register. The stack pointer is automatically adjusted after the operation.
+
+**Specifiers:**
+- **00**: Syntax: `pop rd`
+
+**Operands:**
+- **rd** (8-bit): The register where the popped value will be stored.
