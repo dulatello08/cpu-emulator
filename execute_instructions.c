@@ -171,6 +171,23 @@ bool execute_instruction(CPUState *state) {
         case OP_HLT:
             printf("Halt\n");
             return true;
+        case OP_PSH: {
+            // Push the value from the register onto the stack
+            pushStack(state, (uint8_t)(state->reg[rd] & 0xFF));
+            pushStack(state, (uint8_t)((state->reg[rd] >> 8) & 0xFF));
+            break;
+        }
+
+        case OP_POP: {
+            // Pop the value from the stack into the register
+            uint8_t low, high;
+            if (!popStack(state, &high) || !popStack(state, &low)) {
+                fprintf(stderr, "Stack underflow while executing POP.\n");
+                break;
+            }
+            state->reg[rd] = ((uint16_t)high << 8) | low;
+            break;
+        }
         // Add additional opcodes here...
         default:
             printf("Unhandled opcode: %02x\n", opcode);

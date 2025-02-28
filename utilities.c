@@ -9,6 +9,9 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_NOP:
         case OP_HLT:
             return 2;
+        case OP_PSH:
+        case OP_POP:
+            return 3;
 
         case OP_ADD:
         case OP_SUB:
@@ -209,20 +212,104 @@ void smull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn) {
 }
 
 
-void pushStack(CPUState *state, uint8_t value) {
-    (void) state, (void) value;
-    //    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
-
-    // Shift existing values up by one position
-    for (uint8_t i = 0; i > 0; i--) {
-        //        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
+// Helper: Find the STACK memory section in the MemoryConfig.
+// Returns a pointer to the STACK MemorySection or NULL if not found.
+static MemorySection* find_stack_section(const MemoryConfig *config) {
+    for (size_t i = 0; i < config->section_count; i++) {
+        if (config->sections[i].type == STACK) {
+            return (MemorySection *)&config->sections[i];
+        }
     }
-
-    // Store the new value at the top of the stack
-    //    state->memory[state->mm.stackMemory.startAddress + 1] = value;
-    //    state->memory[state->mm.stackMemory.startAddress]++;
+    return NULL;
 }
 
+/**
+ * Push a single byte onto the stack.
+ * The first 4 bytes of the stack section hold the current stack pointer.
+ * The stack grows upward (i.e. increasing offset from the start of the data area).
+ */
+void pushStack(CPUState *state, uint8_t value) {
+    MemorySection *stack_section = find_stack_section(&state->memory_config);
+    if (!stack_section) {
+        fprintf(stderr, "Error: Stack section not found in configuration.\n");
+        exit(EXIT_FAILURE);
+    }
+    // The base address for the stack section in emulator memory.
+    uint32_t base_addr = stack_section->start_address;
+    // The first 4 bytes store the current stack pointer.
+    uint8_t *sp_mem = get_memory_ptr(state, base_addr, true);
+    if (!sp_mem) {
+        fprintf(stderr, "Error: Unable to access stack pointer memory.\n");
+        exit(EXIT_FAILURE);
+    }
+    uint32_t *sp_ptr = (uint32_t *)sp_mem;
+    uint32_t sp = *sp_ptr; // current offset in the data area (in bytes)
+
+    // Determine the maximum available bytes for stack data.
+    // (Total section size minus 4 bytes reserved for the stack pointer)
+    uint32_t total_section_bytes = stack_section->page_count * PAGE_SIZE;
+    uint32_t max_stack_bytes = total_section_bytes - 4;
+    if (sp >= max_stack_bytes) {
+        fprintf(stderr, "Stack overflow: cannot push more data.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Calculate where to store the value:
+    // (Base address + 4 bytes for pointer + current SP offset)
+    uint32_t push_addr = base_addr + 4 + sp;
+    uint8_t *dest = get_memory_ptr(state, push_addr, true);
+    if (!dest) {
+        fprintf(stderr, "Error: Unable to access memory for push operation.\n");
+        exit(EXIT_FAILURE);
+    }
+    *dest = value;
+
+    // Increment and update the stack pointer.
+    sp++;
+    *sp_ptr = sp;
+}
+
+/**
+ * Pop a single byte from the stack.
+ *
+ * @param state Pointer to the CPU state.
+ * @param out Pointer to a byte where the popped value will be stored.
+ * @return 1 if a byte was successfully popped, or 0 if the stack was empty.
+ */
+uint8_t popStack(CPUState *state, uint8_t *out) {
+    MemorySection *stack_section = find_stack_section(&state->memory_config);
+    if (!stack_section) {
+        fprintf(stderr, "Error: Stack section not found in configuration.\n");
+        exit(EXIT_FAILURE);
+    }
+    uint32_t base_addr = stack_section->start_address;
+    uint8_t *sp_mem = get_memory_ptr(state, base_addr, false);
+    if (!sp_mem) {
+        fprintf(stderr, "Error: Unable to access stack pointer memory.\n");
+        return 0;
+    }
+    uint32_t *sp_ptr = (uint32_t *)sp_mem;
+    uint32_t sp = *sp_ptr; // current offset (number of bytes on stack)
+
+    if (sp == 0) {
+        fprintf(stderr, "Stack underflow: no data to pop.\n");
+        return 0;
+    }
+
+    // Decrement the stack pointer to point to the top-most data
+    sp--;
+    uint32_t pop_addr = base_addr + 4 + sp;
+    uint8_t *src = get_memory_ptr(state, pop_addr, false);
+    if (!src) {
+        fprintf(stderr, "Error: Unable to access memory for pop operation.\n");
+        return 0;
+    }
+    *out = *src;
+
+    // Update the stored stack pointer.
+    *sp_ptr = sp;
+    return 1;
+}
 
 uint8_t count_leading_zeros(uint8_t x) {
     if (x == 0) return 8;

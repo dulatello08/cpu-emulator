@@ -30,6 +30,8 @@
 #define OP_UMULL 0x10
 #define OP_SMULL 0x11
 #define OP_HLT 0x12
+#define OP_PSH 0x13
+#define OP_POP 0x14
 
 // Peripheral and Display Definitions
 #define LCD_WIDTH 32
