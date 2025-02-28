@@ -22,6 +22,7 @@ PageType parse_page_type(const char *type_str) {
     if (strcmp(type_str, "usable_memory") == 0) return USABLE_MEMORY;
     if (strcmp(type_str, "mmio_page") == 0) return MMIO_PAGE;
     if (strcmp(type_str, "flash") == 0) return FLASH;
+    if (strcmp(type_str, "stack") == 0) return STACK;
     return UNKNOWN_TYPE;
 }
 
