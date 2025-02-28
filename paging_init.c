@@ -17,6 +17,10 @@ static inline size_t get_section_size_in_bytes(const MemorySection *section) {
  * All 16-bit logic is removed; everything is handled as 8-bit.
  */
 void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size) {
+    if (state->page_table) {
+        free_all_pages(state->page_table);
+    }
+
     MemoryConfig *mem_config = &state->memory_config;
 
     // Create the page table
@@ -68,6 +72,17 @@ void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t 
 
                     // Clean up
                     free(zero_buffer);
+                }
+                break;
+            }
+
+            case STACK: {
+                // For each page in the STACK section, call get_memory_ptr on one byte
+                for (unsigned int page = 0; page < section->page_count; ++page) {
+                    // Calculate the start address for the current page
+                    unsigned int address = section->start_address + (page * PAGE_SIZE);
+                    // Touch one byte in the page to allocate it.
+                    get_memory_ptr(state, address, true);
                 }
                 break;
             }
