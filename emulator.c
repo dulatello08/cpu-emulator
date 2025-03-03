@@ -4,48 +4,44 @@
 #include <stdio.h>
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
-    //state->reg = malloc(16 * sizeof(uint8_t));
     // debug stuff
-//    bool goOut = false;
-//    while(!goOut) {
-//        printf("h\n");
-//        sleep(1);
-//    }
-//    uint8_t interrupt_vector_table;
-    appState->state->pc = calloc(1, sizeof(uint16_t));
+    appState->state->pc = calloc(1, sizeof(uint32_t));
     appState->state->v_flag = false;
     appState->state->z_flag = false;
-    appState->state->memory = appState->shared_data_memory;
     appState->state->enable_mask_interrupts = false;
-    //*state->i_queue->size = 0;
-    //printf("From emulator, register pointer: %p\n", (void *) state->reg);
-    memcpy(appState->state->memory, appState->program_memory, appState->program_size);
-
-    setupMmap(appState->state, appState->program_size);
-    printf("Flash size: %d\n", appState->flash_size);
-    if (appState->flash_size > BLOCK_SIZE) {
-        memcpy(&(appState->state->memory[appState->state->mm.currentFlashBlock.startAddress]), appState->flash_memory[0], 4096);
-    } else {
-        memcpy(&(appState->state->memory[appState->state->mm.currentFlashBlock.startAddress]), appState->flash_memory[0], appState->flash_size);
-    }
 
     printf("Starting emulator\n");
     bool exitCode = false;
+    MemoryConfig *mc = &appState->state->memory_config;
+    printf("Memory Config: %zu sections\n", mc->section_count);
 
-    while (*(appState->state->pc) + 1 < UINT16_MAX && !exitCode) {
+    for (size_t i = 0; i < mc->section_count; i++) {
+        MemorySection *sec = &mc->sections[i];
+        printf("  [%zu] %s - Type: %d, Start: 0x%X, Pages: %u",
+               i,
+               sec->section_name,
+               sec->type,
+               sec->start_address,
+               sec->page_count);
+        if (sec->device[0])  // Only print device info if non-empty
+            printf(", Device: %s", sec->device);
+        printf("\n");
+    }
+
+    while (*(appState->state->pc) + 1 < UINT32_MAX && !exitCode) {
         if (appState->gui_shm != NULL) {
-            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
-            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
-            if (appState->gui_shm->i_queue.size > 0) {
-                memcpy(appState->state->i_queue->sources, appState->gui_shm->i_queue.sources, INTERRUPT_QUEUE_MAX);
-                *(appState->state->i_queue->size) = appState->gui_shm->i_queue.size;
-            }
-            if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
-                clear_display(appState->gui_shm->display);
-                memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
-                print_display(appState->gui_shm->display);
-                appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
-            }
+//            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 3] = appState->gui_shm->keyboard_o[0];
+//            appState->state->memory[appState->state->mm.peripheralControl.startAddress + 4] = appState->gui_shm->keyboard_o[1];
+//            if (appState->gui_shm->i_queue.size > 0) {
+//                memcpy(appState->state->i_queue->sources, appState->gui_shm->i_queue.sources, INTERRUPT_QUEUE_MAX);
+//                *(appState->state->i_queue->size) = appState->gui_shm->i_queue.size;
+//            }
+//            if (appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1]) {
+//                clear_display(appState->gui_shm->display);
+//                memcpy(appState->gui_shm->display, appState->state->display, sizeof(appState->state->display));
+//                print_display(appState->gui_shm->display);
+//                appState->state->memory[appState->state->mm.flagsBlock.startAddress + 1] -= 1;
+//            }
         }
         if (!appState->state->enable_mask_interrupts || *appState->state->i_queue->size == 0) {
 //            printf("0x%04x\n", *appState->state->pc);
@@ -65,7 +61,7 @@ int start(AppState *appState) {
             pushStack(appState->state, (*appState->state->pc >> 8) & 0xFF);
             *(appState->state->pc) = i_handler;
         }
-        usleep(10000);
+        // usleep(100000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     free(appState->state->pc);

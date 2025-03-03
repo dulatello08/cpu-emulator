@@ -7,3 +7,5 @@ cmake-build-debug
 *.dSYM
 /keyboard/readscancode
 /build/
+/cmake-build-minsizerel/
+/cmake-build-release/
