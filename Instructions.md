@@ -1,60 +1,359 @@
-# Instructions
+### Instruction: nop
+**Opcode:** 0x00
 
+**General Description:** No operation.
 
-| Instruction | Opcode | Description                                                                                                                                                              | Syntax               |
-|-------------|--------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------|
-| NOP         | 0x00   | Do nothing                                                                                                                                                               | NOP                  |
-| ADD         | 0x01   | Add operand 2 to the value in the operand Rd                                                                                                                             | ADD Rd, Operand2     |
-| SUB         | 0x02   | Subtract operand 2 from the value in the operand Rd                                                                                                                      | SUB Rd, Operand2     |
-| MUL         | 0x03   | Multiply the value in the operand Rd by operand 2                                                                                                                        | MUL Rd, Operand2     |
-| ADM         | 0x04   | Store sum of memory address at operand 2 and register Rn in register Rd                                                                                                  | ADD Rd, Rn, Operand2 |
-| SBM         | 0x05   | Store difference of memory address at operand2 and register Rn in register Rd                                                                                            | SMB Rd, Rn, Operand2 |
-| MLM         | 0x06   | Multiply register Rn by memory address at operand 2 and store in register Rd                                                                                             | MLM Rd, Rn, Operand2 |
-| ADR         | 0x07   | Store sum of registers Rd and Rn in memory address at operand 2                                                                                                          | ADR Rd, Rn, Operand2 |
-| SBR         | 0x08   | Store difference of registers Rd and Rn in memory address at operand 2                                                                                                   | SBR Rd, Rn, Operand2 |
-| MLR         | 0x09   | Multiply registers Rd and Rn and store in memory address at operand 2                                                                                                    | MLR Rd, Rn, Operand2 |
-| CLZ         | 0x0A   | Count the number of leading zeros in register Rn and store in Rd                                                                                                         | CLZ Rd Rn            |
-| STO         | 0x0B   | Store operand 2 in the operand Rd                                                                                                                                        | STO Rd, Operand2     |
-| STM         | 0x0C   | Store the value in the register Rd in the data memory at the operand 2                                                                                                   | STM Rd, Operand2     |
-| LDM         | 0x0D   | Load the value in the memory at the address in operand 2 into the register Rd                                                                                            | LDM Rd, Operand2     |
-| PSH         | 0x0E   | Push the value in the register Rn at the specified address onto a stack                                                                                                  | PSH Rd, Operand2     |
-| POP         | 0x0F   | Pop a value from the stack and store it in the register Rd                                                                                                               | POP Rd               |
-| BRN         | 0x10   | Branch to value specified in operand 2                                                                                                                                   | BRN Label            |
-| BRZ         | 0x11   | Branch to value specified in operand 2 if zero flag was set                                                                                                              | BRZ Label            |
-| BRO         | 0x12   | Branch to value specified in operand 2 if overflow flag was not set                                                                                                      | BRO Label            |
-| BRR         | 0x13   | Branch to value specified in operand2 if register Rd equals to Rn register                                                                                               | BRR Rd, Rn, Label    |
-| BNR         | 0x14   | Branch to value specified in operand2 if register Rd does not equal to Rn register                                                                                       | BNR Rd, Rn, Label    |
-| HLT         | 0x15   | Halt                                                                                                                                                                     | HLT                  |
-| JSR         | 0x16   | Jump to subroutine at address of operand 1 and 2.                                                                                                                        | JSR Operand1+2       |
-| OSR         | 0x17   | Jump out of subroutine use PC state saved in stack.                                                                                                                      | OSR                  |
-| RSM         | 0x18   | Store the value in register Rd into the data memory at the address indicated by the top 2 bytes of the stack (Pops values from stack, subject to change)                 | RSM Rd               |
-| RLD         | 0x19   | Load value of data memory at the address indicated by the top 2 bytes of the stack (Pops values from stack, subject to change) into register Rd                          | RLD Rd               |
-| ENI         | 0x1A   | Enables maskable interrupts                                                                                                                                              | ENI                  |
-| DSI         | 0x1B   | Disables maskable interrupts                                                                                                                                             | DSI                  |
-| LSH         | 0x1C   | Left Shift: Shifts the bits in the operand (register Rd) to the left. The number of shift positions is specified by Operand2. Bits shifted out are discarded.            | LSH Rd, Operand2     |
-| LSR         | 0x1D   | Left Shift Register to Memory: Shifts the bits in register Rd to the left by the number of positions in Rn and stores the result in memory at the address in Operand2.   | LSR Rd, Rn, Operand2 |
-| RSH         | 0x1E   | Right Shift: Shifts the bits in the operand (register Rd) to the right. The number of shift positions is specified by Operand2. Bits shifted out are discarded.          | RSH Rd, Operand2     |
-| RSR         | 0x1F   | Right Shift Register to Memory: Shifts the bits in register Rd to the right by the number of positions in Rn and stores the result in memory at the address in Operand2. | RSR Rd, Rn, Operand2 |
-| AND         | 0x20   | Bitwise AND: Performs a bitwise AND operation between the values in registers Rd and Rn. The result of the AND operation is stored in register Rd.                       | AND Rd, Rn           |
-| ORR         | 0x21   | Bitwise OR: Performs a bitwise OR operation between the values in registers Rd and Rn. The result of the OR operation is stored in register Rd.                          | ORR Rd, Rn           |
-| MULL        | 0x22   | Long multiply. multiplies Rn Rs registers and stores low 8 bits in Rlo and high 8 bits in Rhi                                                                            | MULL Rlo Rhi Rn Rs   |
-| XOR         | 0x23   | Bitwise XOR: Performs a bitwise XOR operation between the values in registers Rd and Rn. The result of the XOR operation is stored in register Rd.                       | XOR Rd, Rn           |
+---
 
-| Uses no additional operand | Uses only register operand(s) | Uses at least one register and memory address | Uses only immediate operand | Uses registers and immediate operand |
-|----------------------------|-------------------------------|-----------------------------------------------|-----------------------------|--------------------------------------|
-| NOP, HLT, SCH              | CLZ, PSH, POP, SWT, KIL       | ADM, SBM, MLM, ADR, SBR, MLR, STM, LDM        | BRN, BRZ, BRO               | ADD, SUB, MUL, STO, BRR, BNR, TSK    |
+### Instruction: add
+**Opcode:** 0x01
 
+**General Description:** Add two 16-bit values.
 
-# Memory Map
-Address range is including start address but excluding end address.
+**Specifiers:**
+- **00**: mode 00, add immediate 16-bit value (operand 2) to rd. Leave rn empty. 3-word length.
+- **01**: mode 01, add value from rn to rd. 2-word length.
+- **02**: mode 02, add value at address of normAddressing to rd. 3-word length.
 
-| Address Range   | Memory Space                            |
-|-----------------|-----------------------------------------|
-| 0x0000 - 0x00~~ | Boot Sector (max 256 bytes)             |
-| 0x00~~ - 0xEFF3 | Usable Memory (min 61,174 bytes)        |
-| 0xEFF3 - 0xEFF4 | Flags                                   |
-| 0xEFF4 - 0xEFF3 | Stack Memory                            |
-| 0xEFF3 - 0xEFF7 | MMU Control                             |
-| 0xEFF7 - 0xEFFF | Peripheral Control                      |
-| 0xEFFF - 0xEFFF | Memory Block                            |
-| 0xF000 - 0xFFFF | Reserved for Flash Memory (4,097 bytes) |
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the add operation and the second addend.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source addend, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to be added to rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and added to rd.
+
+---
+
+### Instruction: sub
+**Opcode:** 0x02
+
+**General Description:** Subtract two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, subtract immediate 16-bit value (operand 2) from rd. Leave rn empty. 3-word length.
+- **01**: mode 01, subtract value from rn from rd. 2-word length.
+- **02**: mode 02, subtract value at address of normAddressing from rd. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the subtract operation and the first operand.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source subtrahend, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to be subtracted from rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and subtracted from rd.
+
+---
+
+### Instruction: mul
+**Opcode:** 0x03
+
+**General Description:** Multiply two 16-bit values. Warning: output truncated 16 bit number.
+
+**Specifiers:**
+- **00**: mode 00, multiply rd by immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, multiply rd by value from rn. 2-word length.
+- **02**: mode 02, multiply rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the multiply operation and the multiplicand.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source multiplier, in 02 not used. in 03, is both a multiplier and product.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to multiply with rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and multiplied with rd.
+
+---
+
+### Instruction: and
+**Opcode:** 0x04
+
+**General Description:** Bitwise AND of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise AND rd with immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, bitwise AND rd with value from rn. 2-word length.
+- **02**: mode 02, bitwise AND rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the AND operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to AND with rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and ANDed with rd.
+
+---
+
+### Instruction: or
+**Opcode:** 0x05
+
+**General Description:** Bitwise OR of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise OR rd with immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, bitwise OR rd with value from rn. 2-word length.
+- **02**: mode 02, bitwise OR rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the OR operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to OR with rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and ORed with rd.
+
+---
+
+### Instruction: xor
+**Opcode:** 0x06
+
+**General Description:** Bitwise XOR of two 16-bit values.
+
+**Specifiers:**
+- **00**: mode 00, bitwise XOR rd with immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, bitwise XOR rd with value from rn. 2-word length.
+- **02**: mode 02, bitwise XOR rd with value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the XOR operation and one of the operands.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the second operand, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value to XOR with rd.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and XORed with rd.
+
+---
+
+### Instruction: lsh
+**Opcode:** 0x07
+
+**General Description:** Left shift a 16-bit value.
+
+**Specifiers:**
+- **00**: mode 00, left shift rd by immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, left shift rd by value from rn. 2-word length.
+- **02**: mode 02, left shift rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the left shift operation and the value to be shifted.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source of the shift amount, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value for the shift amount.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and used as the shift amount.
+
+---
+
+### Instruction: rsh
+**Opcode:** 0x08
+
+**General Description:** Right shift a 16-bit value.
+
+**Specifiers:**
+- **00**: mode 00, right shift rd by immediate 16-bit value (operand 2). Leave rn empty. 3-word length.
+- **01**: mode 01, right shift rd by value from rn. 2-word length.
+- **02**: mode 02, right shift rd by value at address of normAddressing. 3-word length.
+
+**Operands:**
+- **rd** (8-bit): In specifiers 00, 01, 02, it is the destination for the right shift operation and the value to be shifted.
+- **rn** (8-bit): In specifier 00 not used, in 01 is the source of the shift amount, in 02 not used.
+- **operand 2** (16-bit): In specifier 00, it is the immediate value for the shift amount.
+- **normAddressing** (32-bit): In specifier 02, it is the address from which the value is read and used as the shift amount.
+
+---
+
+### Instruction: mov
+**Opcode:** 0x09
+
+**General Description:** Move data between registers and memory with various widths and addressing modes, as determined by the specifier.
+
+**Specifiers:**
+- **0x00**: Move immediate into rd(any width, 16 or 8). Syntax: `mov 1, #0x1234`
+- **0x01**: Move 32 bit immediate into rd and rn. Syntax: `mov 1, 2 #0xDEADBEEF` or `mov 1, 2 label`
+- **0x02**: Move (copy) rd to rn (full width, 16). Syntax: `mov 1, 2`. Warning: reversed semantics.
+- **0x03**: Move 8-bit value from memory (normAddressing) to rd.L. Syntax: `mov 1.L, [0x2000]`
+- **0x04**: Move 8-bit value from memory (normAddressing) to rd.H. Syntax: `mov 1.H, [0x2001]`
+- **0x05**: Move 16-bit value from memory (normAddressing) to rd. Syntax: `mov 1, [0x3000]`
+- **0x06**: Move 32-bit value from memory (normAddressing) into rd (upper 16 bits) and rn1 (lower 16 bits). Syntax: `mov 1, 2, [0x4000]`
+- **0x07**: Move 8-bit value from rd.L to memory (normAddressing). Syntax: `mov [0x5000], 1.L`
+- **0x08**: Move 8-bit value from rd.H to memory (normAddressing). Syntax: `mov [0x5001], 1.H`
+- **0x09**: Move 16-bit value from rd to memory (normAddressing). Syntax: `mov [0x6000], 1`
+- **0x0A**: Move 32-bit value from rd (upper 16 bits) and rn1 (lower 16 bits) to memory (normAddressing). Syntax: `mov [0x7000], 1, 2`
+- **0x0B**: Move 8-bit value from memory (rn + Offset) to rd.L. Syntax: `mov 1.L, [3 + 0x10]`
+- **0x0C**: Move 8-bit value from memory (rn + Offset) to rd.H. Syntax: `mov 1.H, [3 + 0x10]`
+- **0x0D**: Move 16-bit value from memory (rn + Offset) to rd. Syntax: `mov 1, [3 + 0x20]`
+- **0x0E**: Move 32-bit value from memory (rn + Offset) to rd and rn1. Syntax: `mov 1, 2, [3 + 0x30]`
+- **0x0F**: Move 8-bit value from rd.L to memory (rn + Offset). Syntax: `mov [3 + 0x40], 1.L`
+- **0x10**: Move 8-bit value from rd.H to memory (rn + Offset). Syntax: `mov [3 + 0x40], 1.H`
+- **0x11**: Move 16-bit value from rd to memory (rn + Offset). Syntax: `mov [3 + 0x50], 1`
+- **0x12**: Move 32-bit value from rd and rn1 to memory (rn + Offset). Syntax: `mov [3 + 0x60], 1, 2`
+  **Operands:**
+- **rd** (8-bit): Destination or source register depending on the specifier.
+- **rn** (8-bit): Used as a base register with offset in specifiers 0x0A–0x11.
+- **rn1** (8-bit): Secondary register used in 32-bit operations (specifiers 0x05, 0x09, 0x0D, 0x11).
+- **normAddressing** (32-bit): Base memory address used in specifiers 0x02–0x09.
+
+---
+
+### Instruction: b
+**Opcode:** 0x0A
+
+**General Description:** Unconditional branch.
+
+**Specifiers:**
+- **00**: Syntax: `b label`
+
+**Operands:**
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: be
+**Opcode:** 0x0B
+
+**General Description:** Branch if equal.
+
+**Specifiers:**
+- **00**: Syntax: `be rd, rn, label`
+
+**Operands:**
+- **rd** (8-bit): First register for comparison.
+- **rn** (8-bit): Second register for comparison.
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: bne
+**Opcode:** 0x0C
+
+**General Description:** Branch if not equal.
+
+**Specifiers:**
+- **00**: Syntax: `bne rd, rn, label`
+
+**Operands:**
+- **rd** (8-bit): First register for comparison.
+- **rn** (8-bit): Second register for comparison.
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: blt
+**Opcode:** 0x0D
+
+**General Description:** Branch if less than.
+
+**Specifiers:**
+- **00**: Syntax: `blt rd, rn, label`
+
+**Operands:**
+- **rd** (8-bit): First register for comparison.
+- **rn** (8-bit): Second register for comparison.
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: bgt
+**Opcode:** 0x0E
+
+**General Description:** Branch if greater than.
+
+**Specifiers:**
+- **00**: Syntax: `bgt rd, rn, label`
+
+**Operands:**
+- **rd** (8-bit): First register for comparison.
+- **rn** (8-bit): Second register for comparison.
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: bro
+**Opcode:** 0x0F
+
+**General Description:** Branch if overflow is set.
+
+**Specifiers:**
+- **00**: Syntax: `bro label`
+
+**Operands:**
+- **label** (32-bit): Branch target address.
+
+---
+
+### Instruction: umull
+**Opcode:** 0x10
+
+**General Description:** Performs an **unsigned** 16-bit multiplication. Stores the **lower 16 bits** of the result in `rd` and the **upper 16 bits** in `rn1`. 2-word length.
+
+**Specifiers:**
+- **00**: mode 00, multiply `rd` and `rn`, store **lower** result in `rd`, **upper** in `rn1`. Syntax: `umull r1, r2, r3`
+
+**Operands:**
+- **rd** (8-bit): Destination register for the **lower** 16 bits of the result.
+- **rn1** (8-bit): Destination register for the **upper** 16 bits of the result.
+- **rn** (8-bit): Register holding the second multiplicand.
+
+---
+
+### Instruction: smull
+**Opcode:** 0x11
+
+**General Description:** Performs a **signed** 16-bit multiplication. Stores the **lower 16 bits** of the result in `rd` and the **upper 16 bits** in `rn1`. 2-word length.
+
+**Specifiers:**
+- **00**: mode 00, multiply `rd` and `rn`, store **lower** result in `rd`, **upper** in `rn1`. Syntax: `smull r1, r2, r3`
+
+**Operands:**
+- **rd** (8-bit): Destination register for the **lower** 16 bits of the result.
+- **rn1** (8-bit): Destination register for the **upper** 16 bits of the result.
+- **rn** (8-bit): Register holding the second multiplicand.
+
+---
+
+### Instruction: hlt
+**Opcode:** 0x12
+
+**General Description:** Stops execution immediately. The CPU enters a halted state until reset.
+
+**Specifiers:**
+- **00**: mode 00, halt execution. 2-word length.
+
+**Operands:** None.
+
+### Instruction: psh
+**Opcode:** 0x13
+
+**General Description:** Pushes a 16-bit value onto the stack. The stack pointer is automatically adjusted after the operation.
+
+**Specifiers:**
+- **00**: Syntax: `psh rd`
+
+**Operands:**
+- **rd** (8-bit): The register whose value will be pushed onto the stack.
+
+---
+
+### Instruction: pop
+**Opcode:** 0x14
+
+**General Description:** Pops a 16-bit value from the stack into a register. The stack pointer is automatically adjusted after the operation.
+
+**Specifiers:**
+- **00**: Syntax: `pop rd`
+
+**Operands:**
+- **rd** (8-bit): The register where the popped value will be stored.
+
+---
+
+### Instruction: jsr
+**Opcode:** 0x15
+
+**General Description:** Jump to subroutine. This instruction saves the return address (the address of the next instruction) onto the stack and branches to the specified subroutine address.
+
+**Specifiers:**
+- **00**: Syntax: `jsr label`
+
+**Operands:**
+- **label** (32-bit): The entry point address of the subroutine.
+
+---
+
+### Instruction: rts
+**Opcode:** 0x16
+
+**General Description:** Return from subroutine. This instruction retrieves the previously saved return address from the stack and transfers control back to that address.
+
+**Specifiers:**
+- **00**: Syntax: `rts`
+
+**Operands:**
+- *None.*

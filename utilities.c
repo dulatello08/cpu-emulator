@@ -1,336 +1,362 @@
 #include "main.h"
 #include <curses.h>
 #include <stdint.h>
+#include <sys/fcntl.h>
+#include <sys/stat.h>
 
-
-size_t load_program(const char *program_file, uint8_t **program_memory) {
-    if (program_file == NULL) {
-        fprintf(stderr, "Error: input file not specified.\n");
-        return 0;
-    }
-
-    FILE *fpi = fopen(program_file, "rb");
-    if (fpi == NULL) {
-        fprintf(stderr, "Error: Failed to open input program file.\n");
-        return 0;
-    }
-
-    fseek(fpi, 0, SEEK_END);
-    unsigned long size = ftell(fpi);
-
-    if (size != EXPECTED_PROGRAM_WORDS * sizeof(uint8_t)) {
-        fprintf(stderr, "Error: Input program file does not contain %d bytes. It contains %ld bytes\n", EXPECTED_PROGRAM_WORDS, size);
-        fclose(fpi);
-        return 0;
-    }
-
-    *program_memory = malloc(size * sizeof(uint8_t));
-    if (*program_memory == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for program memory.\n");
-        fclose(fpi);
-        return 0;
-    }
-
-    fseek(fpi, 0, SEEK_SET);
-    size_t num_read = fread(*program_memory, sizeof(uint8_t), size, fpi);
-    if (num_read != size) {
-        fprintf(stderr, "Error: Failed to read %ld bytes from input program file.\n", size);
-        free(*program_memory);
-        fclose(fpi);
-        return 0;
-    }
-
-    fclose(fpi);
-    return num_read;
-}
-
-long load_flash(const char *flash_file, FILE *fpf, uint8_t ***flash_memory) {
-    if (flash_file == NULL) {
-        fprintf(stderr, "Error: flash file not specified.\n");
-        return 0;
-    }
-
-    fpf = fopen(flash_file, "r+b");
-    if (fpf == NULL) {
-        fprintf(stderr, "Error: Failed to open input flash file.\n");
-        return 0;
-    }
-
-    fseek(fpf, 0, SEEK_END);
-    // bad code
-    long file_size, flash_size_total = file_size = ftell(fpf);
-    int num_blocks = ((int) file_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-    *flash_memory = calloc(num_blocks, sizeof(uint8_t *));
-    if (*flash_memory == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for flash memory.\n");
-        fclose(fpf);
-        return 0;
-    }
-
-    for (int i = 0; i < num_blocks; i++) {
-        (*flash_memory)[i] = calloc(BLOCK_SIZE, sizeof(uint8_t));
-        if ((*flash_memory)[i] == NULL) {
-            fprintf(stderr, "Error: Failed to allocate memory for flash block %d.\n", i);
-            for (int j = 0; j < i; j++) {
-                free((*flash_memory)[j]);
-            }
-            free(*flash_memory);
-            fclose(fpf);
-            return 0;
-        }
-    }
-
-    fseek(fpf, 0, SEEK_SET);
-    __attribute__ ((unused)) int non_zero_count = 0;
-    for (int i = 0; i < num_blocks; i++) {
-        size_t bytes_to_read = (file_size > BLOCK_SIZE * (i + 1)) ? BLOCK_SIZE : (file_size % BLOCK_SIZE == 0 ? BLOCK_SIZE : file_size % BLOCK_SIZE);
-        size_t num_read = fread((*flash_memory)[i], sizeof(uint8_t), bytes_to_read, fpf);
-        if (num_read != bytes_to_read) {
-            fprintf(stderr, "Error: Failed to read %ld bytes from input flash file for block %d.\n", bytes_to_read, i);
-            for (int j = 0; j < num_blocks; j++) {
-                free((*flash_memory)[j]);
-            }
-            free(*flash_memory);
-            fclose(fpf);
-            return 0;
-        }
-        for (int j = 0; j < (int) bytes_to_read; j++) {
-            non_zero_count += (*flash_memory)[i][j] != 0;
-        }
-        file_size -= (int) bytes_to_read;
-    }
-
-    fclose(fpf);
-    return flash_size_total;
-}
-
-void increment_pc(CPUState *state, uint8_t opcode) {
+static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
     switch (opcode) {
         case OP_NOP:
         case OP_HLT:
-        case OP_OSR:
-        default: //todo add warning
-            *(state->pc) += 1;
-            break;
-        case OP_CLZ:
+        case OP_RTS:
+            return 2;
         case OP_PSH:
         case OP_POP:
-        case OP_RSM:
-        case OP_RLD:
-        case OP_AND:
-        case OP_ORR:
-        case OP_XOR:
-            *(state->pc) += 2;
-            break;
+            return 3;
+
         case OP_ADD:
         case OP_SUB:
         case OP_MUL:
-        case OP_STO:
-        case OP_BRN:
-        case OP_BRZ:
-        case OP_BRO:
-        case OP_JSR:
+        case OP_AND:
+        case OP_OR:
+        case OP_XOR:
         case OP_LSH:
         case OP_RSH:
-        case OP_MULL:
-            *(state->pc) += 3;
-            break;
-        case OP_ADM:
-        case OP_SBM:
-        case OP_MLM:
-        case OP_ADR:
-        case OP_SBR:
-        case OP_MLR:
-        case OP_STM:
-        case OP_LDM:
-        case OP_BRR:
-        case OP_BNR:
-        case OP_LSR:
-        case OP_RSR:
-            *(state->pc) += 4;
-            break;
+        case OP_UMULL:
+        case OP_SMULL:
+            switch (specifier) {
+                case 0x00: return 5;
+                case 0x01:
+                case 0x03:
+                    return 4;
+                case 0x02: return 7;
+                default:   return 1;
+            }
+
+        case OP_MOV:
+            switch (specifier) {
+                case 0x00: return 5;
+                case 0x01: return 8;
+                case 0x02: return 4;
+                case 0x03:
+                case 0x04:
+                case 0x05: return 7;
+                case 0x06: return 8;
+                case 0x07:
+                case 0x08:
+                case 0x09: return 7;
+                case 0x0A:
+                case 0x0B:
+                case 0x0C:
+                case 0x0D: return 8;
+                case 0x0E: return 9;
+                case 0x0F:
+                case 0x10:
+                case 0x11: return 8;
+                case 0x12: return 9;
+                default: return 1;
+            }
+
+        case OP_B:
+        case OP_JSR:
+            return 6;
+
+        case OP_BE:
+        case OP_BNE:
+        case OP_BLT:
+        case OP_BGT:
+            return 8;
+
+        default:
+            return 1;
     }
 }
+/* Increments the CPUState's PC by the instruction's word length */
+void increment_pc(CPUState *state, uint8_t opcode, uint8_t specifier) {
+    *(state->pc) += get_instruction_length(opcode, specifier);
+}
 
-void handle_operation(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode, uint16_t (*operation)(uint8_t, uint16_t)) {
-    uint16_t result;
-    // mode 0 & 1: result is stored at rd, 2 is at memory address operand2
-    if(mode == 0) {
-        result = operation(state->reg[operand_rd], operand2);
-    } else if(mode == 1) {
-        result = operation(state->reg[operand_rn], memory_access(state, 0, operand2, 0, 1));
-    } else /*if(mode == 2)*/ {
-        result = operation(state->reg[operand_rd], state->reg[operand_rn]);
+void handle_operation(
+    CPUState *state,
+    uint8_t operand_rd,
+    uint8_t operand_rn,
+    uint16_t immediate,
+    uint32_t operand2,
+    uint8_t mode,
+    uint32_t (*operation)(uint16_t, uint32_t)
+) {
+    uint32_t result = 0;
+
+    // Determine result based on mode using a switch-case.
+    switch (mode) {
+        case 0:
+            // Mode 0: Use operand_rd and immediate operand2.
+            result = operation(state->reg[operand_rd], immediate);
+            break;
+        case 1:
+            // Mode 1: Use operand_rn, second operand as zero.
+            result = operation(state->reg[operand_rn], state->reg[operand_rd]);
+            break;
+        case 2:
+            // Mode 2: Use operand_rd and operand_rn.
+            result = operation(state->reg[operand_rd], get_memory(state, operand2));
+            break;
+        default:
+            printf("Unsupported mode: %d\n", mode);
+            return;
     }
 
-    state->v_flag = (result > UINT8_MAX);
+    // Update flags based on the result.
+    state->v_flag = result > UINT16_MAX;
     state->z_flag = (result == 0);
 
-    if(state->v_flag) {
-        if(mode == 0 || mode == 1 || mode == 3) {
-            state->reg[operand_rd] = UINT8_MAX;
-        } else if (mode == 2) {
-            memory_access(state, UINT8_MAX, operand2, 1, 1);
-        }
-    } else {
-        if(mode == 0 || mode == 1 || mode == 3) {
-            state->reg[operand_rd] = (uint8_t)result;
-        } else if(mode == 2) {
-            memory_access(state, result, operand2, 1, 1);
-        }
+    // Store the result or handle overflow based on mode.
+    switch (mode) {
+        case 0:
+        case 1:
+        case 2:
+            // For modes 0, 1, and 2, store to register.
+            state->reg[operand_rd] = (uint16_t) result;
+            break;
+        default:
+            // Already handled unsupported modes above.
+            break;
     }
 }
 
-uint16_t add_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 + operand2;
+uint32_t add_operation(uint16_t operand1, uint32_t operand2) {
+    return (uint32_t) operand1 + operand2;
 }
 
-uint16_t subtract_operation(uint8_t operand1, uint16_t operand2) {
-    int16_t result = (int16_t)operand1 - (int16_t)operand2;
+uint32_t subtract_operation(uint16_t operand1, uint32_t operand2) {
+    int64_t result = (int64_t) operand1 - (int64_t) operand2;
     if (result < 0) {
         return 0;
     }
-    return (uint16_t)result;
+    return (uint32_t) result;
 }
 
-uint16_t multiply_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 * operand2;
+uint32_t multiply_operation(uint16_t operand1, uint32_t operand2) {
+    return (uint32_t) operand1 * operand2;
 }
 
-uint16_t left_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return ((uint16_t)operand1 << operand2) & 0xFF;
+uint32_t left_shift_operation(uint16_t operand1, uint32_t operand2) {
+    return ((uint32_t) operand1 << operand2) & 0xFFFFFFFF;
 }
 
-uint16_t right_shift_operation(uint8_t operand1, uint16_t operand2) {
-    return ((uint16_t)operand1 >> operand2) & 0xFF;
+uint32_t right_shift_operation(uint16_t operand1, uint32_t operand2) {
+    return ((uint32_t) operand1 >> operand2) & 0xFFFFFFFF;
 }
 
-uint16_t and_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 & operand2;
+uint32_t and_operation(uint16_t operand1, uint32_t operand2) {
+    return (uint32_t) operand1 & operand2;
 }
 
-uint16_t or_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 | operand2;
+uint32_t or_operation(uint16_t operand1, uint32_t operand2) {
+    return (uint32_t) operand1 | operand2;
 }
 
-uint16_t xor_operation(uint8_t operand1, uint16_t operand2) {
-    return (uint16_t)operand1 ^ operand2;
+uint32_t xor_operation(uint16_t operand1, uint32_t operand2) {
+    return (uint32_t) operand1 ^ operand2;
 }
 
-void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, add_operation);
+void add(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2, uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, add_operation);
 }
 
-void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, subtract_operation);
+void subtract(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+              uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, subtract_operation);
 }
 
-void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, multiply_operation);
+void multiply(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+              uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, multiply_operation);
 }
 
-void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, left_shift_operation);
+void left_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, left_shift_operation);
 }
 
-void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t operand2, uint8_t mode) {
-    handle_operation(state, operand_rd, operand_rn, operand2, mode, right_shift_operation);
+void right_shift(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, right_shift_operation);
 }
 
-void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
-    handle_operation(state, operand_rd, operand_rn, 0, 3, and_operation);
+void bitwise_and(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, and_operation);
 }
 
-void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
-    handle_operation(state, operand_rd, operand_rn, 0, 3, or_operation);
+void bitwise_or(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, or_operation);
 }
 
-void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn) {
-    handle_operation(state, operand_rd, operand_rn, 0, 3, xor_operation);
+void bitwise_xor(CPUState *state, uint8_t operand_rd, uint8_t operand_rn, uint16_t immediate, uint32_t operand2,
+                 uint8_t mode) {
+    handle_operation(state, operand_rd, operand_rn, immediate, operand2, mode, xor_operation);
 }
 
-// This function performs a memory access.
-//
-// Parameters:
-//   state: A pointer to the CPU state.
-//   reg: The register to be accessed.
-//   address: The memory address to be accessed.
-//   mode: The access mode.
-//   srcDest: The source or destination of the access.
-//
-// Returns:
-//   The value of the memory location at the specified address.
+// Unsigned Multiply Long Long (UMULL)
+void umull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn) {
+    uint32_t result = (uint32_t)(*rd) * (uint32_t)(*rn);  // Perform 16x16 unsigned multiplication
+    *rd = (uint16_t)(result & 0xFFFF);   // Store lower 16 bits in rd
+    *rn1 = (uint16_t)(result >> 16);     // Store upper 16 bits in rn1
+}
 
-uint8_t memory_access(CPUState *state, uint8_t reg, uint16_t address, uint8_t mode, uint8_t srcDest) {
-    switch (mode) {
-        case 0:
-            // Read mode
-            if(!srcDest) {
-                state->reg[reg] = state->memory[address];
-            }
-            break;
-        case 1:
-            // Write mode
-            if(!srcDest) {
-                handleWrite(state, address, state->reg[reg]);
-                state->memory[address] = state->reg[reg];
-            } else {
-                handleWrite(state, address, reg);
-                state->memory[address] = reg;
-            }
-            break;
-        default:
-            break;
+// Signed Multiply Long Long (SMULL)
+void smull(uint16_t *rd, uint16_t *rn1, const uint16_t *rn) {
+    int32_t result = (int32_t)((int16_t)(*rd)) * (int32_t)((int16_t)(*rn));  // Perform 16x16 signed multiplication
+    *rd = (uint16_t)(result & 0xFFFF);   // Store lower 16 bits in rd
+    *rn1 = (uint16_t)(result >> 16);     // Store upper 16 bits in rn1
+}
+
+
+// Helper: Find the STACK memory section in the MemoryConfig.
+// Returns a pointer to the STACK MemorySection or NULL if not found.
+static MemorySection* find_stack_section(const MemoryConfig *config) {
+    for (size_t i = 0; i < config->section_count; i++) {
+        if (config->sections[i].type == STACK) {
+            return (MemorySection *)&config->sections[i];
+        }
     }
-    return state->memory[address];
+    return NULL;
 }
 
+/**
+ * Push a single byte onto the stack.
+ * The first 4 bytes of the stack section hold the current stack pointer.
+ * The stack grows upward (i.e. increasing offset from the start of the data area).
+ */
 void pushStack(CPUState *state, uint8_t value) {
-    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
+    MemorySection *stack_section = find_stack_section(&state->memory_config);
+    if (!stack_section) {
+        fprintf(stderr, "Error: Stack section not found in configuration.\n");
+        exit(EXIT_FAILURE);
+    }
+    // The base address for the stack section in emulator memory.
+    uint32_t base_addr = stack_section->start_address;
+    // The first 4 bytes store the current stack pointer.
+    uint8_t *sp_mem = get_memory_ptr(state, base_addr, true);
+    if (!sp_mem) {
+        fprintf(stderr, "Error: Unable to access stack pointer memory.\n");
+        exit(EXIT_FAILURE);
+    }
+    uint32_t *sp_ptr = (uint32_t *)sp_mem;
+    uint32_t sp = *sp_ptr; // current offset in the data area (in bytes)
 
-    // Shift existing values up by one position
-    for (uint8_t i = stackTop; i > 0; i--) {
-        state->memory[state->mm.stackMemory.startAddress + i + 1] = state->memory[state->mm.stackMemory.startAddress + i];
+    // Determine the maximum available bytes for stack data.
+    // (Total section size minus 4 bytes reserved for the stack pointer)
+    uint32_t total_section_bytes = stack_section->page_count * PAGE_SIZE;
+    uint32_t max_stack_bytes = total_section_bytes - 4;
+    if (sp >= max_stack_bytes) {
+        fprintf(stderr, "Stack overflow: cannot push more data.\n");
+        exit(EXIT_FAILURE);
     }
 
-    // Store the new value at the top of the stack
-    state->memory[state->mm.stackMemory.startAddress + 1] = value;
-    state->memory[state->mm.stackMemory.startAddress]++;
+    // Calculate where to store the value:
+    // (Base address + 4 bytes for pointer + current SP offset)
+    uint32_t push_addr = base_addr + 4 + sp;
+    uint8_t *dest = get_memory_ptr(state, push_addr, true);
+    if (!dest) {
+        fprintf(stderr, "Error: Unable to access memory for push operation.\n");
+        exit(EXIT_FAILURE);
+    }
+    *dest = value;
+
+    // Increment and update the stack pointer.
+    sp++;
+    *sp_ptr = sp;
 }
 
+/**
+ * Pop a single byte from the stack.
+ *
+ * @param state Pointer to the CPU state.
+ * @param out Pointer to a byte where the popped value will be stored.
+ * @return 1 if a byte was successfully popped, or 0 if the stack was empty.
+ */
 uint8_t popStack(CPUState *state, uint8_t *out) {
-    uint8_t stackTop = state->memory[state->mm.stackMemory.startAddress];
-    uint8_t value = state->memory[state->mm.stackMemory.startAddress + 1];
+    MemorySection *stack_section = find_stack_section(&state->memory_config);
+    if (!stack_section) {
+        fprintf(stderr, "Error: Stack section not found in configuration.\n");
+        exit(EXIT_FAILURE);
+    }
+    uint32_t base_addr = stack_section->start_address;
+    uint8_t *sp_mem = get_memory_ptr(state, base_addr, false);
+    if (!sp_mem) {
+        fprintf(stderr, "Error: Unable to access stack pointer memory.\n");
+        return 0;
+    }
+    uint32_t *sp_ptr = (uint32_t *)sp_mem;
+    uint32_t sp = *sp_ptr; // current offset (number of bytes on stack)
 
-    // Shift values down by one position
-    for (uint8_t i = 1; i < stackTop; i++) {
-        state->memory[state->mm.stackMemory.startAddress + i] = state->memory[state->mm.stackMemory.startAddress + i + 1];
+    if (sp == 0) {
+        fprintf(stderr, "Stack underflow: no data to pop.\n");
+        return 0;
     }
 
-    state->memory[state->mm.stackMemory.startAddress]--;
-
-    if (out != NULL) {
-        *out = value;
+    // Decrement the stack pointer to point to the top-most data
+    sp--;
+    uint32_t pop_addr = base_addr + 4 + sp;
+    uint8_t *src = get_memory_ptr(state, pop_addr, false);
+    if (!src) {
+        fprintf(stderr, "Error: Unable to access memory for pop operation.\n");
+        return 0;
     }
+    *out = *src;
 
-    return value;
+    // Update the stored stack pointer.
+    *sp_ptr = sp;
+    return 1;
 }
-
 
 uint8_t count_leading_zeros(uint8_t x) {
-    uint8_t count = 0;
-
-    while (x != 0) {
-        x >>= 1;
-        count++;
+    if (x == 0) return 8;
+    uint8_t n = 0;
+    if ((x & 0xF0) == 0) {
+        n += 4;
+        x <<= 4;
     }
-
-    return 8 - count;
+    if ((x & 0xC0) == 0) {
+        n += 2;
+        x <<= 2;
+    }
+    if ((x & 0x80) == 0) { n += 1; }
+    return n;
 }
 
-bool hasChanged(int* lastValue, int currentValue) {
-    bool changed = (*lastValue != currentValue);
-    *lastValue = currentValue;
-    return changed;
+size_t load_program(const char *filename, uint8_t **buffer) {
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+        *buffer = NULL;
+        return 0;
+    }
+
+    struct stat sb;
+    if (fstat(fd, &sb) == -1) {
+        close(fd);
+        *buffer = NULL;
+        return 0;
+    }
+
+    size_t size = sb.st_size;
+    *buffer = (uint8_t *) malloc(size);
+    if (!*buffer) {
+        close(fd);
+        return 0;
+    }
+
+    ssize_t bytes_read = read(fd, *buffer, size);
+    close(fd);
+
+    if ((size_t) bytes_read != size) {
+        free(*buffer);
+        *buffer = NULL;
+        return 0;
+    }
+
+    return size;
 }
