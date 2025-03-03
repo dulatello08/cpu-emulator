@@ -331,3 +331,29 @@
 
 **Operands:**
 - **rd** (8-bit): The register where the popped value will be stored.
+
+---
+
+### Instruction: jsr
+**Opcode:** 0x15
+
+**General Description:** Jump to subroutine. This instruction saves the return address (the address of the next instruction) onto the stack and branches to the specified subroutine address.
+
+**Specifiers:**
+- **00**: Syntax: `jsr label`
+
+**Operands:**
+- **label** (32-bit): The entry point address of the subroutine.
+
+---
+
+### Instruction: rts
+**Opcode:** 0x16
+
+**General Description:** Return from subroutine. This instruction retrieves the previously saved return address from the stack and transfers control back to that address.
+
+**Specifiers:**
+- **00**: Syntax: `rts`
+
+**Operands:**
+- *None.*

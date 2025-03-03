@@ -32,6 +32,8 @@
 #define OP_HLT 0x12
 #define OP_PSH 0x13
 #define OP_POP 0x14
+#define OP_JSR 0x15
+#define OP_RTS 0x16
 
 // Peripheral and Display Definitions
 #define LCD_WIDTH 32

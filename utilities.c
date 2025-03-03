@@ -8,6 +8,7 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
     switch (opcode) {
         case OP_NOP:
         case OP_HLT:
+        case OP_RTS:
             return 2;
         case OP_PSH:
         case OP_POP:
@@ -57,6 +58,7 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
             }
 
         case OP_B:
+        case OP_JSR:
             return 6;
 
         case OP_BE:
