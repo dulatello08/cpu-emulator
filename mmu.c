@@ -31,10 +31,15 @@ void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
                 return; // normal write – no trigger
             } else if (section->type == MMIO_PAGE) {
                 // Handle writes that trigger an action
-                if (strcmp(section->device, "uart") != 0) {
+                if (strcmp(section->device, "UART") == 0) {
                     if (address == 0x10000) {
                         printf("%c", (uint8_t) value);
                         fflush(stdout);
+                    }
+                }
+                if (strcmp(section->device, "PIC") == 0) {
+                    if (address == 0x20004) {
+                        printf("Loading IVT at address %08x, length %02x\n", read32(state, 0x20000), (uint8_t) value);
                     }
                 }
             }

@@ -41,8 +41,8 @@
 #define READ_PERIPHERAL_MMAP 0x1
 
 // Interrupt Definitions
-#define INTERRUPT_TABLE_SIZE 10
-#define INTERRUPT_QUEUE_MAX 10
+#define IRQ_QUEUE_SIZE   8     // Size of the FIFO queue for pending interrupts
+#define MAX_INTERRUPTS   32    // Maximum number of interrupts that can be registered
 
 #define MAX_SECTIONS 64
 

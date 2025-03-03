@@ -51,6 +51,24 @@ typedef struct {
     size_t section_count;
 } MemoryConfig;
 
+// -- Interrupts -- //
+
+typedef struct {
+    uint8_t source;
+    uint32_t handler_address;   // Address of the interrupt service routine (ISR)
+} InterruptVectorEntry;
+
+typedef struct {
+    InterruptVectorEntry entries[MAX_INTERRUPTS];  // Array of vector entries
+    uint8_t count;                                   // Current number of registered interrupts
+} InterruptVectorTable;
+
+typedef struct {
+    uint8_t queue[IRQ_QUEUE_SIZE];  // Circular buffer for pending IRQ numbers
+    uint8_t head;                   // Read index
+    uint8_t tail;                   // Write index
+    uint8_t count;                  // Number of pending interrupts
+} InterruptQueue;
 
 // -- GUI Shared Memory -- //
 // typedef struct {
@@ -135,8 +153,20 @@ void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 
-// Interrupt Management
+// -- Interrupt Management -- //
 
+// Interrupt Vector Table Functions
+void init_interrupt_vector_table(InterruptVectorTable *table);
+bool register_interrupt_vector(InterruptVectorTable *table, uint8_t source, uint32_t handler_address);
+bool unregister_interrupt_vector(InterruptVectorTable *table, uint8_t source);
+InterruptVectorEntry* get_interrupt_vector(InterruptVectorTable *table, uint8_t source);
+
+// Interrupt Queue Functions
+void init_interrupt_queue(InterruptQueue *queue);
+bool enqueue_interrupt(InterruptQueue *queue, uint8_t irq);
+bool dequeue_interrupt(InterruptQueue *queue, uint8_t *irq);
+bool is_interrupt_queue_empty(InterruptQueue *queue);
+bool is_interrupt_queue_full(InterruptQueue *queue);
 
 // GUI Management
 void open_gui(AppState *appState);
@@ -155,5 +185,11 @@ void mov(CPUState *state,
          uint32_t offset,
          uint8_t specifier);
 void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value);
+uint8_t read8(CPUState* state, uint32_t address);
+uint16_t read16(CPUState* state, uint32_t address);
+uint32_t read32(CPUState* state, uint32_t address);
+void write8(CPUState* state, uint32_t address, uint8_t value);
+void write16(CPUState* state, uint32_t address, uint16_t value);
+void write32(CPUState* state, uint32_t address, uint32_t value);
 
 #endif //INC_16_BIT_CPU_EMULATOR_MAIN_H
