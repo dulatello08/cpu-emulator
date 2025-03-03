@@ -173,8 +173,8 @@ bool execute_instruction(CPUState *state) {
             return true;
         case OP_PSH: {
             // Push the value from the register onto the stack
-            pushStack(state, (uint8_t)(state->reg[rd] & 0xFF));
-            pushStack(state, (uint8_t)((state->reg[rd] >> 8) & 0xFF));
+            pushStack(state, (uint8_t) (state->reg[rd] & 0xFF));
+            pushStack(state, (uint8_t) ((state->reg[rd] >> 8) & 0xFF));
             break;
         }
 
@@ -185,7 +185,41 @@ bool execute_instruction(CPUState *state) {
                 fprintf(stderr, "Stack underflow while executing POP.\n");
                 break;
             }
-            state->reg[rd] = ((uint16_t)high << 8) | low;
+            state->reg[rd] = ((uint16_t) high << 8) | low;
+            break;
+        }
+        case OP_JSR: {
+            // Calculate the return address as the address following the jsr instruction.
+            uint32_t return_address = *(state->pc) + 6;
+            // Push the return address onto the stack (as a 32-bit value split into four bytes).
+            pushStack(state, (uint8_t) (return_address & 0xFF));
+            pushStack(state, (uint8_t) ((return_address >> 8) & 0xFF));
+            pushStack(state, (uint8_t) ((return_address >> 16) & 0xFF));
+            pushStack(state, (uint8_t) ((return_address >> 24) & 0xFF));
+
+            // Read the 32-bit target label from the instruction (bytes 2-5).
+            const uint32_t label = ((uint32_t) pc_ptr[2] << 24) |
+                                   ((uint32_t) pc_ptr[3] << 16) |
+                                   ((uint32_t) pc_ptr[4] << 8) |
+                                   pc_ptr[5];
+            *(state->pc) = label;
+            skipIncrementPC = true;
+            break;
+        }
+        case OP_RTS: {
+            // Pop a 32-bit return address from the stack (four 8-bit pops).
+            uint8_t b1, b2, b3, b4;
+            if (!popStack(state, &b1) || !popStack(state, &b2) ||
+                !popStack(state, &b3) || !popStack(state, &b4)) {
+                fprintf(stderr, "Stack underflow while executing RTS.\n");
+                break;
+            }
+            const uint32_t return_address = ((uint32_t) b1 << 24) |
+                                            ((uint32_t) b2 << 16) |
+                                            ((uint32_t) b3 << 8) |
+                                            b4;
+            *(state->pc) = return_address;
+            skipIncrementPC = true;
             break;
         }
         // Add additional opcodes here...

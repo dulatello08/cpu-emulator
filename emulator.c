@@ -61,7 +61,7 @@ int start(AppState *appState) {
             pushStack(appState->state, (*appState->state->pc >> 8) & 0xFF);
             *(appState->state->pc) = i_handler;
         }
-        // usleep(10000);
+        // usleep(100000);
     }
     if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     free(appState->state->pc);
