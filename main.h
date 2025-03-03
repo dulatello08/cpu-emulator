@@ -51,28 +51,11 @@ typedef struct {
     size_t section_count;
 } MemoryConfig;
 
-typedef struct {
-    uint8_t source;
-    uint16_t handler;
-} InterruptVectors;
-
-// -- Interrupt Handling -- //
-typedef struct {
-    uint8_t* sources;       // Dynamic array to store interrupt sources
-    uint8_t* size;          // Index of the top element
-} InterruptQueue;
-
-typedef struct {
-    uint8_t sources[10];
-    uint8_t size;
-} GuiInterruptQueue;
 
 // -- GUI Shared Memory -- //
-typedef struct {
-    char display[LCD_WIDTH][LCD_HEIGHT];
-    uint8_t keyboard_o[2];
-    GuiInterruptQueue i_queue;
-} gui_process_shm_t;
+// typedef struct {
+//
+// } gui_process_shm_t;
 
 // -- CPU State -- //
 typedef struct CPUState {
@@ -85,9 +68,8 @@ typedef struct CPUState {
     bool z_flag;
     bool v_flag;
 
+    // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
-    InterruptVectors i_vector_table[INTERRUPT_TABLE_SIZE];
-    InterruptQueue* i_queue;
 } CPUState;
 
 // -- Application State -- //
@@ -103,7 +85,6 @@ typedef struct {
     size_t program_size;
     size_t flash_size;
 
-    gui_process_shm_t *gui_shm;
     pid_t gui_pid;
     int gui_shm_fd;
 } AppState;
@@ -155,10 +136,7 @@ void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
 void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 
 // Interrupt Management
-void add_interrupt_vector(InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t index, uint8_t source, uint16_t handler);
-uint16_t get_interrupt_handler(const InterruptVectors table[INTERRUPT_TABLE_SIZE], uint8_t source);
-void push_interrupt(InterruptQueue* queue, uint8_t source);
-uint8_t pop_interrupt(InterruptQueue* queue);
+
 
 // GUI Management
 void open_gui(AppState *appState);

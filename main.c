@@ -69,7 +69,6 @@ AppState *new_app_state(void) {
     appState->emulator_running = mmap(NULL, 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     *appState->emulator_running = 0;
     appState->emulator_thread = 0;
-    appState->gui_shm = NULL;
     appState->state->page_table = create_page_table();
 
     return appState;
@@ -81,11 +80,11 @@ void free_app_state(AppState *appState) {
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
     munmap(appState->state, sizeof(CPUState));
-    if (appState->gui_pid) {
-        munmap(appState->gui_shm, sizeof(gui_process_shm_t));
-        close(appState->gui_shm_fd);
-        shm_unlink("emulator_gui_shm");
-    }
+    // if (appState->gui_pid) {
+    //     munmap(appState->gui_shm, sizeof(gui_process_shm_t));
+    //     close(appState->gui_shm_fd);
+    //     shm_unlink("emulator_gui_shm");
+    // }
     free(appState);
 }
 
@@ -209,13 +208,8 @@ void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unu
 }
 
 
-void command_interrupt(AppState *appState, const char *args) {
-    uint8_t source = strtoul(args, NULL, 0);
-    //kill(appState->emulator_pid, SIGSTOP);
-    printf("main pointer: %p\n", (void *) appState->state->i_queue);
-    push_interrupt(appState->state->i_queue, source);
-    //printf("result: %02x\n", pop_interrupt(appState->state->i_queue));
-    //kill(appState->emulator_pid, SIGCONT);
+void command_interrupt(__attribute__((unused))AppState *appState, __attribute__((unused)) const char *args) {
+
 }
 
 void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {
