@@ -67,39 +67,54 @@ InterruptQueue* init_interrupt_queue(void) {
     queue->head = 0;
     queue->tail = 0;
     queue->count = 0;
+    pthread_mutex_init(&queue->mutex, NULL);
+    pthread_cond_init(&queue->cond, NULL);
     return queue;
 }
 
 // Enqueue an interrupt into the queue (returns false if the queue is full)
 bool enqueue_interrupt(InterruptQueue *queue, uint8_t irq) {
+    pthread_mutex_lock(&queue->mutex);
     if (queue->count >= IRQ_QUEUE_SIZE) {
+        pthread_mutex_unlock(&queue->mutex);
         // Queue is full
         return false;
     }
     queue->queue[queue->tail] = irq;
     queue->tail = (queue->tail + 1) % IRQ_QUEUE_SIZE;
     queue->count++;
+    // Signal any thread waiting in the WFI instruction
+    pthread_cond_signal(&queue->cond);
+    pthread_mutex_unlock(&queue->mutex);
     return true;
 }
 
 // Dequeue an interrupt from the queue (returns false if the queue is empty)
 bool dequeue_interrupt(InterruptQueue *queue, uint8_t *irq) {
+    pthread_mutex_lock(&queue->mutex);
     if (queue->count == 0) {
+        pthread_mutex_unlock(&queue->mutex);
         // Queue is empty
         return false;
     }
     *irq = queue->queue[queue->head];
     queue->head = (queue->head + 1) % IRQ_QUEUE_SIZE;
     queue->count--;
+    pthread_mutex_unlock(&queue->mutex);
     return true;
 }
 
 // Check if the interrupt queue is empty
 bool is_interrupt_queue_empty(InterruptQueue *queue) {
-    return (queue->count == 0);
+    pthread_mutex_lock(&queue->mutex);
+    bool empty = (queue->count == 0);
+    pthread_mutex_unlock(&queue->mutex);
+    return empty;
 }
-
 // Check if the interrupt queue is full
 bool is_interrupt_queue_full(InterruptQueue *queue) {
-    return (queue->count >= IRQ_QUEUE_SIZE);
+    pthread_mutex_lock(&queue->mutex);
+    bool full = (queue->count >= IRQ_QUEUE_SIZE);
+    pthread_mutex_unlock(&queue->mutex);
+    return full;
 }

@@ -222,6 +222,17 @@ bool execute_instruction(CPUState *state) {
             skipIncrementPC = true;
             break;
         }
+
+        case OP_WFI: {
+            // Wait until an interrupt is enqueued
+            pthread_mutex_lock(&state->i_queue->mutex);
+            while (state->i_queue->count == 0) {
+                // Block until signaled that an interrupt has been enqueued
+                pthread_cond_wait(&state->i_queue->cond, &state->i_queue->mutex);
+            }
+            pthread_mutex_unlock(&state->i_queue->mutex);
+            break;
+        }
         // Add additional opcodes here...
         default:
             printf("Unhandled opcode: %02x\n", opcode);
