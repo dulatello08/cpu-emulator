@@ -70,15 +70,21 @@ AppState *new_app_state(void) {
     *appState->emulator_running = 0;
     appState->emulator_thread = 0;
     appState->state->page_table = create_page_table();
+    appState->state->i_vector_table = init_interrupt_vector_table();
+    appState->state->i_queue = init_interrupt_queue();
 
     return appState;
 }
 
 void free_app_state(AppState *appState) {
-    pthread_cancel(appState->emulator_thread);
-    free_all_pages(appState->state->page_table);
+    if (*(appState->emulator_running) != 0) {
+        pthread_cancel(appState->emulator_thread);
+        pthread_join(appState->emulator_thread, NULL);
+    }
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
+    free(appState->state->i_vector_table);
+    free(appState->state->i_queue);
     munmap(appState->state, sizeof(CPUState));
     // if (appState->gui_pid) {
     //     munmap(appState->gui_shm, sizeof(gui_process_shm_t));
@@ -90,6 +96,7 @@ void free_app_state(AppState *appState) {
 
 void* emulator_thread_func(void* arg) {
     AppState *appState = (AppState*) arg;
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     start(appState);
     *(appState->emulator_running) = 0;
     pthread_exit(NULL);
@@ -203,13 +210,30 @@ void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute_
 
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
     printf("Exiting emulator...\n");
+
     free_app_state(appState);
     exit(0);
 }
 
 
-void command_interrupt(__attribute__((unused))AppState *appState, __attribute__((unused)) const char *args) {
+void command_interrupt(AppState *appState, const char *args) {
+    if (args == NULL || *args == '\0') {
+        printf("Usage: interrupt <source>\n");
+        return;
+    }
 
+    char *endptr;
+    unsigned long source = strtoul(args, &endptr, 0);
+    if (endptr == args || *endptr != '\0') {
+        printf("Invalid interrupt source: %s\n", args);
+        return;
+    }
+
+    if (enqueue_interrupt(appState->state->i_queue, (uint8_t)source)) {
+        printf("Interrupt %lu enqueued.\n", source);
+    } else {
+        printf("Interrupt queue full; cannot enqueue interrupt %lu.\n", source);
+    }
 }
 
 void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {

@@ -6,12 +6,18 @@
 // ================================
 
 // Initialize the interrupt vector table
-void init_interrupt_vector_table(InterruptVectorTable *table) {
+InterruptVectorTable* init_interrupt_vector_table(void) {
+    InterruptVectorTable *table = malloc(sizeof(InterruptVectorTable));
+    if (!table) {
+        perror("Failed to allocate InterruptVectorTable");
+        exit(EXIT_FAILURE);
+    }
     table->count = 0;
     for (int i = 0; i < MAX_INTERRUPTS; i++) {
         table->entries[i].source = 0;
         table->entries[i].handler_address = 0;
     }
+    return table;
 }
 
 // Register a new interrupt vector (returns false if table is full)
@@ -56,10 +62,12 @@ InterruptVectorEntry* get_interrupt_vector(InterruptVectorTable *table, uint8_t 
 // ========================
 
 // Initialize the interrupt FIFO queue
-void init_interrupt_queue(InterruptQueue *queue) {
+InterruptQueue* init_interrupt_queue(void) {
+    InterruptQueue *queue = malloc(sizeof(InterruptQueue));
     queue->head = 0;
     queue->tail = 0;
     queue->count = 0;
+    return queue;
 }
 
 // Enqueue an interrupt into the queue (returns false if the queue is full)

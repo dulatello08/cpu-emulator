@@ -29,10 +29,34 @@ int start(AppState *appState) {
     }
 
     while (*(appState->state->pc) + 1 < UINT32_MAX && !exitCode) {
+        // Check if the interrupt queue is not empty.
+        if (!is_interrupt_queue_empty(appState->state->i_queue)) {
+            uint8_t irq;
+            dequeue_interrupt(appState->state->i_queue, &irq);
+            InterruptVectorEntry *ive = get_interrupt_vector(appState->state->i_vector_table, irq);
+            if (ive != NULL) {
+                // Save the current PC as the return address.
+                uint32_t return_address = *(appState->state->pc);
+                // Push the return address onto the stack (as a 32-bit value split into 4 bytes).
+                pushStack(appState->state, (uint8_t)(return_address & 0xFF));
+                pushStack(appState->state, (uint8_t)((return_address >> 8) & 0xFF));
+                pushStack(appState->state, (uint8_t)((return_address >> 16) & 0xFF));
+                pushStack(appState->state, (uint8_t)((return_address >> 24) & 0xFF));
+
+                printf("Interrupt %d received: pushing return address 0x%08x and jumping to ISR at 0x%08x\n",
+                       irq, return_address, ive->handler_address);
+
+                // Set the program counter to the ISR handler address.
+                *(appState->state->pc) = ive->handler_address;
+            } else {
+                printf("Interrupt %d received but no ISR registered.\n", irq);
+            }
+        }
+
+        // Execute the next instruction.
         exitCode = execute_instruction(appState->state);
-        // usleep(100000);
+        usleep(100000);
     }
-    if (*(appState->state->pc) + 1 >= UINT16_MAX) printf("PC went over 0xffff\n");
     free(appState->state->pc);
     return 0;
 }

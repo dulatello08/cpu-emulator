@@ -39,7 +39,24 @@ void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
                 }
                 if (strcmp(section->device, "PIC") == 0) {
                     if (address == 0x20004) {
-                        printf("Loading IVT at address %08x, length %02x\n", read32(state, 0x20000), (uint8_t) value);
+                        // Read the base address of the IVT and its length
+                        uint32_t ivt_base = read32(state, 0x20000);
+                        uint8_t ivt_length = (uint8_t) value;
+                        printf("Loading IVT at address %08x, length %02x\n", ivt_base, ivt_length);
+
+                        // Cast the base address to a pointer to uint32_t since each entry is 32-bit
+                        uint32_t *ivt_entries = (uint32_t*) get_memory_ptr(state, ivt_base, false);
+
+                        // Populate the IVT using the provided function
+                        for (uint8_t source = 0; source < ivt_length; source++) {
+                            uint32_t handler_address = ivt_entries[source];
+                            handler_address = ntohl(handler_address);
+                            if (register_interrupt_vector(state->i_vector_table, source, handler_address)) {
+                                printf("Registered interrupt vector for source %u: handler=0x%08x\n", source, handler_address);
+                            } else {
+                                printf("Error: Failed to register interrupt vector for source %u\n", source);
+                            }
+                        }
                     }
                 }
             }
