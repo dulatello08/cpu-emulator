@@ -58,7 +58,7 @@ typedef struct {
     uint32_t handler_address;   // Address of the interrupt service routine (ISR)
 } InterruptVectorEntry;
 
-typedef struct {
+typedef struct InterruptVectorTable {
     InterruptVectorEntry entries[MAX_INTERRUPTS];  // Array of vector entries
     uint8_t count;                                   // Current number of registered interrupts
 } InterruptVectorTable;
@@ -85,6 +85,9 @@ typedef struct CPUState {
     bool enable_mask_interrupts;
     bool z_flag;
     bool v_flag;
+
+    InterruptQueue *i_queue;
+    InterruptVectorTable *i_vector_table;
 
     // Display
     char display[LCD_WIDTH][LCD_HEIGHT];
@@ -156,13 +159,13 @@ void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
 // -- Interrupt Management -- //
 
 // Interrupt Vector Table Functions
-void init_interrupt_vector_table(InterruptVectorTable *table);
+InterruptVectorTable* init_interrupt_vector_table(void);
 bool register_interrupt_vector(InterruptVectorTable *table, uint8_t source, uint32_t handler_address);
 bool unregister_interrupt_vector(InterruptVectorTable *table, uint8_t source);
 InterruptVectorEntry* get_interrupt_vector(InterruptVectorTable *table, uint8_t source);
 
 // Interrupt Queue Functions
-void init_interrupt_queue(InterruptQueue *queue);
+InterruptQueue* init_interrupt_queue(void);
 bool enqueue_interrupt(InterruptQueue *queue, uint8_t irq);
 bool dequeue_interrupt(InterruptQueue *queue, uint8_t *irq);
 bool is_interrupt_queue_empty(InterruptQueue *queue);
