@@ -68,6 +68,8 @@ typedef struct {
     uint8_t head;                   // Read index
     uint8_t tail;                   // Write index
     uint8_t count;                  // Number of pending interrupts
+    pthread_mutex_t mutex;          // Mutex for thread safety
+    pthread_cond_t cond;            // Condition variable to signal new interrupts
 } InterruptQueue;
 
 // -- GUI Shared Memory -- //
