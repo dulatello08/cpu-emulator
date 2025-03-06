@@ -9,6 +9,7 @@ static uint8_t get_instruction_length(uint8_t opcode, uint8_t specifier) {
         case OP_NOP:
         case OP_HLT:
         case OP_RTS:
+        case OP_WFI:
             return 2;
         case OP_PSH:
         case OP_POP:
