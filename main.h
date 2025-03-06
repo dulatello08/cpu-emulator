@@ -72,11 +72,6 @@ typedef struct {
     pthread_cond_t cond;            // Condition variable to signal new interrupts
 } InterruptQueue;
 
-// -- GUI Shared Memory -- //
-// typedef struct {
-//
-// } gui_process_shm_t;
-
 // -- CPU State -- //
 typedef struct CPUState {
     PageTable *page_table; // Pointer to the page table
@@ -153,11 +148,6 @@ void mmuControl(CPUState *state, uint8_t value);
 void pushStack(CPUState *state, uint8_t value);
 uint8_t popStack(CPUState *state, uint8_t *out);
 
-// Display Operations
-void clear_display(char display[LCD_WIDTH][LCD_HEIGHT]);
-void print_display(char display[LCD_WIDTH][LCD_HEIGHT]);
-void write_to_display(char display[LCD_WIDTH][LCD_HEIGHT], uint8_t data);
-
 // -- Interrupt Management -- //
 
 // Interrupt Vector Table Functions
@@ -172,10 +162,6 @@ bool enqueue_interrupt(InterruptQueue *queue, uint8_t irq);
 bool dequeue_interrupt(InterruptQueue *queue, uint8_t *irq);
 bool is_interrupt_queue_empty(InterruptQueue *queue);
 bool is_interrupt_queue_full(InterruptQueue *queue);
-
-// GUI Management
-void open_gui(AppState *appState);
-void handle_connection(int client_fd, CPUState *state, uint8_t *shared_data_memory);
 
 // Utility
 uint8_t count_leading_zeros(uint8_t x);

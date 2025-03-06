@@ -23,13 +23,8 @@ void command_stop(AppState *appState, __attribute__((unused)) const char *args);
 void command_program(AppState *appState, const char *args);
 void command_flash(AppState *appState, const char *args);
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
-void command_input(AppState *appState, const char *args);
-void command_print(AppState *appState, __attribute__((unused)) const char *args);
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args);
-void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) __attribute__((unused)) const char *args);
 void command_interrupt(AppState *appState, const char *args);
-void command_gui(AppState *appState, __attribute__((unused)) const char *args);
-void command_gui_and_start(AppState *appState, __attribute__((unused)) const char *args);
 void load_config(AppState *appState, const char *filename);
 void display_config(const MemoryConfig *config);
 
@@ -46,15 +41,8 @@ const Command COMMANDS[] = {
         {"flash", command_flash},
         {"help", command_help},
         {"h", command_help},
-        {"input", command_input},
-        {"print", command_print},
         {"exit", command_exit},
-        {"ctl_listen", command_ctl_listen},
-        {"ctl_l", command_ctl_listen},
         {"interrupt", command_interrupt},
-        {"gui", command_gui},
-        {"g", command_gui},
-        {"gs", command_gui_and_start},
         {"config_show", command_view_config},
         {"config", command_reload_config},
         {NULL, NULL}
@@ -200,14 +188,6 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void command_ctl_listen(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
-#ifdef EMULATOR_SOCKET
-    printf("WIP\n");
-#else
-    printf("Feature not enabled\n");
-#endif
-}
-
 void command_exit(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args){
     printf("Exiting emulator...\n");
 
@@ -236,16 +216,6 @@ void command_interrupt(AppState *appState, const char *args) {
     }
 }
 
-void command_gui(AppState *appState,  __attribute__((unused)) const char *args) {
-    open_gui(appState);
-}
-
-void command_gui_and_start(AppState *appState, __attribute__((unused)) const char * args) {
-    open_gui(appState);
-    usleep(1000);
-    command_start(appState, args);
-}
-
 void command_help(__attribute__((unused)) AppState *appState, __attribute__((unused)) const char *args) {
     printf("Commands:\n");
     printf("start - start emulator\n");
@@ -258,33 +228,6 @@ void command_help(__attribute__((unused)) AppState *appState, __attribute__((unu
     // clear_display(appState->gui_shm->display);
     // write_to_display(appState->gui_shm->display, 0x41);
     // kill(appState->gui_pid, SIGUSR1);
-}
-
-void command_input(__attribute__((unused)) AppState *appState, const char *args) {
-    if (args == NULL || *args == '\0') {
-        printf("Error: Empty input\n");
-        return;
-    }
-
-    const char *arg = args;
-
-    // Check if input starts with "0x" or "0X", and skip the prefix if present
-    if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
-        arg += 2;
-    }
-
-    char *endptr;
-    unsigned long value = strtoul(arg, &endptr, 16);
-
-    if (endptr == arg || *endptr != '\0' || value > 0xFF) {
-        printf("Error: Invalid hexadecimal byte. Provided: %s\n", args);
-    } else {
-//        appState->shared_data_memory[254] = (uint8_t)value;
-    }
-}
-
-void command_print(AppState *appState, __attribute__((unused)) const char *args){
-    print_display(appState->state->display);
 }
 
 void command_program(AppState *appState, __attribute__((unused)) const char *args){
