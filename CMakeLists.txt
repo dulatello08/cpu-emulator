@@ -23,59 +23,21 @@ endif()
 include_directories(.)
 
 
-find_package(SDL2 REQUIRED)
-if(NOT SDL2_FOUND)
-    message(FATAL_ERROR "SDL2 not found!")
-endif()
-
-include_directories(${SDL2_INCLUDE_DIRS})
-
-# Find SDL2_ttf library
-find_package(SDL2_ttf REQUIRED)
-if(NOT SDL2_ttf_FOUND)
-    message(FATAL_ERROR "SDL2_ttf not found!")
-endif()
-
-include_directories(${SDL2_TTF_INCLUDE_DIRS})
-
 # Source files
 file(GLOB SOURCES "*.c")
-file(GLOB SOCKET_SOURCES "socket/*.c")
-file(GLOB GUI_SOURCES "gui/*.c*")
 
-# Remove socket sources from main emulator sources
-#list(REMOVE_ITEM SOURCES ${SOCKET_SOURCES})
 
-# Add executable for emulator (without socket sources)
 add_executable(emulator ${SOURCES}
         mov.c)
 # Link against libraries
 target_link_libraries(emulator)
 
-# Add executable for emulator_socket (with socket sources)
-add_executable(emulator_socket ${SOURCES} ${SOCKET_SOURCES})
-# Define EMULATOR_SOCKET
-target_compile_definitions(emulator_socket PRIVATE EMULATOR_SOCKET)
-# Link against libraries
-target_link_libraries(emulator_socket)
-
-# Add executable for gui_subsystem
-add_executable(gui_subsystem ${GUI_SOURCES})
-
-# Include directories for gui_subsystem
-target_include_directories(gui_subsystem PRIVATE gui)
-
-# Link against SDL2 for gui_subsystem
-target_link_libraries(gui_subsystem ${SDL2_LIBRARIES} SDL2::TTF)
-
 # Platform-specific settings
 if(UNIX AND NOT APPLE)
     target_compile_definitions(emulator PRIVATE LINUX)
-    target_compile_definitions(emulator_socket PRIVATE LINUX)
     # Additional include and library directories for Linux
 elseif(APPLE)
     target_compile_definitions(emulator PRIVATE DARWIN)
-    target_compile_definitions(emulator_socket PRIVATE DARWIN)
     # Additional include and library directories for Darwin (macOS)
 endif()
 
