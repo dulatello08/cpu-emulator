@@ -3,6 +3,7 @@
 //
 // Prevents compilation errors with a dummy function or variable.
 #include "main.h"
+#include <arpa/inet.h>
 
 void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
     MemoryConfig *config = &state->memory_config;
