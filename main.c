@@ -62,7 +62,7 @@ AppState *new_app_state(void) {
     appState->state->page_table = create_page_table();
     appState->state->i_vector_table = init_interrupt_vector_table();
     appState->state->i_queue = init_interrupt_queue();
-    appState->state->uart = malloc(sizeof(UART));
+    appState->state->uart = calloc(1, sizeof(UART));
     if (appState->state->uart) {
         // Set buffer sizes and initial values.
         appState->state->uart->tx_buffer_size = 64;
@@ -81,15 +81,16 @@ void free_app_state(AppState *appState) {
     }
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
+    free_all_pages(appState->state->page_table);
     free(appState->state->i_vector_table);
     free(appState->state->i_queue);
+    free(appState->state->uart);
     munmap(appState->state, sizeof(CPUState));
     // if (appState->gui_pid) {
     //     munmap(appState->gui_shm, sizeof(gui_process_shm_t));
     //     close(appState->gui_shm_fd);
     //     shm_unlink("emulator_gui_shm");
     // }
-    free(appState->state->uart);
     free(appState);
 }
 
@@ -114,6 +115,7 @@ void* emulator_thread_func(void* arg) {
     // When the emulator stops, signal the UART thread to stop.
     if (appState->state->uart) {
         appState->state->uart->running = false;
+        pthread_cancel(appState->state->uart_thread);
         pthread_join(appState->state->uart_thread, NULL);
     }
 
@@ -173,7 +175,6 @@ int main(int argc, char *argv[]) {
     signal(SIGINT, sigintHandler);
     AppState *appState = new_app_state();
     char *config_file = "config.ini";
-
     // Parse arguments
     int opt;
     while ((opt = getopt(argc, argv, "p:m:c:")) != -1) {

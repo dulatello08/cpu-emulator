@@ -128,6 +128,8 @@ void *uart_start(void *arg) {
             return NULL;
         }
     }
+    int flags = fcntl(uart->pty_master_fd, F_GETFL, 0);
+    fcntl(uart->pty_master_fd, F_SETFL, flags | O_NONBLOCK);
 
     // Ensure a valid baud rate; default to 300 baud if not specified.
     if (uart->config.baud_rate == 0) {
@@ -186,7 +188,7 @@ void *uart_start(void *arg) {
         } else {
             pthread_mutex_unlock(&uart->tx_mutex);
         }
-
+        pthread_testcancel();
         // Brief sleep to yield CPU time.
         usleep(1000);  // 1ms delay to prevent busy-waiting.
     }
