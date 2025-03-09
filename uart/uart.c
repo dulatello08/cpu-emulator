@@ -6,7 +6,9 @@
 #include "uart.h"
 #include <pthread.h>
 #include <unistd.h>
-#include <util.h>
+#ifdef __APPLE__
+    #include <util.h>
+#endif
 #include <fcntl.h>
 #include "main.h"
 
