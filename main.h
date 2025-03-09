@@ -1,113 +1,16 @@
+//
+// main.h
+// Created by Dulat S on 3/8/25.
+//
+
 #ifndef INC_16_BIT_CPU_EMULATOR_MAIN_H
 #define INC_16_BIT_CPU_EMULATOR_MAIN_H
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <stdbool.h>
-#include <sys/types.h>
-#include <ctype.h>
-#include <pthread.h>
-#include "constants.h"
+#include "common.h"
 
-// -- Page Table Definitions -- //
-typedef struct PageTableEntry {
-    uint8_t* page_data;                 // Points to physical memory data for this page
-    bool is_allocated;                  // Indicates if the page is allocated
-    uint32_t page_index;                // The logical index of this page (for address calculation)
-    struct PageTableEntry* next;        // Pointer to the next page in the list
-    struct PageTableEntry* prev;        // Pointer to the previous page in the list
-} PageTableEntry;
-
-typedef struct {
-    PageTableEntry* head;               // Head of the doubly linked list
-    PageTableEntry* tail;               // Tail of the doubly linked list
-    size_t page_count;                  // Total number of pages in the table
-} PageTable;
-
-typedef enum {
-    BOOT_SECTOR,
-    USABLE_MEMORY,
-    MMIO_PAGE,
-    FLASH,
-    STACK,
-    UNKNOWN_TYPE
-} PageType;
-
-typedef struct {
-    char section_name[64];
-    PageType type;
-    unsigned int start_address;
-    unsigned int page_count;
-    char device[64];        // Optional device information for MMIO pages
-} MemorySection;
-
-typedef struct {
-    MemorySection sections[MAX_SECTIONS];
-    size_t section_count;
-} MemoryConfig;
-
-// -- Interrupts -- //
-
-typedef struct {
-    uint8_t source;
-    uint32_t handler_address;   // Address of the interrupt service routine (ISR)
-} InterruptVectorEntry;
-
-typedef struct InterruptVectorTable {
-    InterruptVectorEntry entries[MAX_INTERRUPTS];  // Array of vector entries
-    uint8_t count;                                   // Current number of registered interrupts
-} InterruptVectorTable;
-
-typedef struct {
-    uint8_t queue[IRQ_QUEUE_SIZE];  // Circular buffer for pending IRQ numbers
-    uint8_t head;                   // Read index
-    uint8_t tail;                   // Write index
-    uint8_t count;                  // Number of pending interrupts
-    pthread_mutex_t mutex;          // Mutex for thread safety
-    pthread_cond_t cond;            // Condition variable to signal new interrupts
-} InterruptQueue;
-
-// -- CPU State -- //
-typedef struct CPUState {
-    PageTable *page_table; // Pointer to the page table
-    MemoryConfig memory_config;
-
-    uint16_t* reg;
-    uint32_t* pc;
-    bool enable_mask_interrupts;
-    bool z_flag;
-    bool v_flag;
-
-    InterruptQueue *i_queue;
-    InterruptVectorTable *i_vector_table;
-
-    // Display
-    char display[LCD_WIDTH][LCD_HEIGHT];
-} CPUState;
-
-// -- Application State -- //
-typedef struct {
-    char *program_file;
-    char *flash_file;
-
-    CPUState *state;
-
-    uint8_t *emulator_running;
-    pthread_t emulator_thread;
-
-    size_t program_size;
-    size_t flash_size;
-
-    pid_t gui_pid;
-    int gui_shm_fd;
-} AppState;
-
-// -- Function Prototypes -- //
+// ----------------------------
+// Function Prototypes
+// ----------------------------
 
 // Initialization and Start
 int start(AppState *appState);
@@ -137,7 +40,6 @@ uint8_t* get_memory_ptr(CPUState *state, uint32_t address, bool allocate_if_unal
 uint8_t get_memory(CPUState *state, uint32_t address);
 void set_memory(CPUState *state, uint32_t address, uint8_t value);
 void bulk_copy_memory(CPUState *state, uint32_t address, const uint8_t *buffer, size_t length);
-// static void free_page(PageTable* table, PageTableEntry* page);
 void free_all_pages(PageTable* table);
 void initialize_page_table(CPUState *state, uint8_t *boot_sector_buffer, size_t boot_size);
 
@@ -148,7 +50,9 @@ void mmuControl(CPUState *state, uint8_t value);
 void pushStack(CPUState *state, uint8_t value);
 uint8_t popStack(CPUState *state, uint8_t *out);
 
-// -- Interrupt Management -- //
+// ----------------------------
+// Interrupt Management
+// ----------------------------
 
 // Interrupt Vector Table Functions
 InterruptVectorTable* init_interrupt_vector_table(void);
@@ -163,7 +67,9 @@ bool dequeue_interrupt(InterruptQueue *queue, uint8_t *irq);
 bool is_interrupt_queue_empty(InterruptQueue *queue);
 bool is_interrupt_queue_full(InterruptQueue *queue);
 
-// Utility
+// ----------------------------
+// Utility Functions
+// ----------------------------
 uint8_t count_leading_zeros(uint8_t x);
 size_t load_program(const char *filename, uint8_t **buffer);
 
@@ -183,4 +89,4 @@ void write8(CPUState* state, uint32_t address, uint8_t value);
 void write16(CPUState* state, uint32_t address, uint16_t value);
 void write32(CPUState* state, uint32_t address, uint32_t value);
 
-#endif //INC_16_BIT_CPU_EMULATOR_MAIN_H
+#endif // INC_16_BIT_CPU_EMULATOR_MAIN_H

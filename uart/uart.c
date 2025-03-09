@@ -5,12 +5,10 @@
 
 #include "uart.h"
 #include <pthread.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <util.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <string.h>
+#include "main.h"
 
 // Example IRQ definitions (adjust as needed)
 #define UART_IRQ_RX 1
@@ -25,19 +23,111 @@ static inline unsigned int compute_byte_delay(uint32_t baud_rate) {
     return (unsigned int)(seconds_per_byte * 1000000);
 }
 
+// Cleanup handler: this function will be called when the thread is canceled
+// or when the main loop exits normally.
+static void uart_cleanup(void *arg) {
+    UART *uart = (UART *)arg;
+
+    // Close the PTY file descriptor if it's open.
+    if (uart->pty_master_fd >= 0) {
+        close(uart->pty_master_fd);
+        uart->pty_master_fd = -1;
+    }
+
+    // Free allocated buffers.
+    if (uart->tx_buffer) {
+        free(uart->tx_buffer);
+        uart->tx_buffer = NULL;
+    }
+    if (uart->rx_buffer) {
+        free(uart->rx_buffer);
+        uart->rx_buffer = NULL;
+    }
+
+    // Destroy mutexes.
+    pthread_mutex_destroy(&uart->tx_mutex);
+    pthread_mutex_destroy(&uart->rx_mutex);
+
+    fprintf(stderr, "UART cleanup completed.\n");
+}
+
 /**
  * uart_start - The UART thread function.
- * This function is intended to be started as a thread; it handles the UART's
- * state machine, processes PTY I/O, manages TX/RX buffers with proper mutex
- * locking, and simulates transmission/reception delays based on the configured
- * baud rate.
+ *
+ * This function now takes care of initializing its own variables and resources,
+ * handles the PTY file descriptor (opening it if necessary), and registers a cleanup
+ * handler so that resources are freed even if the thread is cancelled.
  *
  * @arg: Pointer to the UART instance.
  *
- * Returns: Always returns NULL upon thread termination.
  */
-void* uart_start(void *arg) {
-    UART *uart = (UART*)arg;
+void *uart_start(void *arg) {
+    UART *uart = ((AppState*)arg)->state->uart;
+
+    // Enable thread cancellation.
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+    // Initialize internal state variables.
+    uart->status_reg = 0;
+    uart->tx_head = 0;
+    uart->tx_tail = 0;
+    uart->rx_head = 0;
+    uart->rx_tail = 0;
+
+    // Allocate buffers if not already allocated.
+    if (uart->tx_buffer == NULL) {
+        uart->tx_buffer = malloc(uart->tx_buffer_size);
+        if (!uart->tx_buffer) {
+            perror("Failed to allocate TX buffer");
+            return NULL;
+        }
+    }
+    if (uart->rx_buffer == NULL) {
+        uart->rx_buffer = malloc(uart->rx_buffer_size);
+        if (!uart->rx_buffer) {
+            perror("Failed to allocate RX buffer");
+            free(uart->tx_buffer);
+            return NULL;
+        }
+    }
+
+    // Initialize mutexes.
+    if (pthread_mutex_init(&uart->tx_mutex, NULL) != 0) {
+        perror("Failed to initialize TX mutex");
+        free(uart->tx_buffer);
+        free(uart->rx_buffer);
+        return NULL;
+    }
+    if (pthread_mutex_init(&uart->rx_mutex, NULL) != 0) {
+        perror("Failed to initialize RX mutex");
+        pthread_mutex_destroy(&uart->tx_mutex);
+        free(uart->tx_buffer);
+        free(uart->rx_buffer);
+        return NULL;
+    }
+
+    // Open the PTY master if not already open.
+    if (uart->pty_master_fd < 0) {
+        uart->pty_master_fd = posix_openpt(O_RDWR | O_NOCTTY);
+        if (uart->pty_master_fd < 0) {
+            perror("Failed to open PTY master");
+            pthread_mutex_destroy(&uart->tx_mutex);
+            pthread_mutex_destroy(&uart->rx_mutex);
+            free(uart->tx_buffer);
+            free(uart->rx_buffer);
+            return NULL;
+        }
+        if (grantpt(uart->pty_master_fd) < 0 || unlockpt(uart->pty_master_fd) < 0) {
+            perror("Failed to grant/unlock PTY master");
+            close(uart->pty_master_fd);
+            pthread_mutex_destroy(&uart->tx_mutex);
+            pthread_mutex_destroy(&uart->rx_mutex);
+            free(uart->tx_buffer);
+            free(uart->rx_buffer);
+            return NULL;
+        }
+    }
 
     // Ensure a valid baud rate; default to 300 baud if not specified.
     if (uart->config.baud_rate == 0) {
@@ -45,6 +135,10 @@ void* uart_start(void *arg) {
     }
     unsigned int byte_delay_us = compute_byte_delay(uart->config.baud_rate);
 
+    // Register the cleanup handler.
+    pthread_cleanup_push(uart_cleanup, uart);
+
+    // Main loop: process PTY I/O.
     while (uart->running) {
         // --- Process PTY Input: Read incoming data ---
         uint8_t buf;
@@ -63,7 +157,7 @@ void* uart_start(void *arg) {
             pthread_mutex_unlock(&uart->rx_mutex);
 
             // Signal that data is ready by enqueuing an RX interrupt.
-            enqueue_interrupt(UART_IRQ_RX);
+            enqueue_interrupt(((AppState*)arg)->state->i_queue, UART_IRQ_RX);
 
             // Simulate the delay for receiving one byte.
             usleep(byte_delay_us);
@@ -84,7 +178,7 @@ void* uart_start(void *arg) {
             } else {
                 // Set TX complete flag and signal by enqueuing an interrupt.
                 uart->status_reg |= 0x02;  // For example, bit 1 indicates TX complete.
-                enqueue_interrupt(UART_IRQ_TX);
+                enqueue_interrupt(((AppState*)arg)->state->i_queue, UART_IRQ_TX);
             }
 
             // Simulate the delay for transmitting one byte.
@@ -93,9 +187,48 @@ void* uart_start(void *arg) {
             pthread_mutex_unlock(&uart->tx_mutex);
         }
 
-        // Sleep briefly to yield CPU time.
+        // Brief sleep to yield CPU time.
         usleep(1000);  // 1ms delay to prevent busy-waiting.
     }
 
+    // Execute the cleanup handler before returning.
+    pthread_cleanup_pop(1);
     return NULL;
+}
+
+//-------------------------------
+// Write a byte to the UART transmit buffer
+//-------------------------------
+void uart_write(UART *uart, uint8_t data) {
+    pthread_mutex_lock(&uart->tx_mutex);
+
+    // Calculate next head index in the circular buffer.
+    size_t next_head = (uart->tx_head + 1) % uart->tx_buffer_size;
+    // Check if buffer is full.
+    if (next_head == uart->tx_tail) {
+        fprintf(stderr, "TX buffer full, dropping data\n");
+        pthread_mutex_unlock(&uart->tx_mutex);
+        return;
+    }
+    uart->tx_buffer[uart->tx_head] = data;
+    uart->tx_head = next_head;
+    pthread_mutex_unlock(&uart->tx_mutex);
+}
+
+//-------------------------------
+// Read a byte from the UART receive buffer
+//-------------------------------
+bool uart_read(UART *uart, uint8_t *data) {
+    bool ret_val = false;
+    pthread_mutex_lock(&uart->rx_mutex);
+    // Check if RX buffer is empty.
+    if (uart->rx_head == uart->rx_tail) {
+        ret_val = false;
+    } else {
+        *data = uart->rx_buffer[uart->rx_tail];
+        uart->rx_tail = (uart->rx_tail + 1) % uart->rx_buffer_size;
+        ret_val = true;
+    }
+    pthread_mutex_unlock(&uart->rx_mutex);
+    return ret_val;
 }
