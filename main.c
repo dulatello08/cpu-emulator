@@ -5,6 +5,8 @@
 #include <sys/mman.h>
 #include <pthread.h>
 
+#include "uart/uart.h"
+
 #define SOCKET_PATH "/tmp/emulator.sock"
 
 void sigintHandler(__attribute__((unused)) int signal) {
@@ -60,6 +62,14 @@ AppState *new_app_state(void) {
     appState->state->page_table = create_page_table();
     appState->state->i_vector_table = init_interrupt_vector_table();
     appState->state->i_queue = init_interrupt_queue();
+    appState->state->uart = malloc(sizeof(UART));
+    if (appState->state->uart) {
+        // Set buffer sizes and initial values.
+        appState->state->uart->tx_buffer_size = 64;
+        appState->state->uart->rx_buffer_size = 64;
+        appState->state->uart->pty_master_fd = -1;  // Not opened yet.
+        appState->state->uart->running = false;
+    }
 
     return appState;
 }
@@ -79,13 +89,34 @@ void free_app_state(AppState *appState) {
     //     close(appState->gui_shm_fd);
     //     shm_unlink("emulator_gui_shm");
     // }
+    free(appState->state->uart);
     free(appState);
 }
 
 void* emulator_thread_func(void* arg) {
     AppState *appState = (AppState*) arg;
+
+    // Set cancellation type as needed.
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+
+    // Start the UART thread if a UART instance is present.
+    if (appState->state->uart) {
+        // Make sure the UART running flag is set.
+        appState->state->uart->running = true;
+        if (pthread_create(&appState->state->uart_thread, NULL, uart_start, appState) != 0) {
+            perror("Failed to create UART thread");
+        }
+    }
+
+    // Start the emulator main loop.
     start(appState);
+
+    // When the emulator stops, signal the UART thread to stop.
+    if (appState->state->uart) {
+        appState->state->uart->running = false;
+        pthread_join(appState->state->uart_thread, NULL);
+    }
+
     *(appState->emulator_running) = 0;
     pthread_exit(NULL);
 }

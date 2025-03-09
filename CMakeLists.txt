@@ -20,15 +20,14 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|i[3-6]86)$")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
 endif()
 # Include directories
-include_directories(.)
+include_directories("." "uart")
 
 
 # Source files
-file(GLOB SOURCES "*.c")
+file(GLOB SOURCES "**/*.c" "*.c")
 
 
-add_executable(emulator ${SOURCES}
-        mov.c)
+add_executable(emulator ${SOURCES})
 # Link against libraries
 target_link_libraries(emulator)
 
