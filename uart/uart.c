@@ -8,6 +8,8 @@
 #include <unistd.h>
 #ifdef __APPLE__
     #include <util.h>
+#else
+    #include <pty.h>
 #endif
 #include <fcntl.h>
 #include "main.h"
