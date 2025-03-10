@@ -29,7 +29,7 @@ extern int unlockpt(int fd);
 // Assumes 10 bits per byte (1 start + 8 data + 1 stop).
 static inline unsigned int compute_byte_delay(uint32_t baud_rate) {
     if (baud_rate == 0)
-        baud_rate = 300;  // default to 300 baud if not set
+        baud_rate = 115200;  // default to 115200 baud if not set
     double seconds_per_byte = 10.0 / baud_rate;
     return (unsigned int)(seconds_per_byte * 1000000);
 }
@@ -153,9 +153,9 @@ void *uart_start(void *arg) {
         fprintf(stderr, "UART: Could not retrieve PTY slave name\n");
     }
 
-    // Ensure a valid baud rate; default to 300 baud if not specified.
+    // Ensure a valid baud rate; default to 115200 baud if not specified.
     if (uart->config.baud_rate == 0) {
-        uart->config.baud_rate = 300;
+        uart->config.baud_rate = 115200;
     }
     unsigned int byte_delay_us = compute_byte_delay(uart->config.baud_rate);
     fprintf(stderr, "UART configured with baud rate %u, byte delay: %u microseconds\n", uart->config.baud_rate, byte_delay_us);
@@ -212,8 +212,6 @@ void *uart_start(void *arg) {
             pthread_mutex_unlock(&uart->tx_mutex);
         }
         pthread_testcancel();
-        // Brief sleep to yield CPU time.
-        usleep(1000);  // 1ms delay to prevent busy-waiting.
     }
 
     // Execute the cleanup handler before returning.
