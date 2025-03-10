@@ -153,9 +153,9 @@ void *uart_start(void *arg) {
         fprintf(stderr, "UART: Could not retrieve PTY slave name\n");
     }
 
-    // Ensure a valid baud rate; default to 115200 baud if not specified.
+    // Ensure a valid baud rate; default to 9600 baud if not specified.
     if (uart->config.baud_rate == 0) {
-        uart->config.baud_rate = 115200;
+        uart->config.baud_rate = 9600;
     }
     unsigned int byte_delay_us = compute_byte_delay(uart->config.baud_rate);
     fprintf(stderr, "UART configured with baud rate %u, byte delay: %u microseconds\n", uart->config.baud_rate, byte_delay_us);
