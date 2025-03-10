@@ -6,12 +6,17 @@
 #include "uart.h"
 #include <pthread.h>
 #include <unistd.h>
+// Enable POSIX 2008 extensions for proper function declarations
+#define _XOPEN_SOURCE 700
+
 #ifdef __APPLE__
-    #include <util.h>
+    #include <util.h>   // macOS (provides posix_openpt, grantpt, unlockpt)
 #else
-    #include <stdlib.h>
+    #include <pty.h>    // Linux (provides posix_openpt, grantpt, unlockpt)
 #endif
-#include <fcntl.h>
+
+#include <stdlib.h>      // Needed for posix_openpt() in some cases
+#include <fcntl.h>       // File control options (O_RDWR, O_NOCTTY)
 #include "main.h"
 
 // Example IRQ definitions (adjust as needed)
