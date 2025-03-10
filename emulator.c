@@ -57,6 +57,5 @@ int start(AppState *appState) {
         exitCode = execute_instruction(appState->state);
         usleep(100000);
     }
-    free(appState->state->pc);
     return 0;
 }

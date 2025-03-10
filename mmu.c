@@ -5,6 +5,8 @@
 #include "main.h"
 #include <arpa/inet.h>
 
+#include "uart.h"
+
 void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
     MemoryConfig *config = &state->memory_config;
     size_t lo = 0;
@@ -34,8 +36,7 @@ void memory_write_trigger(CPUState *state, uint32_t address, uint32_t value) {
                 // Handle writes that trigger an action
                 if (strcmp(section->device, "UART") == 0) {
                     if (address == 0x10000) {
-                        printf("%c", (uint8_t) value);
-                        fflush(stdout);
+                        uart_write(state->uart, (uint8_t)value);
                     }
                 }
                 if (strcmp(section->device, "PIC") == 0) {

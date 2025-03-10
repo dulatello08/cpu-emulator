@@ -57,73 +57,182 @@ PageTableEntry* allocate_page(PageTable* table, uint32_t page_index) {
     return new_page;
 }
 
+// -----------------------------------------------------------------------------
+// Helper: Allocate a new page without linking it into the list
+// -----------------------------------------------------------------------------
+static inline PageTableEntry* allocate_new_page(uint32_t page_index) {
+    PageTableEntry* new_page = (PageTableEntry*)malloc(sizeof(PageTableEntry));
+    if (!new_page) {
+        fprintf(stderr, "Memory allocation failed for PageTableEntry.\n");
+        exit(EXIT_FAILURE);
+    }
+    new_page->page_data = (uint8_t*)calloc(PAGE_SIZE, sizeof(uint8_t));
+    if (!new_page->page_data) {
+        fprintf(stderr, "Memory allocation failed for page data.\n");
+        free(new_page);
+        exit(EXIT_FAILURE);
+    }
+    new_page->is_allocated = true;
+    new_page->page_index   = page_index;
+    new_page->next         = NULL;
+    new_page->prev         = NULL;
+    return new_page;
+}
+
+// -----------------------------------------------------------------------------
+// Refactored: Find or Allocate Page with Correct Sorted Insertion
+// -----------------------------------------------------------------------------
 static inline PageTableEntry* find_or_allocate_page(PageTable* table,
                                                     uint32_t page_index,
                                                     bool allocate_if_unallocated)
 {
-    // If table is empty, allocate immediately if requested
+    // If the table is empty, allocate a new page and set as head and tail.
     if (!table->head) {
         if (allocate_if_unallocated) {
-            return allocate_page(table, page_index);
+            PageTableEntry* new_page = allocate_new_page(page_index);
+            table->head = table->tail = new_page;
+            table->page_count = 1;
+            return new_page;
         }
         return NULL;
     }
 
-    // Decide whether to search from head or tail
-    PageTableEntry* current;
-    if ((page_index - table->head->page_index) < (table->tail->page_index - page_index)) {
-        // Start from head
-        current = table->head;
+    // Decide search direction and record it.
+    bool search_from_head = ((page_index - table->head->page_index) <
+                             (table->tail->page_index - page_index));
+
+    if (search_from_head) {
+        // Search from head: find first node with page_index >= target.
+        PageTableEntry* current = table->head;
         while (current && current->page_index < page_index) {
             current = current->next;
         }
-    } else {
-        // Start from tail
-        current = table->tail;
-        while (current && current->page_index > page_index) {
-            current = current->prev;
+        if (current && current->page_index == page_index) {
+            return current;  // Found the page.
         }
-    }
+        if (!allocate_if_unallocated) return NULL;
 
-    // If page is found
-    if (current && current->page_index == page_index) {
-        return current;
-    }
-
-    // Not found, allocate if needed
-    if (allocate_if_unallocated) {
-        PageTableEntry* new_page = allocate_page(table, page_index);
-
-        // Insert new_page in the correct position
-        if (!current) {
-            // Insert at the end (already appended by allocate_page)
-        } else if (current->page_index > page_index) {
-            // Insert before current
+        // Allocate new page.
+        PageTableEntry* new_page = allocate_new_page(page_index);
+        // Determine insertion point.
+        if (current == table->head) {
+            // Insert at the beginning.
+            new_page->next = table->head;
+            table->head->prev = new_page;
+            table->head = new_page;
+        } else if (current == NULL) {
+            // Target is greater than all nodes; insert at tail.
+            new_page->prev = table->tail;
+            table->tail->next = new_page;
+            table->tail = new_page;
+        } else {
+            // Insert before the 'current' node.
             new_page->next = current;
             new_page->prev = current->prev;
             if (current->prev) {
                 current->prev->next = new_page;
-            } else {
-                table->head = new_page;
             }
             current->prev = new_page;
+        }
+        table->page_count++;
+        return new_page;
+
+    } else {
+        // Search from tail: find the last node with page_index <= target.
+        PageTableEntry* current = table->tail;
+        while (current && current->page_index > page_index) {
+            current = current->prev;
+        }
+        if (current && current->page_index == page_index) {
+            return current;  // Found the page.
+        }
+        if (!allocate_if_unallocated) return NULL;
+
+        // Allocate new page.
+        PageTableEntry* new_page = allocate_new_page(page_index);
+        // Determine insertion point.
+        if (current == table->tail) {
+            // Insert at the end.
+            new_page->prev = table->tail;
+            table->tail->next = new_page;
+            table->tail = new_page;
+        } else if (current == NULL) {
+            // Target is less than all nodes; insert at head.
+            new_page->next = table->head;
+            table->head->prev = new_page;
+            table->head = new_page;
         } else {
-            // Insert after current
-            new_page->prev = current;
+            // Insert after 'current'.
             new_page->next = current->next;
+            new_page->prev = current;
             if (current->next) {
                 current->next->prev = new_page;
-            } else {
-                table->tail = new_page;
             }
             current->next = new_page;
         }
+        table->page_count++;
         return new_page;
     }
-
-    // Page not found, and we aren't allocating
-    return NULL;
 }
+
+bool has_cycle(PageTable *table) {
+    if (!table || !table->head) {
+        return false;
+    }
+    PageTableEntry *slow = table->head;
+    PageTableEntry *fast = table->head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) {
+            return true;
+        }
+    }
+    return false;
+}
+bool validate_list(PageTable *table) {
+    if (!table) {
+        fprintf(stderr, "PageTable is NULL\n");
+        return false;
+    }
+
+    // Check for cycle first.
+    if (has_cycle(table)) {
+        fprintf(stderr, "Cycle detected in the page table!\n");
+        return false;
+    }
+
+    // Check next/prev consistency and count nodes.
+    size_t count = 0;
+    PageTableEntry *current = table->head;
+    PageTableEntry *prev = NULL;
+    while (current) {
+        // Verify that the current node's previous pointer is as expected.
+        if (current->prev != prev) {
+            fprintf(stderr, "List corruption: inconsistent prev pointer at page index %u\n", current->page_index);
+            return false;
+        }
+        prev = current;
+        current = current->next;
+        count++;
+    }
+
+    if (count != table->page_count) {
+        fprintf(stderr, "Page count mismatch: expected %zu, found %zu\n", table->page_count, count);
+        return false;
+    }
+    return true;
+}
+void dump_page_table(PageTable *table) {
+    PageTableEntry *current = table->head;
+    while (current) {
+        printf("Node %p: page_index=%u, prev=%p, next=%p\n",
+               (void*)current, current->page_index,
+               (void*)current->prev, (void*)current->next);
+        current = current->next;
+    }
+}
+
 
 // -----------------------------------------------------------------------------
 // 8-Bit (Byte) Access
@@ -195,11 +304,15 @@ void set_memory(CPUState* state, uint32_t address, uint8_t value) {
 
 void free_all_pages(PageTable* table) {
     PageTableEntry* current = table->head;
-    while (current) {
-        PageTableEntry* next = current->next;
-        free(current->page_data);
-        free(current);
-        current = next;
+    // Use table->page_count to control the loop.
+    for (size_t i = 0; i < table->page_count && current != NULL; i++) {
+        if (current->is_allocated && current->page_data) {
+            free(current->page_data);
+        }
+        PageTableEntry* temp = current;
+        current = current->next;
+        free(temp);
     }
     free(table);
 }
+

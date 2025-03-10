@@ -81,10 +81,11 @@ void free_app_state(AppState *appState) {
     }
     munmap(appState->emulator_running, 1);
     munmap(appState->state->reg, 16 * sizeof(uint16_t));
-    free_all_pages(appState->state->page_table);
     free(appState->state->i_vector_table);
     free(appState->state->i_queue);
     free(appState->state->uart);
+    free(appState->state->pc);
+    free_all_pages(appState->state->page_table);
     munmap(appState->state, sizeof(CPUState));
     // if (appState->gui_pid) {
     //     munmap(appState->gui_shm, sizeof(gui_process_shm_t));
@@ -94,30 +95,38 @@ void free_app_state(AppState *appState) {
     free(appState);
 }
 
+void cleanup_emulator(void *arg) {
+    AppState *appState = (AppState *)arg;
+    if (appState->state->uart) {
+        // Signal the UART thread to stop
+        appState->state->uart->running = false;
+        // Cancel and join the UART thread to ensure cleanup
+        pthread_cancel(appState->state->uart_thread);
+        pthread_join(appState->state->uart_thread, NULL);
+    }
+}
+
 void* emulator_thread_func(void* arg) {
     AppState *appState = (AppState*) arg;
-
-    // Set cancellation type as needed.
+    // Set cancellation type to asynchronous
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
     // Start the UART thread if a UART instance is present.
     if (appState->state->uart) {
-        // Make sure the UART running flag is set.
         appState->state->uart->running = true;
         if (pthread_create(&appState->state->uart_thread, NULL, uart_start, appState) != 0) {
             perror("Failed to create UART thread");
         }
     }
 
+    // Register cleanup handler to ensure the UART thread is stopped on cancellation.
+    pthread_cleanup_push(cleanup_emulator, appState);
+
     // Start the emulator main loop.
     start(appState);
 
-    // When the emulator stops, signal the UART thread to stop.
-    if (appState->state->uart) {
-        appState->state->uart->running = false;
-        pthread_cancel(appState->state->uart_thread);
-        pthread_join(appState->state->uart_thread, NULL);
-    }
+    // If start() returns normally, pop and execute cleanup handler.
+    pthread_cleanup_pop(1);
 
     *(appState->emulator_running) = 0;
     pthread_exit(NULL);
