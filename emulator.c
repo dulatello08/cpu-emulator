@@ -2,6 +2,8 @@
 
 #include "main.h"
 #include <stdio.h>
+
+#include "uart.h"
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
     // debug stuff
@@ -33,6 +35,12 @@ int start(AppState *appState) {
         if (!is_interrupt_queue_empty(appState->state->i_queue)) {
             uint8_t irq;
             dequeue_interrupt(appState->state->i_queue, &irq);
+            if (irq==0) {
+                uint8_t value;
+                uart_read(appState->state->uart, &value);
+                write8(appState->state, 0x10001, value);
+                printf("%02x\n", value);
+            }
             InterruptVectorEntry *ive = get_interrupt_vector(appState->state->i_vector_table, irq);
             if (ive != NULL) {
                 // Save the current PC as the return address.
