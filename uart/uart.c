@@ -6,13 +6,15 @@
 #include "uart.h"
 #include <pthread.h>
 #include <unistd.h>
-// Enable POSIX 2008 extensions for proper function declarations
-#define _XOPEN_SOURCE 700
-
 #ifdef __APPLE__
     #include <util.h>   // macOS (provides posix_openpt, grantpt, unlockpt)
 #else
-    #include <pty.h>    // Linux (provides posix_openpt, grantpt, unlockpt)
+//hacky
+#ifdef __linux__
+extern int posix_openpt(int flags);
+extern int grantpt(int fd);
+extern int unlockpt(int fd);
+#endif
 #endif
 
 #include <stdlib.h>      // Needed for posix_openpt() in some cases
