@@ -22,8 +22,8 @@ extern int unlockpt(int fd);
 #include "main.h"
 
 // Example IRQ definitions (adjust as needed)
-#define UART_IRQ_RX 1
-#define UART_IRQ_TX 2
+#define UART_IRQ_RX 0
+#define UART_IRQ_TX 1
 
 // Helper function to compute per-byte delay (in microseconds) based on baud rate.
 // Assumes 10 bits per byte (1 start + 8 data + 1 stop).
@@ -78,6 +78,8 @@ void *uart_start(void *arg) {
     // Enable thread cancellation.
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+    fprintf(stderr, "UART thread started.\n");
 
     // Initialize internal state variables.
     uart->status_reg = 0;
@@ -139,14 +141,24 @@ void *uart_start(void *arg) {
             return NULL;
         }
     }
+
     int flags = fcntl(uart->pty_master_fd, F_GETFL, 0);
     fcntl(uart->pty_master_fd, F_SETFL, flags | O_NONBLOCK);
+
+    // Retrieve and log the PTY slave name.
+    char *pty_slave = ptsname(uart->pty_master_fd);
+    if (pty_slave) {
+        fprintf(stderr, "UART PTY master fd %d connected to PTY slave: %s\n", uart->pty_master_fd, pty_slave);
+    } else {
+        fprintf(stderr, "UART: Could not retrieve PTY slave name\n");
+    }
 
     // Ensure a valid baud rate; default to 300 baud if not specified.
     if (uart->config.baud_rate == 0) {
         uart->config.baud_rate = 300;
     }
     unsigned int byte_delay_us = compute_byte_delay(uart->config.baud_rate);
+    fprintf(stderr, "UART configured with baud rate %u, byte delay: %u microseconds\n", uart->config.baud_rate, byte_delay_us);
 
     // Register the cleanup handler.
     pthread_cleanup_push(uart_cleanup, uart);
