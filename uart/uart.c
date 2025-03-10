@@ -9,7 +9,7 @@
 #ifdef __APPLE__
     #include <util.h>
 #else
-    #include <pty.h>
+    #include <stdlib.h>
 #endif
 #include <fcntl.h>
 #include "main.h"
