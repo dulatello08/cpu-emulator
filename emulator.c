@@ -2,7 +2,6 @@
 
 #include "main.h"
 #include <stdio.h>
-
 #include "uart.h"
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 int start(AppState *appState) {
@@ -63,7 +62,6 @@ int start(AppState *appState) {
 
         // Execute the next instruction.
         exitCode = execute_instruction(appState->state);
-        usleep(1000);
     }
     return 0;
 }

@@ -20,6 +20,11 @@ extern int unlockpt(int fd);
 #include <stdlib.h>      // Needed for posix_openpt() in some cases
 #include <fcntl.h>       // File control options (O_RDWR, O_NOCTTY)
 #include "main.h"
+/* uart.c – must come before any system header */
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#define _XOPEN_SOURCE 600   /* or define _GNU_SOURCE */
+#include <pty.h>            /* prototypes: posix_openpt, grantpt, unlockpt, ptsname */
+#endif
 
 // Example IRQ definitions (adjust as needed)
 #define UART_IRQ_RX 0
