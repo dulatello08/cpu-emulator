@@ -229,6 +229,7 @@ bool execute_instruction(CPUState *state) {
             while (state->i_queue->count == 0) {
                 // Block until signaled that an interrupt has been enqueued
                 pthread_cond_wait(&state->i_queue->cond, &state->i_queue->mutex);
+                printf("im using cpu\n");
             }
             pthread_mutex_unlock(&state->i_queue->mutex);
             break;

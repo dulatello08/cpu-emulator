@@ -357,3 +357,14 @@
 
 **Operands:**
 - *None.*
+
+### **Instruction: wfi**
+**Opcode:** `0x17`
+
+**General Description:** Wait For Interrupt (WFI) puts the CPU into an idle state until an interrupt occurs. Execution resumes at the next instruction once an interrupt is serviced.
+
+**Specifiers:**
+- **00**: Mode 00, standard wait for interrupt behavior. 2-word length. Syntax: `wfi`
+
+**Operands:**
+- *None.*

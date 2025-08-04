@@ -62,6 +62,7 @@ int start(AppState *appState) {
 
         // Execute the next instruction.
         exitCode = execute_instruction(appState->state);
+        usleep(1000);
     }
     return 0;
 }
