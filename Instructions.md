@@ -368,3 +368,48 @@
 
 **Operands:**
 - *None.*
+
+---
+
+### Instruction: **eni**
+
+**Opcode:** `0x18`
+
+**General Description:**
+Enables (unmasks) all maskable interrupts globally by setting the interrupt enable flag in the processor status register. This instruction is typically used after exiting a critical section to allow normal interrupt processing to resume.
+
+**Specifiers:**
+
+* **00**: Mode 00, standard enable interrupts. 2-word length. Syntax: `eni`
+
+**Operands:**
+
+* *None.*
+
+---
+
+### Instruction: **dsi**
+
+**Opcode:** `0x19`
+
+**General Description:**
+Disables (masks) all maskable interrupts globally by clearing the interrupt enable flag in the processor status register. This instruction is typically used before entering a critical section to prevent interruption.
+
+**Specifiers:**
+
+* **00**: Mode 00, standard disable interrupts. 2-word length. Syntax: `dsi`
+
+**Operands:**
+
+* *None.*
+
+**Notes:**
+
+* Both `eni` and `dsi` affect only the global interrupt enable flag, not individual interrupt masks (which are controlled via MMIO in your APIC/PIC registers).
+* Common use:
+
+  ```assembly
+  dsi        ; Enter critical section (disable interrupts)
+  ...        ; Critical code here
+  eni        ; Exit critical section (enable interrupts)
+  ```

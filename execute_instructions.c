@@ -234,6 +234,12 @@ bool execute_instruction(CPUState *state) {
             pthread_mutex_unlock(&state->i_queue->mutex);
             break;
         }
+        case OP_ENI: {
+            state->enable_mask_interrupts = true;
+        }
+        case OP_DSI: {
+            state->enable_mask_interrupts = false;
+        }
         // Add additional opcodes here...
         default:
             printf("Unhandled opcode: %02x\n", opcode);

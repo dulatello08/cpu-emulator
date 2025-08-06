@@ -35,6 +35,8 @@
 #define OP_JSR 0x15
 #define OP_RTS 0x16
 #define OP_WFI 0x17
+#define OP_ENI 0x18
+#define OP_DSI 0x19
 
 // Peripheral and Display Definitions
 #define LCD_WIDTH 32

@@ -31,7 +31,7 @@ int start(AppState *appState) {
 
     while (*(appState->state->pc) + 1 < UINT32_MAX && !exitCode) {
         // Check if the interrupt queue is not empty.
-        if (!is_interrupt_queue_empty(appState->state->i_queue)) {
+        if (!is_interrupt_queue_empty(appState->state->i_queue) && appState->state->enable_mask_interrupts) {
             uint8_t irq;
             dequeue_interrupt(appState->state->i_queue, &irq);
             if (irq==0) {
