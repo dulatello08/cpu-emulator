@@ -9,3 +9,8 @@ cmake-build-debug
 /build/
 /cmake-build-minsizerel/
 /cmake-build-release/
+# SystemVerilog build artifacts
+sv/build/
+*.vvp
+*.vcd
+*.lxt
