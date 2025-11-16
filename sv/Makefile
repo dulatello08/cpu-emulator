@@ -26,7 +26,15 @@ RTL_SRCS = \
 	$(RTL_DIR)/branch_unit.sv \
 	$(RTL_DIR)/register_file.sv \
 	$(RTL_DIR)/decode_unit.sv \
-	$(RTL_DIR)/fetch_unit.sv
+	$(RTL_DIR)/fetch_unit.sv \
+	$(RTL_DIR)/pipeline_regs.sv \
+	$(RTL_DIR)/hazard_unit.sv \
+	$(RTL_DIR)/issue_unit.sv \
+	$(RTL_DIR)/execute_stage.sv \
+	$(RTL_DIR)/memory_stage.sv \
+	$(RTL_DIR)/writeback_stage.sv \
+	$(RTL_DIR)/simple_memory.sv \
+	$(RTL_DIR)/core_top.sv
 
 # Create build directory
 $(BUILD_DIR):
@@ -81,11 +89,20 @@ decode_unit_tb: $(BUILD_DIR)
 run_decode_unit_tb: decode_unit_tb
 	cd $(BUILD_DIR) && $(VVP) decode_unit_tb.vvp
 
+# Core Testbench
+core_tb: $(BUILD_DIR)
+	$(IVERILOG) $(IVFLAGS) -s core_tb \
+		-o $(BUILD_DIR)/core_tb.vvp \
+		$(RTL_SRCS) $(TB_DIR)/core_tb.sv
+
+run_core_tb: core_tb
+	cd $(BUILD_DIR) && $(VVP) core_tb.vvp
+
 # ============================================================================
 # Run all tests
 # ============================================================================
 
-all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb
+all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb run_core_tb
 
 # ============================================================================
 # Clean
