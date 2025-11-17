@@ -33,7 +33,7 @@ RTL_SRCS = \
 	$(RTL_DIR)/execute_stage.sv \
 	$(RTL_DIR)/memory_stage.sv \
 	$(RTL_DIR)/writeback_stage.sv \
-	$(RTL_DIR)/simple_memory.sv \
+	$(RTL_DIR)/unified_memory.sv \
 	$(RTL_DIR)/core_top.sv
 
 # Create build directory
@@ -89,11 +89,35 @@ decode_unit_tb: $(BUILD_DIR)
 run_decode_unit_tb: decode_unit_tb
 	cd $(BUILD_DIR) && $(VVP) decode_unit_tb.vvp
 
-# Core Testbench
+# Core Testbench (unified memory)
+core_unified_tb: $(BUILD_DIR)
+	$(IVERILOG) $(IVFLAGS) -s core_unified_tb \
+		-o $(BUILD_DIR)/core_unified_tb.vvp \
+		$(RTL_SRCS) $(TB_DIR)/core_unified_tb.sv
+
+run_core_unified_tb: core_unified_tb
+	cd $(BUILD_DIR) && $(VVP) core_unified_tb.vvp
+
+# Core Testbench (old, with simple_memory - deprecated)
 core_tb: $(BUILD_DIR)
 	$(IVERILOG) $(IVFLAGS) -s core_tb \
 		-o $(BUILD_DIR)/core_tb.vvp \
-		$(RTL_SRCS) $(TB_DIR)/core_tb.sv
+		$(PKG_SRC) \
+		$(RTL_DIR)/alu.sv \
+		$(RTL_DIR)/multiply_unit.sv \
+		$(RTL_DIR)/branch_unit.sv \
+		$(RTL_DIR)/register_file.sv \
+		$(RTL_DIR)/decode_unit.sv \
+		$(RTL_DIR)/fetch_unit.sv \
+		$(RTL_DIR)/pipeline_regs.sv \
+		$(RTL_DIR)/hazard_unit.sv \
+		$(RTL_DIR)/issue_unit.sv \
+		$(RTL_DIR)/execute_stage.sv \
+		$(RTL_DIR)/memory_stage.sv \
+		$(RTL_DIR)/writeback_stage.sv \
+		$(RTL_DIR)/simple_memory.sv \
+		$(RTL_DIR)/core_top.sv \
+		$(TB_DIR)/core_tb.sv
 
 run_core_tb: core_tb
 	cd $(BUILD_DIR) && $(VVP) core_tb.vvp
@@ -102,7 +126,7 @@ run_core_tb: core_tb
 # Run all tests
 # ============================================================================
 
-all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb run_core_tb
+all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb run_core_unified_tb
 
 # ============================================================================
 # Clean
@@ -113,4 +137,4 @@ clean:
 
 .PHONY: all clean alu_tb run_alu_tb register_file_tb run_register_file_tb \
         multiply_unit_tb run_multiply_unit_tb branch_unit_tb run_branch_unit_tb \
-        decode_unit_tb run_decode_unit_tb
+        decode_unit_tb run_decode_unit_tb core_unified_tb run_core_unified_tb
