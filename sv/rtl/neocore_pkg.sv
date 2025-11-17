@@ -183,6 +183,9 @@ package neocore_pkg;
     // Flags
     logic        z_flag;          // Zero flag
     logic        v_flag;          // Overflow flag
+    
+    // Control
+    logic        is_halt;         // Halt instruction
   } mem_wb_t;
 
   // ============================================================================

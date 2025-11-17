@@ -99,7 +99,7 @@ module writeback_stage
   // ============================================================================
   
   // Halt if either instruction is a halt instruction
-  assign halted = (mem_wb_0.valid && mem_wb_0.pc == 32'hFFFF_FFFF) ||  // Special halt indicator
-                  (mem_wb_1.valid && mem_wb_1.pc == 32'hFFFF_FFFF);
+  assign halted = (mem_wb_0.valid && mem_wb_0.is_halt) ||
+                  (mem_wb_1.valid && mem_wb_1.is_halt);
 
 endmodule : writeback_stage

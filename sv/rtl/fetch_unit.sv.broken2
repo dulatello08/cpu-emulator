@@ -1,6 +1,6 @@
 //
 // fetch_unit.sv
-// NeoCore 16x32 CPU - Instruction Fetch Unit (Fixed)
+// NeoCore 16x32 CPU - Instruction Fetch Unit
 //
 // Fetches variable-length instructions from unified memory.
 // Maintains instruction buffer for dual-issue capability.
@@ -14,12 +14,6 @@
 //   Byte 0: Specifier
 //   Byte 1: Opcode
 //   Bytes 2+: Operands (varying length)
-//
-// Buffer Management Strategy:
-//   - Maintain 32-byte circular buffer
-//   - Track number of valid bytes
-//   - Extract instructions from top of buffer (big-endian)
-//   - Shift out consumed bytes and refill from bottom
 //
 
 module fetch_unit
@@ -79,24 +73,6 @@ module fetch_unit
   logic [5:0]   buffer_valid;  // Number of valid bytes in buffer
   logic [31:0]  buffer_pc;     // PC of first byte in buffer
   
-  // Calculate consumed bytes (combinational)
-  logic [5:0] consumed_bytes;
-  logic       can_consume_0, can_consume_1;
-  
-  always_comb begin
-    can_consume_0 = (buffer_valid >= {2'b0, inst_len_0}) && (inst_len_0 > 0) && !branch_taken;
-    can_consume_1 = can_consume_0 && 
-                    (buffer_valid >= ({2'b0, inst_len_0} + {2'b0, inst_len_1})) && 
-                    (inst_len_1 > 0);
-    
-    if (!stall) begin
-      consumed_bytes = (can_consume_0 ? {2'b0, inst_len_0} : 6'h0) + 
-                      (can_consume_1 ? {2'b0, inst_len_1} : 6'h0);
-    end else begin
-      consumed_bytes = 6'h0;
-    end
-  end
-  
   always_ff @(posedge clk) begin
     if (rst) begin
       fetch_buffer <= 256'h0;
@@ -107,29 +83,24 @@ module fetch_unit
       fetch_buffer <= 256'h0;
       buffer_valid <= 6'h0;
       buffer_pc <= branch_target;
-    end else if (!stall) begin
-      // Handle buffer consumption and refill
-      if (mem_ack && consumed_bytes > 0) begin
-        // Both consume and refill
-        // Shift out consumed bytes and append new data at bottom
+    end else if (mem_ack && !stall) begin
+      // Shift out consumed bytes and add new bytes
+      logic [5:0] consumed_bytes;
+      consumed_bytes = (valid_0 ? {2'b0, inst_len_0} : 6'h0) + 
+                      (valid_1 ? {2'b0, inst_len_1} : 6'h0);
+      
+      // Shift buffer left (remove consumed bytes) and append new data
+      // Big-endian: MSB bytes are at higher bit positions
+      if (consumed_bytes > 0) begin
         fetch_buffer <= (fetch_buffer << (consumed_bytes * 8)) | 
-                       {128'h0, mem_rdata};
-        buffer_valid <= buffer_valid - consumed_bytes + 6'd16;
+                       ({128'h0, mem_rdata} << ((32 - buffer_valid - 16) * 8));
+        buffer_valid <= buffer_valid + 6'd16 - consumed_bytes;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
-      end else if (mem_ack) begin
-        // Only refill (no consumption)
+      end else begin
+        // No consumption, just append
         fetch_buffer <= (fetch_buffer << 128) | {128'h0, mem_rdata};
         buffer_valid <= buffer_valid + 6'd16;
-        if (buffer_valid == 0) begin
-          buffer_pc <= pc;  // Initialize buffer_pc on first fetch
-        end
-      end else if (consumed_bytes > 0) begin
-        // Only consume (no refill)
-        fetch_buffer <= fetch_buffer << (consumed_bytes * 8);
-        buffer_valid <= buffer_valid - consumed_bytes;
-        buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
       end
-      // else: no change
     end
   end
   
@@ -242,7 +213,7 @@ module fetch_unit
   always_comb begin
     // Request memory when buffer needs refilling
     // Keep buffer topped up to handle dual-issue and long instructions
-    mem_req = (buffer_valid < 6'd20) && !stall && !branch_taken;
+    mem_req = (buffer_valid < 6'd20) && !stall;
     mem_addr = pc;
   end
   
@@ -255,7 +226,10 @@ module fetch_unit
       pc_next = branch_target;
     end else if (!stall) begin
       // Sequential execution: advance by number of bytes consumed
-      pc_next = pc + {26'h0, consumed_bytes};
+      logic [5:0] consumed;
+      consumed = (valid_0 ? {2'b0, inst_len_0} : 6'h0) + 
+                 (valid_1 ? {2'b0, inst_len_1} : 6'h0);
+      pc_next = pc + {26'h0, consumed};
     end else begin
       pc_next = pc;
     end

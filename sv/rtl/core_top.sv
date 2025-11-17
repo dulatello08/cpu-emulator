@@ -544,6 +544,6 @@ module core_top
   // Pipeline Stall Control
   // ==========================================================================
   
-  assign stall_pipeline = hazard_stall || mem_stall;
+  assign stall_pipeline = hazard_stall || mem_stall || halted;
 
 endmodule : core_top

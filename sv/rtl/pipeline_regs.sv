@@ -133,6 +133,7 @@ module mem_wb_reg
       data_out.rd2_we <= 1'b0;
       data_out.z_flag <= 1'b0;
       data_out.v_flag <= 1'b0;
+      data_out.is_halt <= 1'b0;
     end else if (!stall) begin
       data_out <= data_in;
     end

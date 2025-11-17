@@ -223,6 +223,7 @@ module memory_stage
     mem_wb_0.rd2_we = ex_mem_0.rd2_we;
     mem_wb_0.z_flag = ex_mem_0.z_flag;
     mem_wb_0.v_flag = ex_mem_0.v_flag;
+    mem_wb_0.is_halt = ex_mem_0.is_halt;
     
     // Select write-back data
     if (ex_mem_0.mem_read) begin
@@ -249,6 +250,7 @@ module memory_stage
     mem_wb_1.rd2_we = ex_mem_1.rd2_we;
     mem_wb_1.z_flag = ex_mem_1.z_flag;
     mem_wb_1.v_flag = ex_mem_1.v_flag;
+    mem_wb_1.is_halt = ex_mem_1.is_halt;
     
     if (ex_mem_1.mem_read) begin
       mem_wb_1.wb_data = mem_result_1[15:0];
