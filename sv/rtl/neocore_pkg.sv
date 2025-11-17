@@ -36,7 +36,9 @@ package neocore_pkg;
     OP_POP   = 8'h14,
     OP_JSR   = 8'h15,
     OP_RTS   = 8'h16,
-    OP_WFI   = 8'h17
+    OP_WFI   = 8'h17,
+    OP_ENI   = 8'h18,
+    OP_DSI   = 8'h19
   } opcode_e;
 
   // ============================================================================
@@ -96,7 +98,7 @@ package neocore_pkg;
   typedef struct packed {
     logic        valid;           // Instruction valid
     logic [31:0] pc;              // Program counter for this instruction
-    logic [71:0] inst_data;       // Up to 9 bytes of instruction data
+    logic [103:0] inst_data;      // Up to 13 bytes of instruction data (big-endian)
     logic [3:0]  inst_len;        // Instruction length in bytes
   } if_id_t;
 
@@ -227,7 +229,7 @@ package neocore_pkg;
   // Get instruction length based on opcode and specifier
   function automatic logic [3:0] get_inst_length(logic [7:0] opcode, logic [7:0] specifier);
     case (opcode)
-      8'h00, 8'h12, 8'h16, 8'h17:  // NOP, HLT, RTS, WFI
+      8'h00, 8'h12, 8'h16, 8'h17, 8'h18, 8'h19:  // NOP, HLT, RTS, WFI, ENI, DSI
         return 4'd2;
       8'h13, 8'h14:  // PSH, POP
         return 4'd3;

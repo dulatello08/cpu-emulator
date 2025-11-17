@@ -2,9 +2,18 @@
 // fetch_unit.sv
 // NeoCore 16x32 CPU - Instruction Fetch Unit
 //
-// Fetches variable-length instructions from memory.
+// Fetches variable-length instructions from unified memory.
 // Maintains instruction buffer for dual-issue capability.
 // Handles PC updates for sequential execution and branches.
+//
+// Big-Endian Memory Model:
+//   Instructions are stored in big-endian format.
+//   Byte at address N is more significant than byte at address N+1.
+//
+// Instruction Format (from machine description):
+//   Byte 0: Specifier
+//   Byte 1: Opcode
+//   Bytes 2+: Operands (varying length)
 //
 
 module fetch_unit
@@ -18,22 +27,22 @@ module fetch_unit
   input  logic [31:0] branch_target,
   input  logic        stall,        // Stall fetch (from hazard detection)
   
-  // Memory interface
-  output logic [31:0] imem_addr,
-  output logic        imem_req,
-  input  logic [63:0] imem_rdata,   // 8 bytes of instruction data
-  input  logic        imem_ack,
+  // Unified memory interface (wide fetch for variable-length instructions)
+  output logic [31:0] mem_addr,
+  output logic        mem_req,
+  input  logic [127:0] mem_rdata,   // 16 bytes of instruction data (big-endian)
+  input  logic        mem_ack,
   
   // Output to decode
-  output logic [71:0] inst_data_0,  // First instruction (up to 9 bytes)
-  output logic [3:0]  inst_len_0,   // First instruction length
-  output logic [31:0] pc_0,         // PC of first instruction
-  output logic        valid_0,      // First instruction valid
+  output logic [103:0] inst_data_0,  // First instruction (up to 13 bytes)
+  output logic [3:0]   inst_len_0,   // First instruction length
+  output logic [31:0]  pc_0,         // PC of first instruction
+  output logic         valid_0,      // First instruction valid
   
-  output logic [71:0] inst_data_1,  // Second instruction (for dual-issue)
-  output logic [3:0]  inst_len_1,
-  output logic [31:0] pc_1,
-  output logic        valid_1
+  output logic [103:0] inst_data_1,  // Second instruction (for dual-issue)
+  output logic [3:0]   inst_len_1,
+  output logic [31:0]  pc_1,
+  output logic         valid_1
 );
 
   // ============================================================================
@@ -55,32 +64,43 @@ module fetch_unit
   // Fetch Buffer
   // ============================================================================
   
-  // Buffer to hold fetched instruction bytes
-  logic [127:0] fetch_buffer;  // 16 bytes
-  logic [4:0]   buffer_valid;  // Number of valid bytes in buffer
+  // Buffer to hold fetched instruction bytes (big-endian)
+  // We maintain a 32-byte buffer to handle:
+  // - Up to 13-byte instructions
+  // - Alignment issues
+  // - Dual-issue (two instructions)
+  logic [255:0] fetch_buffer;  // 32 bytes
+  logic [5:0]   buffer_valid;  // Number of valid bytes in buffer
   logic [31:0]  buffer_pc;     // PC of first byte in buffer
   
   always_ff @(posedge clk) begin
     if (rst) begin
-      fetch_buffer <= 128'h0;
-      buffer_valid <= 5'h0;
+      fetch_buffer <= 256'h0;
+      buffer_valid <= 6'h0;
       buffer_pc <= 32'h0;
     end else if (branch_taken) begin
       // Flush buffer on branch
-      fetch_buffer <= 128'h0;
-      buffer_valid <= 5'h0;
+      fetch_buffer <= 256'h0;
+      buffer_valid <= 6'h0;
       buffer_pc <= branch_target;
-    end else if (imem_ack && !stall) begin
+    end else if (mem_ack && !stall) begin
       // Shift out consumed bytes and add new bytes
-      // For simplicity, we fetch 8 new bytes each cycle
-      // and shift out bytes consumed by decoded instructions
-      logic [4:0] consumed_bytes;
-      consumed_bytes = (valid_0 ? inst_len_0 : 5'h0) + (valid_1 ? inst_len_1 : 5'h0);
+      logic [5:0] consumed_bytes;
+      consumed_bytes = (valid_0 ? {2'b0, inst_len_0} : 6'h0) + 
+                      (valid_1 ? {2'b0, inst_len_1} : 6'h0);
       
-      // Shift buffer
-      fetch_buffer <= {imem_rdata, fetch_buffer[127:64]};
-      buffer_valid <= buffer_valid + 5'd8 - consumed_bytes;
-      buffer_pc <= buffer_pc + {27'h0, consumed_bytes};
+      // Shift buffer left (remove consumed bytes) and append new data
+      // Big-endian: MSB bytes are at higher bit positions
+      if (consumed_bytes > 0) begin
+        fetch_buffer <= (fetch_buffer << (consumed_bytes * 8)) | 
+                       ({128'h0, mem_rdata} << ((32 - buffer_valid - 16) * 8));
+        buffer_valid <= buffer_valid + 6'd16 - consumed_bytes;
+        buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
+      end else begin
+        // No consumption, just append
+        fetch_buffer <= (fetch_buffer << 128) | {128'h0, mem_rdata};
+        buffer_valid <= buffer_valid + 6'd16;
+      end
     end
   end
   
@@ -88,51 +108,54 @@ module fetch_unit
   // Instruction Pre-Decode (Length Detection)
   // ============================================================================
   
+  // Extract bytes for first instruction (big-endian: MSB at top)
   logic [7:0] spec_0, op_0;
   logic [7:0] spec_1, op_1;
   
   always_comb begin
-    // Extract specifier and opcode for first instruction
-    spec_0 = fetch_buffer[7:0];
-    op_0 = fetch_buffer[15:8];
+    // Extract specifier and opcode for first instruction from buffer
+    // Buffer is big-endian, so MSB bytes are at top
+    spec_0 = fetch_buffer[255:248];  // Byte 0 (specifier)
+    op_0 = fetch_buffer[247:240];    // Byte 1 (opcode)
     
     // Calculate first instruction length
     inst_len_0 = get_inst_length(op_0, spec_0);
     
     // Extract second instruction (starts after first)
-    if (inst_len_0 <= buffer_valid) begin
+    // Need to shift by inst_len_0 bytes
+    if ({2'b0, inst_len_0} <= buffer_valid) begin
       case (inst_len_0)
         4'd2: begin
-          spec_1 = fetch_buffer[23:16];
-          op_1 = fetch_buffer[31:24];
+          spec_1 = fetch_buffer[239:232];  // After 2 bytes
+          op_1 = fetch_buffer[231:224];
         end
         4'd3: begin
-          spec_1 = fetch_buffer[31:24];
-          op_1 = fetch_buffer[39:32];
+          spec_1 = fetch_buffer[231:224];  // After 3 bytes
+          op_1 = fetch_buffer[223:216];
         end
         4'd4: begin
-          spec_1 = fetch_buffer[39:32];
-          op_1 = fetch_buffer[47:40];
+          spec_1 = fetch_buffer[223:216];  // After 4 bytes
+          op_1 = fetch_buffer[215:208];
         end
         4'd5: begin
-          spec_1 = fetch_buffer[47:40];
-          op_1 = fetch_buffer[55:48];
+          spec_1 = fetch_buffer[215:208];  // After 5 bytes
+          op_1 = fetch_buffer[207:200];
         end
         4'd6: begin
-          spec_1 = fetch_buffer[55:48];
-          op_1 = fetch_buffer[63:56];
+          spec_1 = fetch_buffer[207:200];  // After 6 bytes
+          op_1 = fetch_buffer[199:192];
         end
         4'd7: begin
-          spec_1 = fetch_buffer[63:56];
-          op_1 = fetch_buffer[71:64];
+          spec_1 = fetch_buffer[199:192];  // After 7 bytes
+          op_1 = fetch_buffer[191:184];
         end
         4'd8: begin
-          spec_1 = fetch_buffer[71:64];
-          op_1 = fetch_buffer[79:72];
+          spec_1 = fetch_buffer[191:184];  // After 8 bytes
+          op_1 = fetch_buffer[183:176];
         end
         4'd9: begin
-          spec_1 = fetch_buffer[79:72];
-          op_1 = fetch_buffer[87:80];
+          spec_1 = fetch_buffer[183:176];  // After 9 bytes
+          op_1 = fetch_buffer[175:168];
         end
         default: begin
           spec_1 = 8'h00;
@@ -153,25 +176,31 @@ module fetch_unit
   
   always_comb begin
     // First instruction
-    valid_0 = (buffer_valid >= inst_len_0) && !branch_taken;
-    inst_data_0 = fetch_buffer[71:0];
+    valid_0 = (buffer_valid >= {2'b0, inst_len_0}) && !branch_taken && (inst_len_0 > 0);
+    
+    // Extract instruction bytes (up to 13 bytes)
+    // Big-endian: top bytes are most significant
+    inst_data_0 = fetch_buffer[255:152];  // Top 13 bytes
     pc_0 = buffer_pc;
     
     // Second instruction (dual-issue)
     // Only valid if first is valid and buffer has enough bytes
-    valid_1 = valid_0 && (buffer_valid >= (inst_len_0 + inst_len_1)) && !branch_taken;
+    valid_1 = valid_0 && 
+              (buffer_valid >= ({2'b0, inst_len_0} + {2'b0, inst_len_1})) && 
+              !branch_taken &&
+              (inst_len_1 > 0);
     
-    // Extract second instruction data (shift by first instruction length)
+    // Extract second instruction data (shifted by first instruction length)
     case (inst_len_0)
-      4'd2: inst_data_1 = fetch_buffer[87:16];
-      4'd3: inst_data_1 = fetch_buffer[95:24];
-      4'd4: inst_data_1 = fetch_buffer[103:32];
-      4'd5: inst_data_1 = fetch_buffer[111:40];
-      4'd6: inst_data_1 = fetch_buffer[119:48];
-      4'd7: inst_data_1 = fetch_buffer[127:56];
-      4'd8: inst_data_1 = {8'h00, fetch_buffer[127:64]};
-      4'd9: inst_data_1 = 72'h0;  // Not enough space
-      default: inst_data_1 = 72'h0;
+      4'd2:  inst_data_1 = fetch_buffer[239:136];  // After 2 bytes
+      4'd3:  inst_data_1 = fetch_buffer[231:128];  // After 3 bytes
+      4'd4:  inst_data_1 = fetch_buffer[223:120];  // After 4 bytes
+      4'd5:  inst_data_1 = fetch_buffer[215:112];  // After 5 bytes
+      4'd6:  inst_data_1 = fetch_buffer[207:104];  // After 6 bytes
+      4'd7:  inst_data_1 = fetch_buffer[199:96];   // After 7 bytes
+      4'd8:  inst_data_1 = fetch_buffer[191:88];   // After 8 bytes
+      4'd9:  inst_data_1 = fetch_buffer[183:80];   // After 9 bytes
+      default: inst_data_1 = 104'h0;
     endcase
     
     pc_1 = buffer_pc + {28'h0, inst_len_0};
@@ -183,8 +212,9 @@ module fetch_unit
   
   always_comb begin
     // Request memory when buffer needs refilling
-    imem_req = (buffer_valid < 5'd12) && !stall;
-    imem_addr = pc;
+    // Keep buffer topped up to handle dual-issue and long instructions
+    mem_req = (buffer_valid < 6'd20) && !stall;
+    mem_addr = pc;
   end
   
   // ============================================================================
@@ -196,9 +226,10 @@ module fetch_unit
       pc_next = branch_target;
     end else if (!stall) begin
       // Sequential execution: advance by number of bytes consumed
-      logic [4:0] consumed;
-      consumed = (valid_0 ? inst_len_0 : 5'h0) + (valid_1 ? inst_len_1 : 5'h0);
-      pc_next = pc + {27'h0, consumed};
+      logic [5:0] consumed;
+      consumed = (valid_0 ? {2'b0, inst_len_0} : 6'h0) + 
+                 (valid_1 ? {2'b0, inst_len_1} : 6'h0);
+      pc_next = pc + {26'h0, consumed};
     end else begin
       pc_next = pc;
     end
