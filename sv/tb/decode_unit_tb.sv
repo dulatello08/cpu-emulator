@@ -3,6 +3,7 @@
 // Testbench for Decode Unit module
 //
 // Tests instruction decoding for key instruction types.
+// Updated for big-endian, 104-bit (13-byte) instruction format.
 //
 
 `timescale 1ns/1ps
@@ -13,7 +14,7 @@ module decode_unit_tb;
   // Testbench signals
   logic        clk;
   logic        rst;
-  logic [71:0] inst_data;
+  logic [103:0] inst_data;  // 13 bytes max (104 bits)
   logic [3:0]  inst_len;
   logic [31:0] pc;
   logic        valid_in;
@@ -84,7 +85,7 @@ module decode_unit_tb;
     
     // Initialize
     rst = 1;
-    inst_data = 72'h0;
+    inst_data = 104'h0;
     inst_len = 4'd0;
     pc = 32'h0000_0000;
     valid_in = 1'b0;
@@ -94,8 +95,10 @@ module decode_unit_tb;
     
     // Test 1: NOP instruction
     $display("\nTest 1: NOP");
-    // Format: [specifier][opcode] = [00][00]
-    inst_data = 72'h00_00;
+    // Big-Endian Format: byte0=spec, byte1=op
+    // [sp(8)] [opcode(8)] = [00] [00]
+    // Bit positions: [103:96][95:88]
+    inst_data = 104'h00_00_00_00_00_00_00_00_00_00_00_00_00;
     inst_len = 4'd2;
     pc = 32'h0000_0100;
     valid_in = 1'b1;
@@ -108,8 +111,9 @@ module decode_unit_tb;
     
     // Test 2: ADD immediate (rd = rd + imm)
     $display("\nTest 2: ADD R1, #0x1234");
-    // Format: [spec][op][rd][imm_hi][imm_lo] = [00][01][01][12][34]
-    inst_data = 72'h34_12_01_01_00;
+    // Big-Endian: [sp][op][rd][imm_hi][imm_lo] = [00][01][01][12][34]
+    // Bits: [103:96][95:88][87:80][79:72][71:64]
+    inst_data = 104'h00_01_01_12_34_00_00_00_00_00_00_00_00;
     inst_len = 4'd5;
     valid_in = 1'b1;
     @(posedge clk);
@@ -126,8 +130,8 @@ module decode_unit_tb;
     
     // Test 3: ADD register (rd = rd + rn)
     $display("\nTest 3: ADD R2, R3");
-    // Format: [spec][op][rd][rn] = [01][01][02][03]
-    inst_data = 72'h03_02_01_01;
+    // Big-Endian: [sp][op][rd][rn] = [01][01][02][03]
+    inst_data = 104'h01_01_02_03_00_00_00_00_00_00_00_00_00;
     inst_len = 4'd4;
     @(posedge clk);
     #1;
@@ -140,8 +144,8 @@ module decode_unit_tb;
     
     // Test 4: MOV immediate 16-bit
     $display("\nTest 4: MOV R5, #0xABCD");
-    // Format: [spec][op][rd][imm_hi][imm_lo] = [00][09][05][AB][CD]
-    inst_data = 72'h CD_AB_05_09_00;
+    // Big-Endian: [sp][op][rd][imm_hi][imm_lo] = [00][09][05][AB][CD]
+    inst_data = 104'h00_09_05_AB_CD_00_00_00_00_00_00_00_00;
     inst_len = 4'd5;
     @(posedge clk);
     #1;
@@ -155,8 +159,8 @@ module decode_unit_tb;
     
     // Test 5: Unconditional branch
     $display("\nTest 5: B 0x12345678");
-    // Format: [spec][op][addr3][addr2][addr1][addr0] = [00][0A][12][34][56][78]
-    inst_data = 72'h78_56_34_12_0A_00;
+    // Big-Endian: [sp][op][addr3][addr2][addr1][addr0] = [00][0A][12][34][56][78]
+    inst_data = 104'h00_0A_12_34_56_78_00_00_00_00_00_00_00;
     inst_len = 4'd6;
     @(posedge clk);
     #1;
@@ -168,8 +172,8 @@ module decode_unit_tb;
     
     // Test 6: BNE (branch if not equal)
     $display("\nTest 6: BNE R1, R2, 0xABCD0000");
-    // Format: [spec][op][rd][rn][addr3][addr2][addr1][addr0] = [00][0C][01][02][AB][CD][00][00]
-    inst_data = 72'h00_00_CD_AB_02_01_0C_00;
+    // Big-Endian: [sp][op][rd][rn][addr3][addr2][addr1][addr0] = [00][0C][01][02][AB][CD][00][00]
+    inst_data = 104'h00_0C_01_02_AB_CD_00_00_00_00_00_00_00;
     inst_len = 4'd8;
     @(posedge clk);
     #1;
@@ -182,8 +186,8 @@ module decode_unit_tb;
     
     // Test 7: HLT instruction
     $display("\nTest 7: HLT");
-    // Format: [spec][op] = [00][12]
-    inst_data = 72'h12_00;
+    // Big-Endian: [sp][op] = [00][12]
+    inst_data = 104'h00_12_00_00_00_00_00_00_00_00_00_00_00;
     inst_len = 4'd2;
     @(posedge clk);
     #1;
@@ -193,8 +197,8 @@ module decode_unit_tb;
     
     // Test 8: UMULL (unsigned multiply long)
     $display("\nTest 8: UMULL R1, R2, R3");
-    // Format: [spec][op][rd][rn1][rn] = [00][10][01][02][03]
-    inst_data = 72'h03_02_01_10_00;
+    // Big-Endian: [sp][op][rd][rn][rn1] = [00][10][01][02][03]
+    inst_data = 104'h00_10_01_02_03_00_00_00_00_00_00_00_00;
     inst_len = 4'd5;
     @(posedge clk);
     #1;
@@ -202,7 +206,7 @@ module decode_unit_tb;
     assert(itype == ITYPE_MUL) else $error("Type mismatch");
     assert(rd_addr == 4'd1) else $error("rd mismatch");
     assert(rd2_addr == 4'd2) else $error("rd2 mismatch");
-    assert(rs2_addr == 4'd3) else $error("rs2 (rn) mismatch");
+    assert(rs2_addr == 4'd3) else $error("rs2 (rn1) mismatch");
     assert(rd_we == 1'b1) else $error("rd_we should be 1");
     assert(rd2_we == 1'b1) else $error("rd2_we should be 1");
     $display("  PASS: UMULL decoded");
