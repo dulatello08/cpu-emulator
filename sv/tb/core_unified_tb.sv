@@ -109,41 +109,42 @@ module core_unified_tb;
     $display("Loading test program into memory...");
     
     // Simple test program (big-endian encoding):
-    // 0x00: NOP                    [00][00]
-    // 0x02: MOV R1, #0x0005        [00][09][01][00][05]
-    // 0x07: MOV R2, #0x0003        [00][09][02][00][03]
-    // 0x0C: ADD R3, R1             [01][01][03][01]  (R3 = R1 + R3 = 5 + 0 = 5)
-    // 0x10: ADD R3, R2             [01][01][03][02]  (R3 = R2 + R3 = 3 + 5 = 8)
-    // 0x14: HLT                    [00][12]
+    // 0x00: MOV R1, #0x0005       [00][09][01][00][05]
+    // 0x05: MOV R2, #0x0003       [00][09][02][00][03]
+    // 0x0A: ADD R3, R1            [01][01][03][01]  (R3 = R1 = 5)
+    // 0x0E: ADD R3, R2            [01][01][03][02]  (R3 = R3 + R2 = 5 + 3 = 8)
+    // 0x12: HLT                   [00][12]
+    
+    // Initialize all memory to NOP
+    for (int i = 0; i < 256; i++) begin
+      memory.mem[i] = 8'h00;
+    end
     
     // Load program (big-endian)
-    memory.mem[32'h00] = 8'h00;  // NOP spec
-    memory.mem[32'h01] = 8'h00;  // NOP op
+    memory.mem[32'h00] = 8'h00;  // MOV spec
+    memory.mem[32'h01] = 8'h09;  // MOV op
+    memory.mem[32'h02] = 8'h01;  // rd = R1
+    memory.mem[32'h03] = 8'h00;  // imm high
+    memory.mem[32'h04] = 8'h05;  // imm low (0x0005)
     
-    memory.mem[32'h02] = 8'h00;  // MOV spec
-    memory.mem[32'h03] = 8'h09;  // MOV op
-    memory.mem[32'h04] = 8'h01;  // rd = R1
-    memory.mem[32'h05] = 8'h00;  // imm high
-    memory.mem[32'h06] = 8'h05;  // imm low (0x0005)
+    memory.mem[32'h05] = 8'h00;  // MOV spec
+    memory.mem[32'h06] = 8'h09;  // MOV op
+    memory.mem[32'h07] = 8'h02;  // rd = R2
+    memory.mem[32'h08] = 8'h00;  // imm high
+    memory.mem[32'h09] = 8'h03;  // imm low (0x0003)
     
-    memory.mem[32'h07] = 8'h00;  // MOV spec
-    memory.mem[32'h08] = 8'h09;  // MOV op
-    memory.mem[32'h09] = 8'h02;  // rd = R2
-    memory.mem[32'h0A] = 8'h00;  // imm high
-    memory.mem[32'h0B] = 8'h03;  // imm low (0x0003)
+    memory.mem[32'h0A] = 8'h01;  // ADD spec (register mode)
+    memory.mem[32'h0B] = 8'h01;  // ADD op
+    memory.mem[32'h0C] = 8'h03;  // rd = R3
+    memory.mem[32'h0D] = 8'h01;  // rn = R1
     
-    memory.mem[32'h0C] = 8'h01;  // ADD spec
-    memory.mem[32'h0D] = 8'h01;  // ADD op
-    memory.mem[32'h0E] = 8'h03;  // rd = R3
-    memory.mem[32'h0F] = 8'h01;  // rn = R1
+    memory.mem[32'h0E] = 8'h01;  // ADD spec (register mode)
+    memory.mem[32'h0F] = 8'h01;  // ADD op
+    memory.mem[32'h10] = 8'h03;  // rd = R3
+    memory.mem[32'h11] = 8'h02;  // rn = R2
     
-    memory.mem[32'h10] = 8'h01;  // ADD spec
-    memory.mem[32'h11] = 8'h01;  // ADD op
-    memory.mem[32'h12] = 8'h03;  // rd = R3
-    memory.mem[32'h13] = 8'h02;  // rn = R2
-    
-    memory.mem[32'h14] = 8'h00;  // HLT spec
-    memory.mem[32'h15] = 8'h12;  // HLT op
+    memory.mem[32'h12] = 8'h00;  // HLT spec
+    memory.mem[32'h13] = 8'h12;  // HLT op
     
     $display("Program loaded. Starting execution...\n");
     
