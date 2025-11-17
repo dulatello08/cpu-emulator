@@ -3,8 +3,13 @@
 // NeoCore 16x32 CPU - Memory Access Stage
 //
 // Handles load and store operations.
-// Interfaces with data memory.
+// Interfaces with unified Von Neumann memory.
 // Supports dual-issue (two memory operations sequentially or one per cycle).
+//
+// Big-Endian Memory Model:
+//   - Data is stored in big-endian format in memory.
+//   - The unified_memory module handles byte ordering internally.
+//   - This module passes data through with minimal transformation.
 //
 
 module memory_stage
@@ -19,7 +24,7 @@ module memory_stage
   // From EX/MEM register (instruction 1)
   input  ex_mem_t     ex_mem_1,
   
-  // Data memory interface
+  // Data memory interface (unified memory)
   output logic [31:0] dmem_addr,
   output logic [31:0] dmem_wdata,
   output logic [1:0]  dmem_size,
@@ -87,17 +92,24 @@ module memory_stage
           dmem_we = ex_mem_0.mem_write;
           
           if (ex_mem_0.mem_write) begin
+            // For writes, pass data directly (unified_memory handles endianness)
             case (ex_mem_0.mem_size)
               MEM_BYTE: dmem_wdata = {24'h0, ex_mem_0.mem_wdata[7:0]};
-              MEM_HALF: dmem_wdata = {16'h0, ex_mem_0.mem_wdata};
-              MEM_WORD: dmem_wdata = {ex_mem_0.mem_wdata, 16'h0};  // TODO: handle 32-bit properly
-              default:  dmem_wdata = {16'h0, ex_mem_0.mem_wdata};
+              MEM_HALF: dmem_wdata = {16'h0, ex_mem_0.mem_wdata[15:0]};
+              MEM_WORD: dmem_wdata = {ex_mem_0.mem_wdata[15:0], ex_mem_0.mem_wdata[15:0]};
+              default:  dmem_wdata = {16'h0, ex_mem_0.mem_wdata[15:0]};
             endcase
           end
           
           if (dmem_ack) begin
             if (ex_mem_0.mem_read) begin
-              mem_result_0 = dmem_rdata;
+              // For reads, extract appropriate bits from big-endian data
+              case (ex_mem_0.mem_size)
+                MEM_BYTE: mem_result_0 = {24'h0, dmem_rdata[7:0]};
+                MEM_HALF: mem_result_0 = {16'h0, dmem_rdata[15:0]};
+                MEM_WORD: mem_result_0 = dmem_rdata;
+                default:  mem_result_0 = {16'h0, dmem_rdata[15:0]};
+              endcase
             end
             // Check if instruction 1 also needs memory
             if (access_mem_1) begin
@@ -119,17 +131,24 @@ module memory_stage
           dmem_we = ex_mem_1.mem_write;
           
           if (ex_mem_1.mem_write) begin
+            // For writes, pass data directly (unified_memory handles endianness)
             case (ex_mem_1.mem_size)
               MEM_BYTE: dmem_wdata = {24'h0, ex_mem_1.mem_wdata[7:0]};
-              MEM_HALF: dmem_wdata = {16'h0, ex_mem_1.mem_wdata};
-              MEM_WORD: dmem_wdata = {ex_mem_1.mem_wdata, 16'h0};
-              default:  dmem_wdata = {16'h0, ex_mem_1.mem_wdata};
+              MEM_HALF: dmem_wdata = {16'h0, ex_mem_1.mem_wdata[15:0]};
+              MEM_WORD: dmem_wdata = {ex_mem_1.mem_wdata[15:0], ex_mem_1.mem_wdata[15:0]};
+              default:  dmem_wdata = {16'h0, ex_mem_1.mem_wdata[15:0]};
             endcase
           end
           
           if (dmem_ack) begin
             if (ex_mem_1.mem_read) begin
-              mem_result_1 = dmem_rdata;
+              // For reads, extract appropriate bits from big-endian data
+              case (ex_mem_1.mem_size)
+                MEM_BYTE: mem_result_1 = {24'h0, dmem_rdata[7:0]};
+                MEM_HALF: mem_result_1 = {16'h0, dmem_rdata[15:0]};
+                MEM_WORD: mem_result_1 = dmem_rdata;
+                default:  mem_result_1 = {16'h0, dmem_rdata[15:0]};
+              endcase
             end
             mem_state_next = MEM_IDLE;
           end else begin
@@ -151,17 +170,24 @@ module memory_stage
         dmem_we = ex_mem_1.mem_write;
         
         if (ex_mem_1.mem_write) begin
+          // For writes, pass data directly (unified_memory handles endianness)
           case (ex_mem_1.mem_size)
             MEM_BYTE: dmem_wdata = {24'h0, ex_mem_1.mem_wdata[7:0]};
-            MEM_HALF: dmem_wdata = {16'h0, ex_mem_1.mem_wdata};
-            MEM_WORD: dmem_wdata = {ex_mem_1.mem_wdata, 16'h0};
-            default:  dmem_wdata = {16'h0, ex_mem_1.mem_wdata};
+            MEM_HALF: dmem_wdata = {16'h0, ex_mem_1.mem_wdata[15:0]};
+            MEM_WORD: dmem_wdata = {ex_mem_1.mem_wdata[15:0], ex_mem_1.mem_wdata[15:0]};
+            default:  dmem_wdata = {16'h0, ex_mem_1.mem_wdata[15:0]};
           endcase
         end
         
         if (dmem_ack) begin
           if (ex_mem_1.mem_read) begin
-            mem_result_1 = dmem_rdata;
+            // For reads, extract appropriate bits from big-endian data
+            case (ex_mem_1.mem_size)
+              MEM_BYTE: mem_result_1 = {24'h0, dmem_rdata[7:0]};
+              MEM_HALF: mem_result_1 = {16'h0, dmem_rdata[15:0]};
+              MEM_WORD: mem_result_1 = dmem_rdata;
+              default:  mem_result_1 = {16'h0, dmem_rdata[15:0]};
+            endcase
           end
           mem_state_next = MEM_IDLE;
         end else begin

@@ -5,6 +5,12 @@
 // Integrates all pipeline stages for a dual-issue, 5-stage pipelined CPU.
 // Implements hazard detection, forwarding, and branch handling.
 //
+// Von Neumann Architecture:
+//   - Single unified memory for instructions and data
+//   - Big-endian byte ordering
+//   - 128-bit instruction fetch port (16 bytes per cycle)
+//   - 32-bit data access port
+//
 // Pipeline stages: IF -> ID -> EX -> MEM -> WB
 // Dual-issue: Up to 2 instructions can be issued per cycle.
 //
@@ -15,20 +21,20 @@ module core_top
   input  logic        clk,
   input  logic        rst,
   
-  // Instruction memory interface
-  output logic [31:0] imem_addr,
-  output logic        imem_req,
-  input  logic [63:0] imem_rdata,
-  input  logic        imem_ack,
+  // Unified memory interface - Instruction fetch port
+  output logic [31:0]  mem_if_addr,
+  output logic         mem_if_req,
+  input  logic [127:0] mem_if_rdata,   // 16 bytes for variable-length instructions
+  input  logic         mem_if_ack,
   
-  // Data memory interface
-  output logic [31:0] dmem_addr,
-  output logic [31:0] dmem_wdata,
-  output logic [1:0]  dmem_size,
-  output logic        dmem_we,
-  output logic        dmem_req,
-  input  logic [31:0] dmem_rdata,
-  input  logic        dmem_ack,
+  // Unified memory interface - Data access port
+  output logic [31:0] mem_data_addr,
+  output logic [31:0] mem_data_wdata,
+  output logic [1:0]  mem_data_size,
+  output logic        mem_data_we,
+  output logic        mem_data_req,
+  input  logic [31:0] mem_data_rdata,
+  input  logic        mem_data_ack,
   
   // Status signals
   output logic        halted,
@@ -66,10 +72,10 @@ module core_top
   // Fetch Stage
   // ==========================================================================
   
-  logic [71:0] fetch_inst_data_0, fetch_inst_data_1;
-  logic [3:0]  fetch_inst_len_0, fetch_inst_len_1;
-  logic [31:0] fetch_pc_0, fetch_pc_1;
-  logic        fetch_valid_0, fetch_valid_1;
+  logic [103:0] fetch_inst_data_0, fetch_inst_data_1;  // 13 bytes max
+  logic [3:0]   fetch_inst_len_0, fetch_inst_len_1;
+  logic [31:0]  fetch_pc_0, fetch_pc_1;
+  logic         fetch_valid_0, fetch_valid_1;
   
   fetch_unit fetch (
     .clk(clk),
@@ -77,10 +83,10 @@ module core_top
     .branch_taken(branch_taken),
     .branch_target(branch_target),
     .stall(stall_pipeline),
-    .imem_addr(imem_addr),
-    .imem_req(imem_req),
-    .imem_rdata(imem_rdata),
-    .imem_ack(imem_ack),
+    .mem_addr(mem_if_addr),
+    .mem_req(mem_if_req),
+    .mem_rdata(mem_if_rdata),
+    .mem_ack(mem_if_ack),
     .inst_data_0(fetch_inst_data_0),
     .inst_len_0(fetch_inst_len_0),
     .pc_0(fetch_pc_0),
@@ -473,13 +479,13 @@ module core_top
     .rst(rst),
     .ex_mem_0(ex_mem_out_0),
     .ex_mem_1(ex_mem_out_1),
-    .dmem_addr(dmem_addr),
-    .dmem_wdata(dmem_wdata),
-    .dmem_size(dmem_size),
-    .dmem_we(dmem_we),
-    .dmem_req(dmem_req),
-    .dmem_rdata(dmem_rdata),
-    .dmem_ack(dmem_ack),
+    .dmem_addr(mem_data_addr),
+    .dmem_wdata(mem_data_wdata),
+    .dmem_size(mem_data_size),
+    .dmem_we(mem_data_we),
+    .dmem_req(mem_data_req),
+    .dmem_rdata(mem_data_rdata),
+    .dmem_ack(mem_data_ack),
     .mem_wb_0(mem_wb_in_0),
     .mem_wb_1(mem_wb_in_1),
     .mem_stall(mem_stall)
