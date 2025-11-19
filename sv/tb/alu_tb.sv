@@ -38,6 +38,12 @@ module alu_tb;
     forever #5 clk = ~clk;
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("alu_tb.vcd");
+    $dumpvars(0, alu_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");

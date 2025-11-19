@@ -36,6 +36,12 @@ module multiply_unit_tb;
     forever #5 clk = ~clk;
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("multiply_unit_tb.vcd");
+    $dumpvars(0, multiply_unit_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");

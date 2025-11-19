@@ -40,6 +40,12 @@ module branch_unit_tb;
     forever #5 clk = ~clk;
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("branch_unit_tb.vcd");
+    $dumpvars(0, branch_unit_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");
