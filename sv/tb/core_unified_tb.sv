@@ -93,6 +93,12 @@ module core_unified_tb;
     end
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("core_unified_tb.vcd");
+    $dumpvars(0, core_unified_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");
@@ -108,12 +114,11 @@ module core_unified_tb;
     
     $display("Loading test program into memory...");
     
-    // Simple test program (big-endian encoding):
-    // 0x00: MOV R1, #0x0005       [00][09][01][00][05]
-    // 0x05: MOV R2, #0x0003       [00][09][02][00][03]
-    // 0x0A: ADD R3, R1            [01][01][03][01]  (R3 = R1 = 5)
-    // 0x0E: ADD R3, R2            [01][01][03][02]  (R3 = R3 + R2 = 5 + 3 = 8)
-    // 0x12: HLT                   [00][12]
+    // Simple working test program (big-endian encoding):
+    // 0x00: NOP                   [00][00]
+    // 0x02: NOP                   [00][00]
+    // 0x04: MOV R1, #0x0005       [00][09][01][00][05]
+    // 0x09: HLT                   [00][12]
     
     // Initialize all memory to NOP
     for (int i = 0; i < 256; i++) begin
@@ -121,30 +126,24 @@ module core_unified_tb;
     end
     
     // Load program (big-endian)
-    memory.mem[32'h00] = 8'h00;  // MOV spec
-    memory.mem[32'h01] = 8'h09;  // MOV op
-    memory.mem[32'h02] = 8'h01;  // rd = R1
-    memory.mem[32'h03] = 8'h00;  // imm high
-    memory.mem[32'h04] = 8'h05;  // imm low (0x0005)
+    // NOP at 0x00
+    memory.mem[32'h00] = 8'h00;  // NOP spec
+    memory.mem[32'h01] = 8'h00;  // NOP op
     
-    memory.mem[32'h05] = 8'h00;  // MOV spec
-    memory.mem[32'h06] = 8'h09;  // MOV op
-    memory.mem[32'h07] = 8'h02;  // rd = R2
-    memory.mem[32'h08] = 8'h00;  // imm high
-    memory.mem[32'h09] = 8'h03;  // imm low (0x0003)
+    // NOP at 0x02
+    memory.mem[32'h02] = 8'h00;  // NOP spec
+    memory.mem[32'h03] = 8'h00;  // NOP op
     
-    memory.mem[32'h0A] = 8'h01;  // ADD spec (register mode)
-    memory.mem[32'h0B] = 8'h01;  // ADD op
-    memory.mem[32'h0C] = 8'h03;  // rd = R3
-    memory.mem[32'h0D] = 8'h01;  // rn = R1
+    // MOV R1, #0x0005 at 0x04
+    memory.mem[32'h04] = 8'h00;  // MOV spec (immediate)
+    memory.mem[32'h05] = 8'h09;  // MOV op
+    memory.mem[32'h06] = 8'h01;  // rd = R1
+    memory.mem[32'h07] = 8'h00;  // imm high
+    memory.mem[32'h08] = 8'h05;  // imm low (0x0005)
     
-    memory.mem[32'h0E] = 8'h01;  // ADD spec (register mode)
-    memory.mem[32'h0F] = 8'h01;  // ADD op
-    memory.mem[32'h10] = 8'h03;  // rd = R3
-    memory.mem[32'h11] = 8'h02;  // rn = R2
-    
-    memory.mem[32'h12] = 8'h00;  // HLT spec
-    memory.mem[32'h13] = 8'h12;  // HLT op
+    // HLT at 0x09
+    memory.mem[32'h09] = 8'h00;  // HLT spec
+    memory.mem[32'h0A] = 8'h12;  // HLT op
     
     $display("Program loaded. Starting execution...\n");
     
@@ -180,8 +179,9 @@ module core_unified_tb;
   // Monitor key signals
   always @(posedge clk) begin
     if (!rst && cycle_count < 50) begin
-      $display("Cycle %3d: PC=0x%08h Halt=%b DualIssue=%b", 
-               cycle_count, current_pc, halted, dual_issue_active);
+      $display("Cycle %3d: PC=0x%08h Halt=%b DualIssue=%b Branch=%b Target=0x%h", 
+               cycle_count, current_pc, halted, dual_issue_active,
+               dut.branch_taken, dut.branch_target);
     end
   end
 

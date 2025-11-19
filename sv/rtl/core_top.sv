@@ -425,8 +425,8 @@ module core_top
     .rst(rst),
     .id_ex_0(id_ex_out_0),
     .id_ex_1(id_ex_out_1),
-    .ex_fwd_data_0(ex_mem_in_0.alu_result[15:0]),
-    .ex_fwd_data_1(ex_mem_in_1.alu_result[15:0]),
+    .ex_fwd_data_0(ex_mem_out_0.alu_result[15:0]),  // FIX: Use pipeline register output
+    .ex_fwd_data_1(ex_mem_out_1.alu_result[15:0]),  // FIX: Use pipeline register output
     .mem_fwd_data_0(mem_wb_out_0.wb_data),
     .mem_fwd_data_1(mem_wb_out_1.wb_data),
     .wb_fwd_data_0(rf_wr_data_0),
