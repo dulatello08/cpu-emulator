@@ -82,6 +82,9 @@ module fetch_unit
   // Calculate consumed bytes (combinational)
   logic [5:0] consumed_bytes;
   logic       can_consume_0, can_consume_1;
+  logic [5:0] new_buffer_valid;
+  logic [255:0] shifted_buffer;
+  logic [5:0] refill_bytes;
   
   always_comb begin
     can_consume_0 = (buffer_valid >= {2'b0, inst_len_0}) && (inst_len_0 > 0) && !branch_taken;
@@ -94,6 +97,19 @@ module fetch_unit
                       (can_consume_1 ? {2'b0, inst_len_1} : 6'h0);
     end else begin
       consumed_bytes = 6'h0;
+    end
+    
+    // Calculate new buffer state after consumption
+    new_buffer_valid = buffer_valid - consumed_bytes;
+    shifted_buffer = fetch_buffer << (consumed_bytes * 8);
+    
+    // Calculate how many bytes to refill (max 16, but don't overflow 32-byte buffer)
+    if (new_buffer_valid >= 6'd32) begin
+      refill_bytes = 6'd0;  // Buffer full, don't refill
+    end else if (new_buffer_valid + 6'd16 > 6'd32) begin
+      refill_bytes = 6'd32 - new_buffer_valid;  // Partial refill to reach 32
+    end else begin
+      refill_bytes = 6'd16;  // Full refill
     end
   end
   
@@ -109,29 +125,45 @@ module fetch_unit
       buffer_pc <= branch_target;
     end else if (!stall) begin
       // Handle buffer consumption and refill
-      // Strategy: First consume (shift out), then refill (OR in at bottom)
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Both consume and refill in same cycle
-        // Step 1: Shift out consumed bytes
-        // Step 2: Append new 16 bytes at bottom
-        fetch_buffer <= (fetch_buffer << (consumed_bytes * 8)) | 
-                       ({128'h0, mem_rdata} << ((buffer_valid - consumed_bytes) * 8));
-        buffer_valid <= buffer_valid - consumed_bytes + 6'd16;
+        // Strategy: shift buffer left to consume, then add new data at LSB end
+        // After shift, we have new_buffer_valid bytes at bits [255 : 256-new_buffer_valid*8]
+        // Add refill_bytes at bits [256-new_buffer_valid*8-1 : 256-new_buffer_valid*8-refill_bytes*8]
+        // which is bits [(256-new_buffer_valid*8)-1 : (256-new_buffer_valid*8-refill_bytes*8)]
+        // To place 128-bit mem_rdata there, we need to:
+        // 1. Take top refill_bytes from mem_rdata: mem_rdata[127 : 128-refill_bytes*8]
+        // 2. Place at position: shift left by (256-new_buffer_valid*8-refill_bytes*8) bits
+        //    = shift left by (256 - (new_buffer_valid+refill_bytes)*8) bits
+        //    = shift left by ((32 - (new_buffer_valid+refill_bytes)) * 8) bits
+        
+        fetch_buffer <= shifted_buffer | ({128'h0, mem_rdata} << ((32 - new_buffer_valid - refill_bytes[3:0])*8));
+        buffer_valid <= new_buffer_valid + refill_bytes;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
       end else if (mem_ack) begin
         // Only refill (no consumption)
-        // Append new 16 bytes at the end of valid data
-        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << (buffer_valid * 8));
-        buffer_valid <= buffer_valid + 6'd16;
-        // buffer_pc unchanged - still points to first byte
+        // Add new bytes at bits [256-buffer_valid*8-1 : ...]
+        logic [5:0] refill_bytes_nocons;
+        
+        if (buffer_valid >= 6'd32) begin
+          refill_bytes_nocons = 6'd0;
+        end else if (buffer_valid + 6'd16 > 6'd32) begin
+          refill_bytes_nocons = 6'd32 - buffer_valid;
+        end else begin
+          refill_bytes_nocons = 6'd16;
+        end
+        
+        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << ((32 - buffer_valid - refill_bytes_nocons[3:0])*8));
+        buffer_valid <= buffer_valid + refill_bytes_nocons;
+        
         if (buffer_valid == 0) begin
           buffer_pc <= pc;  // Initialize buffer_pc on first fetch
         end
       end else if (consumed_bytes > 0) begin
         // Only consume (no refill)
-        fetch_buffer <= fetch_buffer << (consumed_bytes * 8);
-        buffer_valid <= buffer_valid - consumed_bytes;
+        fetch_buffer <= shifted_buffer;
+        buffer_valid <= new_buffer_valid;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
       end
       // else: no change
