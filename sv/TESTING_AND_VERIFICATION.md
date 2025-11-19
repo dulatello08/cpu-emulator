@@ -1,5 +1,95 @@
 # NeoCore16x32 Testing and Verification Guide
 
+## Quick Start
+
+### Prerequisites
+
+The NeoCore16x32 CPU testbenches require **Icarus Verilog** for simulation:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install iverilog
+
+# macOS (with Homebrew)
+brew install icarus-verilog
+
+# Verify installation
+iverilog -V
+vvp -V
+```
+
+**Optional** (for waveform viewing):
+```bash
+# Ubuntu/Debian
+sudo apt-get install gtkwave
+
+# macOS
+brew install gtkwave
+```
+
+### Running Tests
+
+All tests are managed through the Makefile in the `sv/` directory:
+
+```bash
+cd sv/
+
+# Check that tools are installed
+make check-tools
+
+# Run all unit tests (recommended first step)
+make unit-tests
+
+# Run core integration tests
+make core-tests
+
+# Run all standard tests
+make all-tests
+
+# Run complete test suite (includes long-running tests)
+make all-tests-full
+```
+
+### Individual Tests
+
+Run specific testbenches:
+
+```bash
+make alu_test         # ALU testbench
+make mul_test         # Multiply unit testbench  
+make decode_test      # Decode unit testbench
+make branch_test      # Branch unit testbench
+make regfile_test     # Register file testbench
+make sim              # Core integration test
+```
+
+### Viewing Waveforms
+
+After running tests, view waveforms with GTKWave:
+
+```bash
+make wave             # View core unified test waveforms
+make wave_alu         # View ALU test waveforms
+
+# Or manually open any VCD file:
+gtkwave build/core_unified_tb.vcd &
+```
+
+### Expected Results
+
+All tests should complete with:
+- **Unit tests**: Each test prints "PASSED" and exits cleanly
+- **Core tests**: Should halt gracefully and print test results
+- **No errors**: No "ERROR" or "FAIL" messages in output
+
+If any test fails, check:
+1. Tool versions (`iverilog -V` should show version 10.0+)
+2. Build directory is clean (`make clean` then retry)
+3. Console output for specific error messages
+
+---
+
 ## Overview
 
 The NeoCore16x32 CPU is verified through a comprehensive suite of testbenches that validate individual modules and the integrated system. This document describes the test strategy, testbench structure, and verification procedures.
