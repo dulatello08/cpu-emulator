@@ -260,9 +260,15 @@ module execute_stage
     if (id_ex_0.itype == ITYPE_MUL) begin
       ex_mem_0.alu_result = {16'h0, mul_result_lo_0};
       // Store high result for rd2
-    end else if (id_ex_0.itype == ITYPE_MOV && id_ex_0.specifier == 8'h02) begin
-      // MOV register to register: pass through operand
-      ex_mem_0.alu_result = {16'h0, operand_a_0};
+    end else if (id_ex_0.itype == ITYPE_MOV) begin
+      // MOV instruction: use immediate value for all modes except register-to-register
+      if (id_ex_0.specifier == 8'h02) begin
+        // Specifier 0x02: register to register, pass through operand
+        ex_mem_0.alu_result = {16'h0, operand_a_0};
+      end else begin
+        // Specifier 0x00, 0x01, etc.: use immediate value
+        ex_mem_0.alu_result = id_ex_0.immediate;
+      end
     end else begin
       ex_mem_0.alu_result = alu_result_0;
     end
@@ -305,8 +311,15 @@ module execute_stage
     
     if (id_ex_1.itype == ITYPE_MUL) begin
       ex_mem_1.alu_result = {16'h0, mul_result_lo_1};
-    end else if (id_ex_1.itype == ITYPE_MOV && id_ex_1.specifier == 8'h02) begin
-      ex_mem_1.alu_result = {16'h0, operand_a_1};
+    end else if (id_ex_1.itype == ITYPE_MOV) begin
+      // MOV instruction: use immediate value for all modes except register-to-register
+      if (id_ex_1.specifier == 8'h02) begin
+        // Specifier 0x02: register to register, pass through operand
+        ex_mem_1.alu_result = {16'h0, operand_a_1};
+      end else begin
+        // Specifier 0x00, 0x01, etc.: use immediate value
+        ex_mem_1.alu_result = id_ex_1.immediate;
+      end
     end else begin
       ex_mem_1.alu_result = alu_result_1;
     end
