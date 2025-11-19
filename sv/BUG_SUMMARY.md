@@ -27,10 +27,12 @@
    - Buffer should have: bits[255:248]=Byte0, bits[247:240]=Byte1, ..., bits[7:0]=Byte31
    - Refill logic didn't maintain this layout correctly
 
-**Fix Status**: PARTIAL
-- Added buffer overflow protection
-- Corrected some byte positioning issues
-- Still has edge cases causing corruption
+**Fix Status**: PARTIAL - Requires Complete Rewrite
+- Attempted several fixes to byte positioning logic
+- Simple tests pass (uniform-length instructions)
+- Advanced tests fail (variable-length instruction sequences)
+- Root cause identified: variable-width shift operations in buffer management
+- Recommendation: Complete algorithmic rewrite needed
 
 **Recommended Complete Fix**:
 Rewrite buffer management with clearer algorithm:
@@ -47,51 +49,61 @@ Rewrite buffer management with clearer algorithm:
 
 ---
 
-### Bug #2: Potential Combinational Loops in core_top (SUSPECTED)
+### Bug #2: Combinational Loops in core_top (INVESTIGATED - NONE FOUND)
 
 **File**: `sv/rtl/core_top.sv`  
-**Lines**: To be investigated  
-**Severity**: HIGH - can cause simulation hangs or X-propagation
+**Lines**: N/A
+**Severity**: N/A - No issues detected
 
-**Symptoms**: Not yet observed in tests (simple tests pass)
+**Investigation Results**:
+Systematic analysis of control signal dependencies in core_top.sv revealed:
 
-**Suspected Areas**:
-- Stall/ready/valid signal dependencies between:
-  - `fetch_unit` ← stall signal
-  - `hazard_unit` → stall output
-  - `issue_unit` → dual_issue
-  - Pipeline registers with stall/flush
+1. **Stall Signal Path** (line 547):
+   - `stall_pipeline = hazard_stall || mem_stall || halted`
+   - All inputs are combinational outputs from pipeline stage modules
+   - Feeds back to pipeline register stall inputs
+   - ✅ This is correct: combinational control derived from registered state
 
-**Analysis Needed**:
-1. Draw signal dependency graph
-2. Identify any combinational feedback paths
-3. Ensure all loops broken by registers
-4. Check reset completeness
+2. **Hazard Unit**:
+   - All inputs come from pipeline register outputs (registered signals)
+   - Outputs are combinational (stall, flush_id, flush_ex, forward signals)
+   - ✅ No combinational feedback loops
 
-**Status**: NOT YET INVESTIGATED
+3. **Branch Control**:
+   - branch_taken comes from execute_stage (combinational from registered inputs)
+   - Feeds to fetch_unit and pipeline registers
+   - ✅ Proper pipeline control flow
+
+4. **Memory Stall**:
+   - mem_stall from memory_stage (combinational from registered inputs)
+   - ✅ No loops detected
+
+**Conclusion**: No combinational loops found in core_top.sv. The pipeline control logic follows proper design patterns with combinational control signals derived from registered pipeline state.
+
+**Status**: CLEAR - No bugs found in core_top control logic
 
 ---
 
 ## Test Coverage
 
-### Existing Tests (ALL PASS)
-- ✅ ALU unit test
-- ✅ Register file unit test  
-- ✅ Multiply unit test
-- ✅ Branch unit test
-- ✅ Decode unit test
-- ✅ Core unified test (simple program)
+### Active Tests
+- ✅ ALU unit test (`alu_tb.sv`)
+- ✅ Register file unit test (`register_file_tb.sv`)
+- ✅ Multiply unit test (`multiply_unit_tb.sv`)
+- ✅ Branch unit test (`branch_unit_tb.sv`)
+- ✅ Decode unit test (`decode_unit_tb.sv`)
+- ✅ Core unified test (`core_unified_tb.sv`) - simple program, PASS
+- ✅ Advanced testbench (`core_advanced_tb.sv`) - RAW dependencies, load-use, branches
 
-### New Tests Created
-- ✅ Advanced testbench (`core_advanced_tb.sv`)
-  - RAW dependency chain test (EXPOSES BUG #1)
-  - Load-use hazard test
-  - Branch sequence test
+### Deprecated/Unused Tests
+- ⚠️ `core_tb.sv` - Deprecated (uses old simple_memory.sv instead of unified_memory.sv)
+- ⚠️ `core_simple_tb.sv` - Not integrated in Makefile, redundant with core_unified_tb
 
 ### Test Programs Created
-- ✅ `test_dependency_chain.hex`
-- ✅ `test_load_use_hazard.hex`
-- ✅ `test_branch_sequence.hex`
+- ✅ `test_simple.hex` - Basic MOV and NOP test
+- ✅ `test_dependency_chain.hex` - RAW hazard test (EXPOSES BUG #1)
+- ✅ `test_load_use_hazard.hex` - Load-use stall test
+- ✅ `test_branch_sequence.hex` - Branch/flush test
 
 ---
 

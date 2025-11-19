@@ -1,6 +1,12 @@
 //
 // core_tb.sv
-// Testbench for NeoCore 16x32 Dual-Issue CPU Core
+// Testbench for NeoCore 16x32 Dual-Issue CPU Core (DEPRECATED)
+//
+// ⚠️  DEPRECATED: This testbench uses the old simple_memory.sv module
+// ⚠️  which has been replaced by unified_memory.sv for Von Neumann architecture.
+// ⚠️  
+// ⚠️  Use core_unified_tb.sv instead for new tests.
+// ⚠️  This file is retained for backwards compatibility only.
 //
 // Tests the complete core with simple programs.
 //

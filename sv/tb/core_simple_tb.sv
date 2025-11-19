@@ -1,5 +1,12 @@
 //
 // core_simple_tb.sv
+// Simple testbench for debugging core execution (NOT IN MAKEFILE)
+//
+// ⚠️  NOTE: This testbench is not integrated in the Makefile.
+// ⚠️  It is functionally similar to core_unified_tb.sv.
+// ⚠️  
+// ⚠️  Consider removing or using core_unified_tb.sv instead.
+//
 // Simple testbench for debugging core execution
 //
 

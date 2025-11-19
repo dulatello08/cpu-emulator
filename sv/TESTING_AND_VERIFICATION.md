@@ -716,3 +716,66 @@ The NeoCore16x32 verification strategy ensures:
 
 All testbenches are located in `sv/tb/` and can be run individually or as a suite using the Makefile. Waveforms provide detailed visibility into CPU behavior for debugging and verification.
 
+---
+
+## Test Organization and Status
+
+### Active Testbenches
+
+The following testbenches are actively maintained and integrated in the Makefile:
+
+| Testbench | Type | Make Target | Status | Purpose |
+|-----------|------|-------------|--------|---------|
+| `alu_tb.sv` | Unit | `make alu_test` | ✅ PASS | ALU operations and flags |
+| `register_file_tb.sv` | Unit | `make regfile_test` | ✅ PASS | Register file R/W and forwarding |
+| `multiply_unit_tb.sv` | Unit | `make mul_test` | ✅ PASS | Signed/unsigned multiplication |
+| `branch_unit_tb.sv` | Unit | `make branch_test` | ✅ PASS | Branch condition evaluation |
+| `decode_unit_tb.sv` | Unit | `make decode_test` | ✅ PASS | Instruction decoding (all opcodes) |
+| `core_unified_tb.sv` | Integration | `make sim` or `make core-tests` | ✅ PASS | Full core with simple program |
+| `core_advanced_tb.sv` | Integration | `make advanced-tests` | ⚠️ TIMEOUT | Complex multi-instruction programs |
+
+### Deprecated/Unused Testbenches
+
+| Testbench | Status | Reason | Recommendation |
+|-----------|--------|--------|----------------|
+| `core_tb.sv` | Deprecated | Uses old `simple_memory.sv` | Use `core_unified_tb.sv` |
+| `core_simple_tb.sv` | Not integrated | Redundant | Consider removing |
+
+### Test Programs
+
+Located in `sv/mem/`:
+
+| Program | Purpose | Status |
+|---------|---------|--------|
+| `test_simple.hex` | Basic MOV and NOP | ✅ Used by core_unified_tb |
+| `test_dependency_chain.hex` | RAW hazard testing | ⚠️ Exposes fetch buffer bug |
+| `test_load_use_hazard.hex` | Load-use stall testing | ⚠️ Not fully tested |
+| `test_branch_sequence.hex` | Branch/flush testing | ⚠️ Not fully tested |
+| `test_programs.txt` | Documentation | Reference only |
+
+---
+
+## Running the Complete Test Suite
+
+```bash
+cd sv/
+
+# Verify tools are installed
+make check-tools
+
+# Run all unit tests (should all pass)
+make unit-tests
+
+# Run core integration test (should pass)
+make core-tests
+
+# Optional: Run advanced tests (currently timeout due to fetch buffer bug)
+# make advanced-tests
+```
+
+**Expected Results** (current state):
+- Unit tests: ✅ ALL PASS (5/5)
+- Core integration: ✅ PASS (1/1)  
+- Advanced tests: ⚠️ TIMEOUT (known fetch buffer bug)
+
+

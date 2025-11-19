@@ -125,26 +125,25 @@ module fetch_unit
       buffer_pc <= branch_target;
     end else if (!stall) begin
       // Handle buffer consumption and refill
+      // Big-endian layout: bits[255:248]=Byte0, bits[247:240]=Byte1, ..., bits[7:0]=Byte31
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Both consume and refill in same cycle
-        // Strategy: shift buffer left to consume, then add new data at LSB end
-        // After shift, we have new_buffer_valid bytes at bits [255 : 256-new_buffer_valid*8]
-        // Add refill_bytes at bits [256-new_buffer_valid*8-1 : 256-new_buffer_valid*8-refill_bytes*8]
-        // which is bits [(256-new_buffer_valid*8)-1 : (256-new_buffer_valid*8-refill_bytes*8)]
-        // To place 128-bit mem_rdata there, we need to:
-        // 1. Take top refill_bytes from mem_rdata: mem_rdata[127 : 128-refill_bytes*8]
-        // 2. Place at position: shift left by (256-new_buffer_valid*8-refill_bytes*8) bits
-        //    = shift left by (256 - (new_buffer_valid+refill_bytes)*8) bits
-        //    = shift left by ((32 - (new_buffer_valid+refill_bytes)) * 8) bits
+        // After left shift by consumed_bytes*8: old data removed, remaining data moves to MSB
+        // New data from memory goes at LSB positions
         
-        fetch_buffer <= shifted_buffer | ({128'h0, mem_rdata} << ((32 - new_buffer_valid - refill_bytes[3:0])*8));
+        // Position for new data: starting at bit (32 - new_buffer_valid - refill_bytes)*8
+        // This is the LSB position where new data should start
+        logic [8:0] shift_amt;  // Need 9 bits to represent up to 256
+        shift_amt = {3'b0, (6'd32 - new_buffer_valid - refill_bytes)} * 9'd8;
+        
+        fetch_buffer <= shifted_buffer | ({128'h0, mem_rdata} << shift_amt);
         buffer_valid <= new_buffer_valid + refill_bytes;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
       end else if (mem_ack) begin
         // Only refill (no consumption)
-        // Add new bytes at bits [256-buffer_valid*8-1 : ...]
         logic [5:0] refill_bytes_nocons;
+        logic [8:0] shift_amt;
         
         if (buffer_valid >= 6'd32) begin
           refill_bytes_nocons = 6'd0;
@@ -154,7 +153,10 @@ module fetch_unit
           refill_bytes_nocons = 6'd16;
         end
         
-        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << ((32 - buffer_valid - refill_bytes_nocons[3:0])*8));
+        // Position new bytes at bit (32 - buffer_valid - refill_bytes)*8
+        shift_amt = {3'b0, (6'd32 - buffer_valid - refill_bytes_nocons)} * 9'd8;
+        
+        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << shift_amt);
         buffer_valid <= buffer_valid + refill_bytes_nocons;
         
         if (buffer_valid == 0) begin
