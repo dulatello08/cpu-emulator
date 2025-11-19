@@ -1,0 +1,28 @@
+// Test program: Multiple branches
+// Tests branch handling and pipeline flushing
+//
+// Program:
+// MOV R1, #0x0005         @ 0x00: [00][09][01][00][05]
+// MOV R2, #0x0005         @ 0x05: [00][09][02][00][05]
+// BE R1, R2, 0x0014       @ 0x0A: [00][0B][01][02][00][00][00][14]  <- Branch taken
+// MOV R3, #0x00FF         @ 0x12: [00][09][03][00][FF]  <- Skipped
+// HLT                     @ 0x17: [00][12]              <- Skipped
+// 
+// @0x14:
+// MOV R4, #0x00AA         @ 0x14: [00][09][04][00][AA]  <- Target
+// HLT                     @ 0x19: [00][12]
+//
+// Expected: R1=5, R2=5, R3=0 (not executed), R4=0xAA
+
+00 09 01 00 05            // MOV R1, #5
+00 09 02 00 05            // MOV R2, #5
+00 0B 01 02 00 00 00 14   // BE R1, R2, 0x14 (branch if equal)
+00 09 03 00 FF            // MOV R3, #0xFF (should be skipped)
+00 12                     // HLT (should be skipped)
+
+// Padding to 0x14
+00 00 00
+
+// Target at 0x14
+00 09 04 00 AA            // MOV R4, #0xAA
+00 12                     // HLT

@@ -122,6 +122,15 @@ core_tb: $(BUILD_DIR)
 run_core_tb: core_tb
 	cd $(BUILD_DIR) && $(VVP) core_tb.vvp
 
+# Core Advanced Testbench (complex test scenarios)
+core_advanced_tb: $(BUILD_DIR)
+	$(IVERILOG) $(IVFLAGS) -s core_advanced_tb \
+		-o $(BUILD_DIR)/core_advanced_tb.vvp \
+		$(RTL_SRCS) $(TB_DIR)/core_advanced_tb.sv
+
+run_core_advanced_tb: core_advanced_tb
+	cd $(BUILD_DIR) && $(VVP) core_advanced_tb.vvp
+
 # ============================================================================
 # Run all tests
 # ============================================================================
@@ -136,6 +145,9 @@ sim: run_core_unified_tb
 
 # Run all unit tests
 all_tests: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb
+
+# Run all tests including core tests
+all_tests_full: all_tests run_core_unified_tb run_core_advanced_tb
 
 # Default target runs the unified core test
 default: sim

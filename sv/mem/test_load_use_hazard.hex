@@ -1,0 +1,17 @@
+// Test program: Load-use hazard
+// Tests that the CPU properly stalls on load-use dependencies
+//
+// Program:
+// MOV R1, #0x1234         @ 0x00: [00][09][01][12][34]
+// MOV [0x1000], R1        @ 0x05: [09][09][01][00][00][10][00]
+// MOV R2, [0x1000]        @ 0x0C: [05][09][02][00][00][10][00]
+// ADD R3, R2              @ 0x13: [01][01][03][02]  <- Load-use hazard!
+// HLT                     @ 0x17: [00][12]
+//
+// Expected: R1=0x1234, R2=0x1234, R3=0x1234
+
+00 09 01 12 34            // MOV R1, #0x1234
+09 09 01 00 00 10 00      // MOV [0x1000], R1
+05 09 02 00 00 10 00      // MOV R2, [0x1000]
+01 01 03 02               // ADD R3, R2  (should stall)
+00 12                     // HLT
