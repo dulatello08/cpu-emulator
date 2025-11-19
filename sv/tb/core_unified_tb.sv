@@ -114,7 +114,7 @@ module core_unified_tb;
     
     $display("Loading test program into memory...");
     
-    // Simpler test program (big-endian encoding):
+    // Simple working test program (big-endian encoding):
     // 0x00: NOP                   [00][00]
     // 0x02: NOP                   [00][00]
     // 0x04: MOV R1, #0x0005       [00][09][01][00][05]
@@ -179,8 +179,9 @@ module core_unified_tb;
   // Monitor key signals
   always @(posedge clk) begin
     if (!rst && cycle_count < 50) begin
-      $display("Cycle %3d: PC=0x%08h Halt=%b DualIssue=%b", 
-               cycle_count, current_pc, halted, dual_issue_active);
+      $display("Cycle %3d: PC=0x%08h Halt=%b DualIssue=%b Branch=%b Target=0x%h", 
+               cycle_count, current_pc, halted, dual_issue_active,
+               dut.branch_taken, dut.branch_target);
     end
   end
 

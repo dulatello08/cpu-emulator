@@ -109,17 +109,22 @@ module fetch_unit
       buffer_pc <= branch_target;
     end else if (!stall) begin
       // Handle buffer consumption and refill
-      if (mem_ack && consumed_bytes > 0) begin
-        // Both consume and refill
-        // Shift out consumed bytes and append new data at bottom
+      // Strategy: First consume (shift out), then refill (OR in at bottom)
+      
+      if (consumed_bytes > 0 && mem_ack) begin
+        // Both consume and refill in same cycle
+        // Step 1: Shift out consumed bytes
+        // Step 2: Append new 16 bytes at bottom
         fetch_buffer <= (fetch_buffer << (consumed_bytes * 8)) | 
-                       {128'h0, mem_rdata};
+                       ({128'h0, mem_rdata} << ((buffer_valid - consumed_bytes) * 8));
         buffer_valid <= buffer_valid - consumed_bytes + 6'd16;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
       end else if (mem_ack) begin
         // Only refill (no consumption)
-        fetch_buffer <= (fetch_buffer << 128) | {128'h0, mem_rdata};
+        // Append new 16 bytes at the end of valid data
+        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << (buffer_valid * 8));
         buffer_valid <= buffer_valid + 6'd16;
+        // buffer_pc unchanged - still points to first byte
         if (buffer_valid == 0) begin
           buffer_pc <= pc;  // Initialize buffer_pc on first fetch
         end

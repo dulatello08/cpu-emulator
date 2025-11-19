@@ -126,7 +126,26 @@ run_core_tb: core_tb
 # Run all tests
 # ============================================================================
 
-all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb run_core_unified_tb
+# Individual test runners with VCD
+alu_test: run_alu_tb
+mul_test: run_multiply_unit_tb  
+decode_test: run_decode_unit_tb
+branch_test: run_branch_unit_tb
+regfile_test: run_register_file_tb
+sim: run_core_unified_tb
+
+# Run all unit tests
+all_tests: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run_decode_unit_tb
+
+# Default target runs the unified core test
+default: sim
+
+# View waveforms with GTKWave
+wave: $(BUILD_DIR)/core_unified_tb.vcd
+	$(GTKWAVE) $(BUILD_DIR)/core_unified_tb.vcd &
+
+wave_alu: $(BUILD_DIR)/alu_tb.vcd
+	$(GTKWAVE) $(BUILD_DIR)/alu_tb.vcd &
 
 # ============================================================================
 # Clean
@@ -135,6 +154,8 @@ all: run_alu_tb run_register_file_tb run_multiply_unit_tb run_branch_unit_tb run
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean alu_tb run_alu_tb register_file_tb run_register_file_tb \
+.PHONY: all default sim clean alu_test mul_test decode_test branch_test regfile_test all_tests \
+        wave wave_alu \
+        alu_tb run_alu_tb register_file_tb run_register_file_tb \
         multiply_unit_tb run_multiply_unit_tb branch_unit_tb run_branch_unit_tb \
         decode_unit_tb run_decode_unit_tb core_unified_tb run_core_unified_tb
