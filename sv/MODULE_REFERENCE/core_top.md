@@ -63,6 +63,7 @@ core_top
 - fetch_unit fetches variable-length instructions
 - Maintains 32-byte buffer for dual-issue
 - Outputs up to 2 instructions per cycle
+- **CRITICAL**: Receives `dual_issue` signal from issue_unit to determine byte consumption
 
 ### 2. IF/ID Pipeline Registers
 - Two registers (if_id_reg_0, if_id_reg_1)
@@ -72,6 +73,7 @@ core_top
 ### 3. Decode Stage (ID)
 - Two decode_unit instances decode in parallel
 - issue_unit determines if dual-issue possible
+- **CRITICAL**: issue_unit `dual_issue` output connected to fetch_unit input
 - register_file provides 4 read ports for operands
 
 ### 4. ID/EX Pipeline Registers  
@@ -149,6 +151,29 @@ Branches resolve in EX stage:
 - Classic RISC balance
 - Well-understood hazard handling
 - Achievable timing on target FPGA
+
+## Critical Signal Connections
+
+### Dual-Issue Feedback Loop (FIXED)
+The `dual_issue` signal from `issue_unit` **MUST** be connected to `fetch_unit.dual_issue` input:
+
+```systemverilog
+// In core_top.sv:
+logic dual_issue;  // Signal declared
+
+issue_unit issue (
+  // ... inputs
+  .dual_issue(dual_issue)  // Output from issue_unit
+);
+
+fetch_unit fetch (
+  // ... inputs
+  .dual_issue(dual_issue),  // Input to fetch_unit (CRITICAL!)
+  // ... outputs
+);
+```
+
+**Why**: Fetch must know the actual dual-issue decision to consume the correct number of bytes from the instruction buffer. Without this connection, PC advances incorrectly.
 
 ## Known Limitations
 

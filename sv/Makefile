@@ -124,6 +124,28 @@ core_unified_tb: $(BUILD_DIR)
 run_core_unified_tb: core_unified_tb
 	cd $(BUILD_DIR) && $(VVP) core_unified_tb.vvp
 
+# Core Any Program Testbench (loads program from hex file)
+core_any_tb: $(BUILD_DIR)
+	$(IVERILOG) $(IVFLAGS) -s core_any_tb \
+		-o $(BUILD_DIR)/core_any_tb.vvp \
+		$(RTL_SRCS) $(TB_DIR)/core_any_tb.sv
+
+run_core_any_tb: core_any_tb
+	@if [ -z "$(PROGRAM)" ]; then \
+		echo "ERROR: PROGRAM variable not set."; \
+		echo "Usage: make run_core_any_tb PROGRAM=path/to/program.hex"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(PROGRAM)" ]; then \
+		echo "ERROR: Program file '$(PROGRAM)' not found."; \
+		exit 1; \
+	fi
+	@echo "Running program: $(PROGRAM)"
+	cd $(BUILD_DIR) && $(VVP) core_any_tb.vvp +PROGRAM=../$(PROGRAM)
+
+# Shortcut: run_any with PROGRAM variable
+run_any: run_core_any_tb
+
 # ============================================================================
 # Run all tests
 # ============================================================================
@@ -199,6 +221,7 @@ default: check-tools
 	@echo ""
 	@echo "Integration tests:"
 	@echo "  make sim             - Run core unified testbench"
+	@echo "  make run_any PROGRAM=file.hex - Run any program from hex file"
 	@echo ""
 	@echo "Waveform viewing:"
 	@echo "  make wave            - View core unified test waveforms"
@@ -222,9 +245,9 @@ clean:
 
 .PHONY: default check-tools clean \
         unit-tests core-tests advanced-tests all-tests all-tests-full \
-        alu_test mul_test decode_test branch_test regfile_test sim \
+        alu_test mul_test decode_test branch_test regfile_test sim run_any \
         wave wave_alu \
         alu_tb run_alu_tb register_file_tb run_register_file_tb \
         multiply_unit_tb run_multiply_unit_tb branch_unit_tb run_branch_unit_tb \
         decode_unit_tb run_decode_unit_tb core_unified_tb run_core_unified_tb \
-        core_advanced_tb run_core_advanced_tb
+        core_advanced_tb run_core_advanced_tb core_any_tb run_core_any_tb
