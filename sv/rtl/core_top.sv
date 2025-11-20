@@ -98,8 +98,6 @@ module core_top
     .valid_1(fetch_valid_1)
   );
   
-  assign current_pc = fetch_pc_0;
-  
   // ==========================================================================
   // IF/ID Pipeline Register
   // ==========================================================================
@@ -545,6 +543,42 @@ module core_top
   // Pipeline Stall Control
   // ==========================================================================
   
+  // Detect HLT in pipeline to stop fetching new instructions
+  // But allow pipeline to continue draining until HLT reaches WB
+  logic halt_in_pipeline;
+  assign halt_in_pipeline = (id_ex_out_0.valid && id_ex_out_0.is_halt) ||
+                            (id_ex_out_1.valid && id_ex_out_1.is_halt) ||
+                            (ex_mem_out_0.valid && ex_mem_out_0.is_halt) ||
+                            (ex_mem_out_1.valid && ex_mem_out_1.is_halt);
+  
+  // Stall entire pipeline only for hazards, memory stalls, or once fully halted
   assign stall_pipeline = hazard_stall || mem_stall || halted;
+  
+  // ==========================================================================
+  // Current PC Reporting
+  // ==========================================================================
+  
+  // When halted or halt in pipeline, report PC of the halt instruction, not fetch PC
+  // Find the halt instruction PC from the pipeline
+  logic [31:0] halt_pc;
+  always_comb begin
+    if (mem_wb_out_0.valid && mem_wb_out_0.is_halt) begin
+      halt_pc = mem_wb_out_0.pc;
+    end else if (mem_wb_out_1.valid && mem_wb_out_1.is_halt) begin
+      halt_pc = mem_wb_out_1.pc;
+    end else if (ex_mem_out_0.valid && ex_mem_out_0.is_halt) begin
+      halt_pc = ex_mem_out_0.pc;
+    end else if (ex_mem_out_1.valid && ex_mem_out_1.is_halt) begin
+      halt_pc = ex_mem_out_1.pc;
+    end else if (id_ex_out_0.valid && id_ex_out_0.is_halt) begin
+      halt_pc = id_ex_out_0.pc;
+    end else if (id_ex_out_1.valid && id_ex_out_1.is_halt) begin
+      halt_pc = id_ex_out_1.pc;
+    end else begin
+      halt_pc = fetch_pc_0;
+    end
+  end
+  
+  assign current_pc = (halt_in_pipeline || halted) ? halt_pc : fetch_pc_0;
 
 endmodule : core_top
