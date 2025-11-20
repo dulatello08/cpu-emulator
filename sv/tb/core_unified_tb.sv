@@ -116,7 +116,8 @@ module core_unified_tb;
     
     // Absolute minimal test program (big-endian encoding):
     // 0x00: MOV R1, #0x0005       [00][09][01][00][05]
-    // 0x05: HLT                   [00][12]
+    // 0x05: MOV R2, R1            [02][09][02][01]  - depends on R1, prevents dual-issue
+    // 0x09: HLT                   [00][12]
     
     // Initialize all memory to zero
     for (int i = 0; i < 256; i++) begin
@@ -131,13 +132,20 @@ module core_unified_tb;
     memory.mem[32'h03] = 8'h00;  // imm high
     memory.mem[32'h04] = 8'h05;  // imm low (0x0005)
     
-    // HLT at 0x05
-    memory.mem[32'h05] = 8'h00;  // HLT spec
-    memory.mem[32'h06] = 8'h12;  // HLT op
+    // MOV R2, R1 at 0x05 (register-to-register copy)
+    memory.mem[32'h05] = 8'h02;  // MOV spec (register)
+    memory.mem[32'h06] = 8'h09;  // MOV op
+    memory.mem[32'h07] = 8'h02;  // rd = R2 (destination)
+    memory.mem[32'h08] = 8'h01;  // rn = R1 (source)
+    
+    // HLT at 0x09
+    memory.mem[32'h09] = 8'h00;  // HLT spec
+    memory.mem[32'h0A] = 8'h12;  // HLT op
     
     $display("Program loaded:");
     $display("  0x00: MOV R1, #0x0005");
-    $display("  0x05: HLT");
+    $display("  0x05: MOV R2, R1");
+    $display("  0x09: HLT");
     $display("Starting execution...\n");
     
     // Run until halt or timeout
@@ -152,16 +160,17 @@ module core_unified_tb;
         $display("Total cycles: %0d", cycle_count);
         $display("========================================");
         
-        // Check register R1 value
+        // Check register R1 and R2 values
         $display("\nChecking results:");
         $display("  R1 = 0x%04h (expected 0x0005)", dut.regfile.registers[1]);
+        $display("  R2 = 0x%04h (expected 0x0005)", dut.regfile.registers[2]);
         
-        if (dut.regfile.registers[1] == 16'h0005) begin
-          $display("\n✓ TEST PASSED: R1 has correct value");
+        if (dut.regfile.registers[1] == 16'h0005 && dut.regfile.registers[2] == 16'h0005) begin
+          $display("\n✓ TEST PASSED: R1 and R2 have correct values");
         end else begin
-          $display("\n✗ TEST FAILED: R1 has wrong value!");
-          $display("  Expected: 0x0005");
-          $display("  Got:      0x%04h", dut.regfile.registers[1]);
+          $display("\n✗ TEST FAILED: Wrong register values!");
+          $display("  R1 Expected: 0x0005, Got: 0x%04h", dut.regfile.registers[1]);
+          $display("  R2 Expected: 0x0005, Got: 0x%04h", dut.regfile.registers[2]);
         end
         
         $finish;
@@ -174,6 +183,7 @@ module core_unified_tb;
         $display("========================================");
         $display("\nRegister state at timeout:");
         $display("  R1 = 0x%04h (expected 0x0005)", dut.regfile.registers[1]);
+        $display("  R2 = 0x%04h (expected 0x0005)", dut.regfile.registers[2]);
         $finish;
       end
     join_any
@@ -184,30 +194,34 @@ module core_unified_tb;
     if (!rst && cycle_count < 20) begin
       $display("Cycle %3d: PC=0x%08h Halt=%b", 
                cycle_count, current_pc, halted);
-      $display("          Memory@PC: [0x%02h 0x%02h 0x%02h 0x%02h 0x%02h]",
+      $display("          Memory@PC: [0x%02h 0x%02h 0x%02h 0x%02h 0x%02h 0x%02h 0x%02h]",
                memory.mem[current_pc], memory.mem[current_pc+1],
                memory.mem[current_pc+2], memory.mem[current_pc+3],
-               memory.mem[current_pc+4]);
-      $display("          FetchBuf: buffer_valid=%d buffer_pc=0x%h",
-               dut.fetch.buffer_valid, dut.fetch.buffer_pc);
-      $display("                    buffer[255:240]=0x%04h spec_0=0x%02h op_0=0x%02h",
-               dut.fetch.fetch_buffer[255:240], dut.fetch.spec_0, dut.fetch.op_0);
-      $display("          Fetch: valid0=%b valid1=%b len0=%d len1=%d",
-               dut.fetch_valid_0, dut.fetch_valid_1,
-               dut.fetch_inst_len_0, dut.fetch_inst_len_1);
-      $display("                 inst_data_0[111:96]=0x%04h",
-               dut.fetch_inst_data_0[111:96]);
-      $display("          IF/ID0: valid=%b pc=0x%h inst_data[111:96]=0x%04h",
+               memory.mem[current_pc+4], memory.mem[current_pc+5],
+               memory.mem[current_pc+6]);
+      $display("          FetchBuf: buffer_valid=%d buffer_pc=0x%h consumed=%d",
+               dut.fetch.buffer_valid, dut.fetch.buffer_pc, dut.fetch.consumed_bytes);
+      $display("                    buffer[255:240]=0x%04h spec_0=0x%02h op_0=0x%02h len0=%d",
+               dut.fetch.fetch_buffer[255:240], dut.fetch.spec_0, dut.fetch.op_0, dut.fetch_inst_len_0);
+      $display("                    spec_1=0x%02h op_1=0x%02h len1=%d",
+               dut.fetch.spec_1, dut.fetch.op_1, dut.fetch_inst_len_1);
+      $display("          Fetch: valid0=%b valid1=%b dual_issue=%b",
+               dut.fetch_valid_0, dut.fetch_valid_1, dut.dual_issue_active);
+      $display("          IF/ID0: valid=%b pc=0x%h opcode=0x%02h spec=0x%02h",
                dut.if_id_out_0.valid, dut.if_id_out_0.pc,
-               dut.if_id_out_0.inst_data[111:96]);
-      $display("          ID/EX0: valid=%b rd_addr=%d imm=0x%h rd_we=%b",
-               dut.id_ex_out_0.valid, dut.id_ex_out_0.rd_addr,
-               dut.id_ex_out_0.immediate, dut.id_ex_out_0.rd_we);
-      $display("          EX/MEM0: valid=%b alu_result=0x%h rd_addr=%d rd_we=%b",
-               dut.ex_mem_out_0.valid, dut.ex_mem_out_0.alu_result,
-               dut.ex_mem_out_0.rd_addr, dut.ex_mem_out_0.rd_we);
-      $display("          MEM/WB0: valid=%b wb_data=0x%h rd_addr=%d rd_we=%b",
-               dut.mem_wb_out_0.valid, dut.mem_wb_out_0.wb_data,
+               dut.if_id_out_0.inst_data[103:96], dut.if_id_out_0.inst_data[111:104]);
+      $display("          IF/ID1: valid=%b pc=0x%h opcode=0x%02h spec=0x%02h",
+               dut.if_id_out_1.valid, dut.if_id_out_1.pc,
+               dut.if_id_out_1.inst_data[103:96], dut.if_id_out_1.inst_data[111:104]);
+      $display("          ID/EX0: valid=%b pc=0x%h is_halt=%b rd_addr=%d rd_we=%b",
+               dut.id_ex_out_0.valid, dut.id_ex_out_0.pc, dut.id_ex_out_0.is_halt,
+               dut.id_ex_out_0.rd_addr, dut.id_ex_out_0.rd_we);
+      $display("          ID/EX1: valid=%b pc=0x%h is_halt=%b",
+               dut.id_ex_out_1.valid, dut.id_ex_out_1.pc, dut.id_ex_out_1.is_halt);
+      $display("          EX/MEM0: valid=%b is_halt=%b alu_result=0x%h",
+               dut.ex_mem_out_0.valid, dut.ex_mem_out_0.is_halt, dut.ex_mem_out_0.alu_result);
+      $display("          MEM/WB0: valid=%b is_halt=%b wb_data=0x%h rd_addr=%d rd_we=%b",
+               dut.mem_wb_out_0.valid, dut.mem_wb_out_0.is_halt, dut.mem_wb_out_0.wb_data,
                dut.mem_wb_out_0.rd_addr, dut.mem_wb_out_0.rd_we);
     end
   end

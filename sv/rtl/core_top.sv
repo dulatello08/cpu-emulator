@@ -83,6 +83,7 @@ module core_top
     .branch_taken(branch_taken),
     .branch_target(branch_target),
     .stall(stall_pipeline),
+    .dual_issue(dual_issue),
     .mem_addr(mem_if_addr),
     .mem_req(mem_if_req),
     .mem_rdata(mem_if_rdata),
