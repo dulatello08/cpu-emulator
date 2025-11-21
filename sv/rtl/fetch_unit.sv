@@ -224,7 +224,8 @@ module fetch_unit
     inst_len_0 = get_inst_length(op_0, spec_0);
     
     // Extract second instruction (starts after first)
-    if ({2'b0, inst_len_0} <= buffer_valid && inst_len_0 > 0) begin
+    // Need at least 2 more bytes after first instruction for spec+op
+    if (({2'b0, inst_len_0} + 6'd2) <= buffer_valid && inst_len_0 > 0) begin
       spec_1 = fetch_buffer[inst_len_0];
       op_1 = fetch_buffer[inst_len_0 + 1];
     end else begin
