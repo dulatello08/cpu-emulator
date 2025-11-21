@@ -79,18 +79,16 @@ module fetch_unit
   // - Up to 13-byte instructions
   // - Alignment issues
   // - Dual-issue (two instructions)
-  logic [255:0] fetch_buffer;  // 32 bytes
-  logic [5:0]   buffer_valid;  // Number of valid bytes in buffer
-  logic [31:0]  buffer_pc;     // PC of first byte in buffer
+  // 
+  // Using byte array for clarity and correctness
+  logic [7:0]   fetch_buffer[32];  // 32 bytes, index 0 = first byte
+  logic [5:0]   buffer_valid;      // Number of valid bytes in buffer
+  logic [31:0]  buffer_pc;         // PC of first byte in buffer
   
   // Calculate consumed bytes (combinational)
   logic [5:0] consumed_bytes;
   logic       can_consume_0, can_consume_1;
   logic [5:0] new_buffer_valid;
-  logic [5:0] refill_bytes;
-  logic [8:0] consume_shift;      // Shift amount for consumption
-  logic [8:0] refill_shift;       // Shift amount for refill
-  logic [5:0] refill_bytes_nocons; // Refill bytes when no consumption
   
   always_comb begin
     can_consume_0 = (buffer_valid >= {2'b0, inst_len_0}) && (inst_len_0 > 0) && !branch_taken;
@@ -108,92 +106,103 @@ module fetch_unit
     
     // Calculate new buffer state after consumption
     new_buffer_valid = buffer_valid - consumed_bytes;
-    
-    // Calculate how many bytes to refill (max 16, but don't overflow 32-byte buffer)
-    if (new_buffer_valid >= 6'd32) begin
-      refill_bytes = 6'd0;  // Buffer full, don't refill
-    end else if (new_buffer_valid + 6'd16 > 6'd32) begin
-      refill_bytes = 6'd32 - new_buffer_valid;  // Partial refill to reach 32
-    end else begin
-      refill_bytes = 6'd16;  // Full refill
-    end
   end
   
   always_ff @(posedge clk) begin
     if (rst) begin
-      fetch_buffer <= 256'h0;
+      for (int i = 0; i < 32; i++) begin
+        fetch_buffer[i] <= 8'h00;
+      end
       buffer_valid <= 6'h0;
       buffer_pc <= 32'h0;
     end else if (branch_taken) begin
       // Flush buffer on branch
-      fetch_buffer <= 256'h0;
+      for (int i = 0; i < 32; i++) begin
+        fetch_buffer[i] <= 8'h00;
+      end
       buffer_valid <= 6'h0;
       buffer_pc <= branch_target;
     end else if (!stall) begin
-      // SIMPLIFIED buffer management algorithm:
-      // Big-endian layout: bits[255:248]=Byte0, bits[247:240]=Byte1, ..., bits[7:0]=Byte31
-      //
-      // Handle THREE cases:
+      // Handle THREE cases with explicit byte operations:
       // 1. Consume only
       // 2. Refill only  
       // 3. Consume AND refill
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Case 3: BOTH consume and refill in same cycle
-        // Step 1: Consume by shifting left
-        // Step 2: Mask to clear the refill area
-        // Step 3: OR in refill data at correct position
-        logic [255:0] consumed_buffer;
-        logic [255:0] mask;
-        logic [8:0] consume_shift_local;
-        logic [8:0] refill_shift_local;
-        logic [8:0] mask_shift_local;
-        logic [5:0] refill_bytes_local;
-        
-        consume_shift_local = {3'b0, consumed_bytes} * 9'd8;
-        consumed_buffer = fetch_buffer << consume_shift_local;
-        
-        if (new_buffer_valid >= 6'd32) begin
-          refill_bytes_local = 6'd0;
-        end else if (new_buffer_valid + 6'd16 > 6'd32) begin
-          refill_bytes_local = 6'd32 - new_buffer_valid;
-        end else begin
-          refill_bytes_local = 6'd16;
+        // Step 1: Shift remaining bytes to front
+        for (int i = 0; i < 32; i++) begin
+          if (i < new_buffer_valid) begin
+            fetch_buffer[i] <= fetch_buffer[i + consumed_bytes];
+          end else begin
+            fetch_buffer[i] <= 8'h00;
+          end
         end
         
-        // Create mask to clear refill area: top new_buffer_valid bytes are 1, rest are 0
-        mask_shift_local = {3'b0, new_buffer_valid} * 9'd8;
-        mask = 256'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF << (9'd256 - mask_shift_local);
+        // Step 2: Add refilled bytes at the end
+        // Copy refill bytes from mem_rdata (big-endian: MSB first)
+        // Calculate how many bytes to refill inline
+        for (int i = 0; i < 16; i++) begin
+          if (new_buffer_valid >= 6'd32) begin
+            // Buffer full, don't refill
+          end else if (new_buffer_valid + 6'd16 > 6'd32) begin
+            // Partial refill
+            if (i < (6'd32 - new_buffer_valid)) begin
+              fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
+            end
+          end else begin
+            // Full refill
+            fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
+          end
+        end
         
-        refill_shift_local = {3'b0, (6'd32 - new_buffer_valid - refill_bytes_local)} * 9'd8;
-        fetch_buffer <= (consumed_buffer & mask) | ({128'h0, mem_rdata} << refill_shift_local);
-        buffer_valid <= new_buffer_valid + refill_bytes_local;
+        // Update buffer_valid
+        if (new_buffer_valid >= 6'd32) begin
+          buffer_valid <= 6'd32;
+        end else if (new_buffer_valid + 6'd16 > 6'd32) begin
+          buffer_valid <= 6'd32;
+        end else begin
+          buffer_valid <= new_buffer_valid + 6'd16;
+        end
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
         
       end else if (consumed_bytes > 0) begin
         // Case 1: Consume only (no refill)
-        logic [8:0] consume_shift_local;
-        consume_shift_local = {3'b0, consumed_bytes} * 9'd8;
-        fetch_buffer <= fetch_buffer << consume_shift_local;
+        for (int i = 0; i < 32; i++) begin
+          if (i < new_buffer_valid) begin
+            fetch_buffer[i] <= fetch_buffer[i + consumed_bytes];
+          end else begin
+            fetch_buffer[i] <= 8'h00;
+          end
+        end
         buffer_valid <= new_buffer_valid;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
         
       end else if (mem_ack) begin
         // Case 2: Refill only (no consumption)
-        logic [8:0] refill_shift_local;
-        logic [5:0] refill_bytes_local;
-        
-        if (buffer_valid >= 6'd32) begin
-          refill_bytes_local = 6'd0;
-        end else if (buffer_valid + 6'd16 > 6'd32) begin
-          refill_bytes_local = 6'd32 - buffer_valid;
-        end else begin
-          refill_bytes_local = 6'd16;
+        // Copy refill bytes from mem_rdata (big-endian: MSB first)
+        for (int i = 0; i < 16; i++) begin
+          if (buffer_valid >= 6'd32) begin
+            // Buffer full, don't refill
+          end else if (buffer_valid + 6'd16 > 6'd32) begin
+            // Partial refill
+            if (i < (6'd32 - buffer_valid)) begin
+              fetch_buffer[buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
+            end
+          end else begin
+            // Full refill
+            fetch_buffer[buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
+          end
         end
         
-        refill_shift_local = {3'b0, (6'd32 - buffer_valid - refill_bytes_local)} * 9'd8;
-        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << refill_shift_local);
-        buffer_valid <= buffer_valid + refill_bytes_local;
+        // Update buffer_valid
+        if (buffer_valid >= 6'd32) begin
+          buffer_valid <= 6'd32;
+        end else if (buffer_valid + 6'd16 > 6'd32) begin
+          buffer_valid <= 6'd32;
+        end else begin
+          buffer_valid <= buffer_valid + 6'd16;
+        end
         
         // Note: buffer_pc doesn't change on refill-only
       end
@@ -205,60 +214,22 @@ module fetch_unit
   // Instruction Pre-Decode (Length Detection)
   // ============================================================================
   
-  // Extract bytes for first instruction (big-endian: MSB at top)
+  // Extract bytes for first instruction (from byte array)
   logic [7:0] spec_0, op_0;
   logic [7:0] spec_1, op_1;
   
   always_comb begin
-    // Extract specifier and opcode for first instruction from buffer
-    // Buffer is big-endian, so MSB bytes are at top
-    spec_0 = fetch_buffer[255:248];  // Byte 0 (specifier)
-    op_0 = fetch_buffer[247:240];    // Byte 1 (opcode)
+    // Extract specifier and opcode for first instruction
+    spec_0 = fetch_buffer[0];  // Byte 0 (specifier)
+    op_0 = fetch_buffer[1];    // Byte 1 (opcode)
     
     // Calculate first instruction length
     inst_len_0 = get_inst_length(op_0, spec_0);
     
     // Extract second instruction (starts after first)
-    // Need to shift by inst_len_0 bytes
-    if ({2'b0, inst_len_0} <= buffer_valid) begin
-      case (inst_len_0)
-        4'd2: begin
-          spec_1 = fetch_buffer[239:232];  // After 2 bytes
-          op_1 = fetch_buffer[231:224];
-        end
-        4'd3: begin
-          spec_1 = fetch_buffer[231:224];  // After 3 bytes
-          op_1 = fetch_buffer[223:216];
-        end
-        4'd4: begin
-          spec_1 = fetch_buffer[223:216];  // After 4 bytes
-          op_1 = fetch_buffer[215:208];
-        end
-        4'd5: begin
-          spec_1 = fetch_buffer[215:208];  // After 5 bytes
-          op_1 = fetch_buffer[207:200];
-        end
-        4'd6: begin
-          spec_1 = fetch_buffer[207:200];  // After 6 bytes
-          op_1 = fetch_buffer[199:192];
-        end
-        4'd7: begin
-          spec_1 = fetch_buffer[199:192];  // After 7 bytes
-          op_1 = fetch_buffer[191:184];
-        end
-        4'd8: begin
-          spec_1 = fetch_buffer[191:184];  // After 8 bytes
-          op_1 = fetch_buffer[183:176];
-        end
-        4'd9: begin
-          spec_1 = fetch_buffer[183:176];  // After 9 bytes
-          op_1 = fetch_buffer[175:168];
-        end
-        default: begin
-          spec_1 = 8'h00;
-          op_1 = 8'h00;
-        end
-      endcase
+    if ({2'b0, inst_len_0} <= buffer_valid && inst_len_0 > 0) begin
+      spec_1 = fetch_buffer[inst_len_0];
+      op_1 = fetch_buffer[inst_len_0 + 1];
     end else begin
       spec_1 = 8'h00;
       op_1 = 8'h00;
@@ -275,9 +246,11 @@ module fetch_unit
     // First instruction
     valid_0 = (buffer_valid >= {2'b0, inst_len_0}) && !branch_taken && (inst_len_0 > 0);
     
-    // Extract instruction bytes (up to 13 bytes)
-    // Big-endian: top bytes are most significant
-    inst_data_0 = fetch_buffer[255:152];  // Top 13 bytes
+    // Extract instruction bytes (up to 13 bytes) from byte array
+    // inst_data format: bits[103:96]=byte0, bits[95:88]=byte1, etc. (big-endian)
+    for (int i = 0; i < 13; i++) begin
+      inst_data_0[(12-i)*8 +: 8] = fetch_buffer[i];
+    end
     pc_0 = buffer_pc;
     
     // Second instruction (dual-issue)
@@ -287,18 +260,14 @@ module fetch_unit
               !branch_taken &&
               (inst_len_1 > 0);
     
-    // Extract second instruction data (shifted by first instruction length)
-    case (inst_len_0)
-      4'd2:  inst_data_1 = fetch_buffer[239:136];  // After 2 bytes
-      4'd3:  inst_data_1 = fetch_buffer[231:128];  // After 3 bytes
-      4'd4:  inst_data_1 = fetch_buffer[223:120];  // After 4 bytes
-      4'd5:  inst_data_1 = fetch_buffer[215:112];  // After 5 bytes
-      4'd6:  inst_data_1 = fetch_buffer[207:104];  // After 6 bytes
-      4'd7:  inst_data_1 = fetch_buffer[199:96];   // After 7 bytes
-      4'd8:  inst_data_1 = fetch_buffer[191:88];   // After 8 bytes
-      4'd9:  inst_data_1 = fetch_buffer[183:80];   // After 9 bytes
-      default: inst_data_1 = 104'h0;
-    endcase
+    // Extract second instruction data (starting at inst_len_0 offset)
+    for (int i = 0; i < 13; i++) begin
+      if (inst_len_0 + i < 32) begin
+        inst_data_1[(12-i)*8 +: 8] = fetch_buffer[inst_len_0 + i];
+      end else begin
+        inst_data_1[(12-i)*8 +: 8] = 8'h00;
+      end
+    end
     
     pc_1 = buffer_pc + {28'h0, inst_len_0};
   end

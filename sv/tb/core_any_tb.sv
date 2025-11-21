@@ -134,9 +134,9 @@ module core_any_tb;
                dut.fetch.consumed_bytes, dut.fetch.buffer_pc,
                dut.fetch.valid_0, dut.fetch.valid_1, dut.dual_issue,
                dut.fetch.mem_req, dut.fetch.mem_addr);
-      $display("         Buffer[31:0]=%h %h %h %h", 
-               dut.fetch.fetch_buffer[255:248], dut.fetch.fetch_buffer[247:240],
-               dut.fetch.fetch_buffer[239:232], dut.fetch.fetch_buffer[231:224]);
+      $display("         Buffer[31:0]=%02h %02h %02h %02h", 
+               dut.fetch.fetch_buffer[0], dut.fetch.fetch_buffer[1],
+               dut.fetch.fetch_buffer[2], dut.fetch.fetch_buffer[3]);
     end
   end
   
