@@ -165,10 +165,11 @@ module fetch_unit
         end
         
         // Step 2: Add refilled bytes at the end
+        if (mem_ack && $time/10000 < 25) $display("    Refill: mem_rdata=%h from addr=%h", mem_rdata, buffer_pc + buffer_valid);
         for (int i = 0; i < 16; i++) begin
           if (i < refill_amount) begin
             fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
-            if (i < 4 && $time/10000 < 25) $display("    Refill: buf[%0d] <= mem[%0d] (val=%h) MemAddr was %h", new_buffer_valid+i, 15-i, mem_rdata[(15-i)*8 +: 8], buffer_pc + buffer_valid);
+            if (i < 4 && $time/10000 < 25) $display("    Refill: buf[%0d] <= mem_rdata[%0d:%0d] (val=%h)", new_buffer_valid+i, (15-i)*8+7, (15-i)*8, mem_rdata[(15-i)*8 +: 8]);
           end
         end
         
