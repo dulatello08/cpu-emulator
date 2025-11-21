@@ -118,6 +118,16 @@ module fetch_unit
       buffer_valid <= 6'h0;
       buffer_pc <= 32'h0;
     end else if (branch_taken) begin
+      // DEBUG logging
+      if ($time/10000 < 25) begin
+        $display("[FETCH] Cycle %0d: PC=%h BufPC=%h BufValid=%0d Consumed=%0d MemAck=%b", 
+                 $time/10000, buffer_pc, buffer_pc, buffer_valid, consumed_bytes, mem_ack);
+        if (buffer_valid >= 4) begin
+          $display("        Buf[0:5]=%h %h %h %h %h %h Spec0=%h Op0=%h", 
+                   fetch_buffer[0], fetch_buffer[1], fetch_buffer[2], fetch_buffer[3],
+                   fetch_buffer[4], fetch_buffer[5], spec_0, op_0);
+        end
+      end
       // Flush buffer on branch
       for (int i = 0; i < 32; i++) begin
         fetch_buffer[i] <= 8'h00;
@@ -130,6 +140,14 @@ module fetch_unit
       // 2. Refill only  
       // 3. Consume AND refill
       
+      // DEBUG
+      if ($time/10000 < 25) begin
+        $display("[FETCH] Cyc %0d: BufPC=%h BufV=%0d Cons=%0d MemAck=%b NewV=%0d MemAddr=%h",
+                 $time/10000, buffer_pc, buffer_valid, consumed_bytes, mem_ack, new_buffer_valid, mem_addr);
+        if (buffer_valid >= 6) $display("        Buf[0:5]=%h %h %h %h %h %h", 
+                 fetch_buffer[0], fetch_buffer[1], fetch_buffer[2], fetch_buffer[3], fetch_buffer[4], fetch_buffer[5]);
+      end
+      
       if (consumed_bytes > 0 && mem_ack) begin
         // Case 3: BOTH consume and refill in same cycle
         refill_amount = (new_buffer_valid >= 6'd32) ? 6'd0 :
@@ -140,6 +158,7 @@ module fetch_unit
         for (int i = 0; i < 32; i++) begin
           if (i < new_buffer_valid && (i + consumed_bytes) < 32) begin
             fetch_buffer[i] <= fetch_buffer[i + consumed_bytes];
+            if (i < 6 && $time/10000 < 25) $display("    Shift: buf[%0d] <= buf[%0d] (val=%h)", i, i+consumed_bytes, fetch_buffer[i+consumed_bytes]);
           end else begin
             fetch_buffer[i] <= 8'h00;
           end
@@ -149,6 +168,7 @@ module fetch_unit
         for (int i = 0; i < 16; i++) begin
           if (i < refill_amount) begin
             fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
+            if (i < 4 && $time/10000 < 25) $display("    Refill: buf[%0d] <= mem[%0d] (val=%h) MemAddr was %h", new_buffer_valid+i, 15-i, mem_rdata[(15-i)*8 +: 8], buffer_pc + buffer_valid);
           end
         end
         
