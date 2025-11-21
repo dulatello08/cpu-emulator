@@ -95,7 +95,8 @@ module fetch_unit
     can_consume_1 = can_consume_0 && 
                     (buffer_valid >= ({2'b0, inst_len_0} + {2'b0, inst_len_1})) && 
                     (inst_len_1 > 0) &&
-                    dual_issue;  // Only consume second instruction if dual-issue is allowed
+                    dual_issue &&
+                    (op_1 != 8'h12);  // WORKAROUND: Never consume HLT (opcode 0x12) in slot 1
     
     if (!stall) begin
       consumed_bytes = (can_consume_0 ? {2'b0, inst_len_0} : 6'h0) + 

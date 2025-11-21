@@ -126,23 +126,15 @@ module issue_unit
       issue_inst0 = 1'b1;
       issue_inst1 = 1'b0;
       dual_issue = 1'b0;
-      if (inst0_is_halt || inst1_is_halt) $display("        [ISSUE] Branch A");
     end
     // If only inst1 is valid, don't issue (should not happen in normal operation)
     else if (!inst0_valid && inst1_valid) begin
       issue_inst0 = 1'b0;
       issue_inst1 = 1'b0;
       dual_issue = 1'b0;
-      if (inst0_is_halt || inst1_is_halt) $display("        [ISSUE] Branch B");
     end
     // Both instructions valid: check if they can dual-issue
     else if (inst0_valid && inst1_valid) begin
-      if (inst0_is_halt || inst1_is_halt) begin
-        $display("        [ISSUE] Branch C - Both valid, checking restrictions");
-        $display("        [ISSUE] halt_restriction=%b mem_port=%b write_port=%b branch=%b dep=%b mul=%b",
-                 halt_restriction, mem_port_conflict, write_port_conflict, 
-                 branch_restriction, data_dependency, mul_restriction);
-      end
       // Check all dual-issue restrictions
       if (mem_port_conflict || write_port_conflict || branch_restriction || 
           halt_restriction || data_dependency || mul_restriction) begin
@@ -150,13 +142,11 @@ module issue_unit
         issue_inst0 = 1'b1;
         issue_inst1 = 1'b0;
         dual_issue = 1'b0;
-        if (inst0_is_halt || inst1_is_halt) $display("        [ISSUE] Cannot dual-issue - restrictions present");
       end else begin
         // Can dual-issue: issue both
         issue_inst0 = 1'b1;
         issue_inst1 = 1'b1;
         dual_issue = 1'b1;
-        if (inst0_is_halt || inst1_is_halt) $display("        [ISSUE] CAN dual-issue - no restrictions!");
       end
     end
     // Neither valid
@@ -164,13 +154,6 @@ module issue_unit
       issue_inst0 = 1'b0;
       issue_inst1 = 1'b0;
       dual_issue = 1'b0;
-      if (inst0_is_halt || inst1_is_halt) $display("        [ISSUE] Branch D");
-    end
-    
-    // DEBUG: Print final decision
-    if (inst0_is_halt || inst1_is_halt) begin
-      $display("        [ISSUE] FINAL: dual_issue=%b issue_inst0=%b issue_inst1=%b",
-               dual_issue, issue_inst0, issue_inst1);
     end
   end
 
