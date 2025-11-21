@@ -85,7 +85,6 @@ module fetch_unit
   logic       can_consume_0, can_consume_1;
   logic [5:0] new_buffer_valid;
   logic [5:0] refill_bytes;
-  logic [255:0] consumed_buffer;  // Buffer after consumption
   logic [8:0] consume_shift;      // Shift amount for consumption
   logic [8:0] refill_shift;       // Shift amount for refill
   logic [5:0] refill_bytes_nocons; // Refill bytes when no consumption
@@ -128,68 +127,69 @@ module fetch_unit
       buffer_valid <= 6'h0;
       buffer_pc <= branch_target;
     end else if (!stall) begin
-      // Handle buffer consumption and refill
+      // SIMPLIFIED buffer management algorithm:
       // Big-endian layout: bits[255:248]=Byte0, bits[247:240]=Byte1, ..., bits[7:0]=Byte31
       //
-      // Strategy: Simpler, explicit byte-level operations
-      // 1. Consume: shift LEFT to move remaining bytes to MSB
-      // 2. Refill: place new bytes immediately after remaining bytes (toward LSB)
+      // Handle THREE cases:
+      // 1. Consume only
+      // 2. Refill only  
+      // 3. Consume AND refill
       
       if (consumed_bytes > 0 && mem_ack) begin
-        // Both consume and refill in same cycle
-        //
+        // Case 3: BOTH consume and refill in same cycle
         // Step 1: Consume by shifting left
-        // After shift, new_buffer_valid bytes are at MSB: bits[255 : 256-new_buffer_valid*8]
-        // Bits [256-new_buffer_valid*8-1 : 0] become zero (shifted out or were junk)
-        consume_shift = {3'b0, consumed_bytes} * 9'd8;
-        consumed_buffer = fetch_buffer << consume_shift;
+        // Step 2: OR in refill data at correct position
+        // After shift, we have new_buffer_valid bytes at MSB
+        // Refill data goes right after them
+        logic [255:0] consumed_buffer;
+        logic [8:0] consume_shift_local;
+        logic [8:0] refill_shift_local;
+        logic [5:0] refill_bytes_local;
         
-        // Step 2: Add new bytes immediately after the consumed bytes
-        // New bytes should start at bit position (32-new_buffer_valid)*8 - refill_bytes*8 - 1
-        // and extend down for refill_bytes*8 bits
-        // To position data at bit M (counting from 0), shift left by M
-        // Lowest bit of new data should be at: (32 - new_buffer_valid - refill_bytes)*8
-        refill_shift = {3'b0, (6'd32 - new_buffer_valid - refill_bytes)} * 9'd8;
+        consume_shift_local = {3'b0, consumed_bytes} * 9'd8;
+        consumed_buffer = fetch_buffer << consume_shift_local;
         
-        // CRITICAL: consumed_buffer has valid data only at MSB, LSB is zeros
-        // So OR is safe - no overlap
-        fetch_buffer <= consumed_buffer | ({128'h0, mem_rdata} << refill_shift);
-        buffer_valid <= new_buffer_valid + refill_bytes;
-        buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
-      end else if (mem_ack) begin
-        // Only refill (no consumption)
-        
-        if (buffer_valid >= 6'd32) begin
-          refill_bytes_nocons = 6'd0;
-        end else if (buffer_valid + 6'd16 > 6'd32) begin
-          refill_bytes_nocons = 6'd32 - buffer_valid;
+        if (new_buffer_valid >= 6'd32) begin
+          refill_bytes_local = 6'd0;
+        end else if (new_buffer_valid + 6'd16 > 6'd32) begin
+          refill_bytes_local = 6'd32 - new_buffer_valid;
         end else begin
-          refill_bytes_nocons = 6'd16;
+          refill_bytes_local = 6'd16;
         end
         
-        // Position new bytes immediately after existing valid bytes
-        // Valid bytes occupy bits [255 : 256-buffer_valid*8]
-        // New bytes should occupy bits [256-buffer_valid*8-1 : 256-buffer_valid*8-refill_bytes*8]
-        // Shift amount for lowest bit: (32 - buffer_valid - refill_bytes)*8
-        refill_shift = {3'b0, (6'd32 - buffer_valid - refill_bytes_nocons)} * 9'd8;
+        refill_shift_local = {3'b0, (6'd32 - new_buffer_valid - refill_bytes_local)} * 9'd8;
+        fetch_buffer <= consumed_buffer | ({128'h0, mem_rdata} << refill_shift_local);
+        buffer_valid <= new_buffer_valid + refill_bytes_local;
+        buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
         
-        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << refill_shift);
-        buffer_valid <= buffer_valid + refill_bytes_nocons;
-        
-        if (buffer_valid == 0) begin
-          buffer_pc <= pc;  // Initialize buffer_pc on first fetch
-        end
       end else if (consumed_bytes > 0) begin
-        // Only consume (no refill)
-        // Shift left to remove consumed bytes from MSB
-        // After shift, valid bytes move to MSB, LSB becomes zero
-        consume_shift = {3'b0, consumed_bytes} * 9'd8;
-        
-        fetch_buffer <= fetch_buffer << consume_shift;
+        // Case 1: Consume only (no refill)
+        logic [8:0] consume_shift_local;
+        consume_shift_local = {3'b0, consumed_bytes} * 9'd8;
+        fetch_buffer <= fetch_buffer << consume_shift_local;
         buffer_valid <= new_buffer_valid;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
+        
+      end else if (mem_ack) begin
+        // Case 2: Refill only (no consumption)
+        logic [8:0] refill_shift_local;
+        logic [5:0] refill_bytes_local;
+        
+        if (buffer_valid >= 6'd32) begin
+          refill_bytes_local = 6'd0;
+        end else if (buffer_valid + 6'd16 > 6'd32) begin
+          refill_bytes_local = 6'd32 - buffer_valid;
+        end else begin
+          refill_bytes_local = 6'd16;
+        end
+        
+        refill_shift_local = {3'b0, (6'd32 - buffer_valid - refill_bytes_local)} * 9'd8;
+        fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << refill_shift_local);
+        buffer_valid <= buffer_valid + refill_bytes_local;
+        
+        // Note: buffer_pc doesn't change on refill-only
       end
-      // else: no change
+      // else: no consume, no refill - buffer unchanged
     end
   end
   
@@ -303,7 +303,10 @@ module fetch_unit
     // Request memory when buffer needs refilling
     // Keep buffer topped up to handle dual-issue and long instructions
     mem_req = (buffer_valid < 6'd20) && !stall && !branch_taken;
-    mem_addr = pc;
+    // CRITICAL: Fetch from where the buffer ends, not from PC!
+    // buffer_pc points to start of buffer, buffer_valid is how many bytes we have
+    // So next fetch should be from buffer_pc + buffer_valid
+    mem_addr = buffer_pc + {26'h0, buffer_valid};
   end
   
   // ============================================================================
