@@ -130,9 +130,10 @@ module core_any_tb;
                dut.fetch.buffer_valid,
                dut.fetch.spec_0, dut.fetch.op_0, dut.fetch.inst_len_0,
                dut.fetch.spec_1, dut.fetch.op_1, dut.fetch.inst_len_1);
-      $display("         Consumed=%0d BufferPC=%h Valid0=%b Valid1=%b DualIssue=%b MemReq=%b MemAddr=%h",
+      $display("         Consumed=%0d BufferPC=%h Valid0=%b Valid1=%b DualIssue=%b (from issue=%b) MemReq=%b MemAddr=%h",
                dut.fetch.consumed_bytes, dut.fetch.buffer_pc,
                dut.fetch.valid_0, dut.fetch.valid_1, dut.dual_issue,
+               dut.issue.dual_issue,
                dut.fetch.mem_req, dut.fetch.mem_addr);
       $display("         Buffer[31:0]=%02h %02h %02h %02h", 
                dut.fetch.fetch_buffer[0], dut.fetch.fetch_buffer[1],
