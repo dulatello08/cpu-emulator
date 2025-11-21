@@ -89,6 +89,7 @@ module fetch_unit
   logic [5:0] consumed_bytes;
   logic       can_consume_0, can_consume_1;
   logic [5:0] new_buffer_valid;
+  logic [5:0] refill_amount;  // Used in always_ff for refill calculation
   
   always_comb begin
     can_consume_0 = (buffer_valid >= {2'b0, inst_len_0}) && (inst_len_0 > 0) && !branch_taken;
@@ -96,7 +97,7 @@ module fetch_unit
                     (buffer_valid >= ({2'b0, inst_len_0} + {2'b0, inst_len_1})) && 
                     (inst_len_1 > 0) &&
                     dual_issue &&
-                    (op_1 != 8'h12);  // WORKAROUND: Never consume HLT (opcode 0x12) in slot 1
+                    (op_1 != OP_HLT);  // Never consume HLT in slot 1
     
     if (!stall) begin
       consumed_bytes = (can_consume_0 ? {2'b0, inst_len_0} : 6'h0) + 
@@ -131,7 +132,6 @@ module fetch_unit
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Case 3: BOTH consume and refill in same cycle
-        logic [5:0] refill_amount;
         refill_amount = (new_buffer_valid >= 6'd32) ? 6'd0 :
                        (new_buffer_valid + 6'd16 > 6'd32) ? (6'd32 - new_buffer_valid) : 
                        6'd16;
@@ -169,7 +169,6 @@ module fetch_unit
         
       end else if (mem_ack) begin
         // Case 2: Refill only (no consumption)
-        logic [5:0] refill_amount;
         refill_amount = (buffer_valid >= 6'd32) ? 6'd0 :
                        (buffer_valid + 6'd16 > 6'd32) ? (6'd32 - buffer_valid) : 
                        6'd16;
