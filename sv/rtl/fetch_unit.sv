@@ -130,25 +130,29 @@ module fetch_unit
     end else if (!stall) begin
       // Handle buffer consumption and refill
       // Big-endian layout: bits[255:248]=Byte0, bits[247:240]=Byte1, ..., bits[7:0]=Byte31
-      // To consume bytes: shift RIGHT to discard from MSB end
-      // To add bytes: OR in new data at LSB end
+      //
+      // Strategy: Simpler, explicit byte-level operations
+      // 1. Consume: shift LEFT to move remaining bytes to MSB
+      // 2. Refill: place new bytes immediately after remaining bytes (toward LSB)
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Both consume and refill in same cycle
-        // For big-endian buffer: shift LEFT to remove consumed bytes from MSB
-        // This moves remaining bytes toward MSB (where they need to be)
-        
-        // Shift left by consumed_bytes*8 to remove consumed bytes
+        //
+        // Step 1: Consume by shifting left
+        // After shift, new_buffer_valid bytes are at MSB: bits[255 : 256-new_buffer_valid*8]
+        // Bits [256-new_buffer_valid*8-1 : 0] become zero (shifted out or were junk)
         consume_shift = {3'b0, consumed_bytes} * 9'd8;
         consumed_buffer = fetch_buffer << consume_shift;
         
-        // Position new 16 bytes at LSB end
-        // After consuming, we have new_buffer_valid bytes at MSB
-        // New bytes should go at bits [(32-new_buffer_valid)*8-1 : (32-new_buffer_valid-refill_bytes)*8]
-        // For a 256-bit value, to put data at bits [N-1:M], shift left by M
-        // M = (32 - new_buffer_valid - refill_bytes)*8
+        // Step 2: Add new bytes immediately after the consumed bytes
+        // New bytes should start at bit position (32-new_buffer_valid)*8 - refill_bytes*8 - 1
+        // and extend down for refill_bytes*8 bits
+        // To position data at bit M (counting from 0), shift left by M
+        // Lowest bit of new data should be at: (32 - new_buffer_valid - refill_bytes)*8
         refill_shift = {3'b0, (6'd32 - new_buffer_valid - refill_bytes)} * 9'd8;
         
+        // CRITICAL: consumed_buffer has valid data only at MSB, LSB is zeros
+        // So OR is safe - no overlap
         fetch_buffer <= consumed_buffer | ({128'h0, mem_rdata} << refill_shift);
         buffer_valid <= new_buffer_valid + refill_bytes;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
@@ -163,7 +167,10 @@ module fetch_unit
           refill_bytes_nocons = 6'd16;
         end
         
-        // Position new bytes at LSB end after existing valid data
+        // Position new bytes immediately after existing valid bytes
+        // Valid bytes occupy bits [255 : 256-buffer_valid*8]
+        // New bytes should occupy bits [256-buffer_valid*8-1 : 256-buffer_valid*8-refill_bytes*8]
+        // Shift amount for lowest bit: (32 - buffer_valid - refill_bytes)*8
         refill_shift = {3'b0, (6'd32 - buffer_valid - refill_bytes_nocons)} * 9'd8;
         
         fetch_buffer <= fetch_buffer | ({128'h0, mem_rdata} << refill_shift);
@@ -175,6 +182,7 @@ module fetch_unit
       end else if (consumed_bytes > 0) begin
         // Only consume (no refill)
         // Shift left to remove consumed bytes from MSB
+        // After shift, valid bytes move to MSB, LSB becomes zero
         consume_shift = {3'b0, consumed_bytes} * 9'd8;
         
         fetch_buffer <= fetch_buffer << consume_shift;

@@ -22,6 +22,7 @@ module issue_unit
   input  logic        inst0_mem_read,
   input  logic        inst0_mem_write,
   input  logic        inst0_is_branch,
+  input  logic        inst0_is_halt,
   input  logic [3:0]  inst0_rd_addr,
   input  logic        inst0_rd_we,
   input  logic [3:0]  inst0_rd2_addr,
@@ -33,6 +34,7 @@ module issue_unit
   input  logic        inst1_mem_read,
   input  logic        inst1_mem_write,
   input  logic        inst1_is_branch,
+  input  logic        inst1_is_halt,
   input  logic [3:0]  inst1_rs1_addr,
   input  logic [3:0]  inst1_rs2_addr,
   input  logic [3:0]  inst1_rd_addr,
@@ -53,6 +55,7 @@ module issue_unit
   logic mem_port_conflict;
   logic write_port_conflict;
   logic branch_restriction;
+  logic halt_restriction;
   logic data_dependency;
   logic mul_restriction;
   
@@ -78,6 +81,9 @@ module issue_unit
     
     // Branch restriction: branches must issue alone
     branch_restriction = inst0_is_branch || inst1_is_branch;
+    
+    // Halt restriction: HLT must issue alone (CRITICAL FIX)
+    halt_restriction = inst0_is_halt || inst1_is_halt;
     
     // Multiply restriction: UMULL/SMULL cannot dual-issue (implementation choice)
     mul_restriction = (inst0_type == ITYPE_MUL) || (inst1_type == ITYPE_MUL);
@@ -131,7 +137,7 @@ module issue_unit
     else if (inst0_valid && inst1_valid) begin
       // Check all dual-issue restrictions
       if (mem_port_conflict || write_port_conflict || branch_restriction || 
-          data_dependency || mul_restriction) begin
+          halt_restriction || data_dependency || mul_restriction) begin
         // Cannot dual-issue: issue only inst0
         issue_inst0 = 1'b1;
         issue_inst1 = 1'b0;
