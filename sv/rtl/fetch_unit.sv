@@ -56,6 +56,9 @@ module fetch_unit
   // Program Counter
   // ============================================================================
   
+  // NOTE: The actual program counter is buffer_pc, which tracks the PC of the
+  // first byte in the instruction buffer. This pc variable is NOT used and
+  // should be removed, but kept for now to avoid breaking other logic.
   logic [31:0] pc;
   logic [31:0] pc_next;
   
@@ -138,12 +141,13 @@ module fetch_unit
       if (consumed_bytes > 0 && mem_ack) begin
         // Case 3: BOTH consume and refill in same cycle
         // Step 1: Consume by shifting left
-        // Step 2: OR in refill data at correct position
-        // After shift, we have new_buffer_valid bytes at MSB
-        // Refill data goes right after them
+        // Step 2: Mask to clear the refill area
+        // Step 3: OR in refill data at correct position
         logic [255:0] consumed_buffer;
+        logic [255:0] mask;
         logic [8:0] consume_shift_local;
         logic [8:0] refill_shift_local;
+        logic [8:0] mask_shift_local;
         logic [5:0] refill_bytes_local;
         
         consume_shift_local = {3'b0, consumed_bytes} * 9'd8;
@@ -157,8 +161,12 @@ module fetch_unit
           refill_bytes_local = 6'd16;
         end
         
+        // Create mask to clear refill area: top new_buffer_valid bytes are 1, rest are 0
+        mask_shift_local = {3'b0, new_buffer_valid} * 9'd8;
+        mask = 256'hFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF << (9'd256 - mask_shift_local);
+        
         refill_shift_local = {3'b0, (6'd32 - new_buffer_valid - refill_bytes_local)} * 9'd8;
-        fetch_buffer <= consumed_buffer | ({128'h0, mem_rdata} << refill_shift_local);
+        fetch_buffer <= (consumed_buffer & mask) | ({128'h0, mem_rdata} << refill_shift_local);
         buffer_valid <= new_buffer_valid + refill_bytes_local;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
         
@@ -318,7 +326,8 @@ module fetch_unit
       pc_next = branch_target;
     end else if (!stall) begin
       // Sequential execution: advance by number of bytes consumed
-      pc_next = pc + {26'h0, consumed_bytes};
+      // NOTE: This should match buffer_pc for consistency
+      pc_next = buffer_pc;
     end else begin
       pc_next = pc;
     end
