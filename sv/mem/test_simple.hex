@@ -1,0 +1,21 @@
+// Simple arithmetic test program
+// MOV R1, #5
+00
+09
+01
+00
+05
+// MOV R2, #7  
+00
+09
+02
+00
+07
+// ADD R1, R2 (R1 = R1 + R2)
+01
+01
+01
+02
+// HLT
+00
+12
