@@ -77,6 +77,12 @@ module decode_unit_tb;
     forever #5 clk = ~clk;
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("decode_unit_tb.vcd");
+    $dumpvars(0, decode_unit_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");

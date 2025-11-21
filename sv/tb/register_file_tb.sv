@@ -54,6 +54,12 @@ module register_file_tb;
     forever #5 clk = ~clk;
   end
   
+  // VCD dump for waveform viewing
+  initial begin
+    $dumpfile("register_file_tb.vcd");
+    $dumpvars(0, register_file_tb);
+  end
+  
   // Test stimulus
   initial begin
     $display("========================================");
