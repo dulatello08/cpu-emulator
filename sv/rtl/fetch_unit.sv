@@ -131,9 +131,14 @@ module fetch_unit
       
       if (consumed_bytes > 0 && mem_ack) begin
         // Case 3: BOTH consume and refill in same cycle
+        logic [5:0] refill_amount;
+        refill_amount = (new_buffer_valid >= 6'd32) ? 6'd0 :
+                       (new_buffer_valid + 6'd16 > 6'd32) ? (6'd32 - new_buffer_valid) : 
+                       6'd16;
+        
         // Step 1: Shift remaining bytes to front
         for (int i = 0; i < 32; i++) begin
-          if (i < new_buffer_valid) begin
+          if (i < new_buffer_valid && (i + consumed_bytes) < 32) begin
             fetch_buffer[i] <= fetch_buffer[i + consumed_bytes];
           end else begin
             fetch_buffer[i] <= 8'h00;
@@ -141,36 +146,19 @@ module fetch_unit
         end
         
         // Step 2: Add refilled bytes at the end
-        // Copy refill bytes from mem_rdata (big-endian: MSB first)
-        // Calculate how many bytes to refill inline
         for (int i = 0; i < 16; i++) begin
-          if (new_buffer_valid >= 6'd32) begin
-            // Buffer full, don't refill
-          end else if (new_buffer_valid + 6'd16 > 6'd32) begin
-            // Partial refill
-            if (i < (6'd32 - new_buffer_valid)) begin
-              fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
-            end
-          end else begin
-            // Full refill
+          if (i < refill_amount) begin
             fetch_buffer[new_buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
           end
         end
         
-        // Update buffer_valid
-        if (new_buffer_valid >= 6'd32) begin
-          buffer_valid <= 6'd32;
-        end else if (new_buffer_valid + 6'd16 > 6'd32) begin
-          buffer_valid <= 6'd32;
-        end else begin
-          buffer_valid <= new_buffer_valid + 6'd16;
-        end
+        buffer_valid <= new_buffer_valid + refill_amount;
         buffer_pc <= buffer_pc + {26'h0, consumed_bytes};
         
       end else if (consumed_bytes > 0) begin
         // Case 1: Consume only (no refill)
         for (int i = 0; i < 32; i++) begin
-          if (i < new_buffer_valid) begin
+          if (i < new_buffer_valid && (i + consumed_bytes) < 32) begin
             fetch_buffer[i] <= fetch_buffer[i + consumed_bytes];
           end else begin
             fetch_buffer[i] <= 8'h00;
@@ -181,30 +169,18 @@ module fetch_unit
         
       end else if (mem_ack) begin
         // Case 2: Refill only (no consumption)
-        // Copy refill bytes from mem_rdata (big-endian: MSB first)
+        logic [5:0] refill_amount;
+        refill_amount = (buffer_valid >= 6'd32) ? 6'd0 :
+                       (buffer_valid + 6'd16 > 6'd32) ? (6'd32 - buffer_valid) : 
+                       6'd16;
+        
         for (int i = 0; i < 16; i++) begin
-          if (buffer_valid >= 6'd32) begin
-            // Buffer full, don't refill
-          end else if (buffer_valid + 6'd16 > 6'd32) begin
-            // Partial refill
-            if (i < (6'd32 - buffer_valid)) begin
-              fetch_buffer[buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
-            end
-          end else begin
-            // Full refill
+          if (i < refill_amount) begin
             fetch_buffer[buffer_valid + i] <= mem_rdata[(15-i)*8 +: 8];
           end
         end
         
-        // Update buffer_valid
-        if (buffer_valid >= 6'd32) begin
-          buffer_valid <= 6'd32;
-        end else if (buffer_valid + 6'd16 > 6'd32) begin
-          buffer_valid <= 6'd32;
-        end else begin
-          buffer_valid <= buffer_valid + 6'd16;
-        end
-        
+        buffer_valid <= buffer_valid + refill_amount;
         // Note: buffer_pc doesn't change on refill-only
       end
       // else: no consume, no refill - buffer unchanged

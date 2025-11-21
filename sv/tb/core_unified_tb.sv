@@ -201,8 +201,8 @@ module core_unified_tb;
                memory.mem[current_pc+6]);
       $display("          FetchBuf: buffer_valid=%d buffer_pc=0x%h consumed=%d",
                dut.fetch.buffer_valid, dut.fetch.buffer_pc, dut.fetch.consumed_bytes);
-      $display("                    buffer[255:240]=0x%04h spec_0=0x%02h op_0=0x%02h len0=%d",
-               dut.fetch.fetch_buffer[255:240], dut.fetch.spec_0, dut.fetch.op_0, dut.fetch_inst_len_0);
+      $display("                    buffer[1:0]=0x%02h%02h spec_0=0x%02h op_0=0x%02h len0=%d",
+               dut.fetch.fetch_buffer[1], dut.fetch.fetch_buffer[0], dut.fetch.spec_0, dut.fetch.op_0, dut.fetch_inst_len_0);
       $display("                    spec_1=0x%02h op_1=0x%02h len1=%d",
                dut.fetch.spec_1, dut.fetch.op_1, dut.fetch_inst_len_1);
       $display("          Fetch: valid0=%b valid1=%b dual_issue=%b",
