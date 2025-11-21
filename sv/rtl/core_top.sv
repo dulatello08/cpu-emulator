@@ -83,6 +83,7 @@ module core_top
     .branch_taken(branch_taken),
     .branch_target(branch_target),
     .stall(stall_pipeline),
+    .dual_issue(dual_issue),
     .mem_addr(mem_if_addr),
     .mem_req(mem_if_req),
     .mem_rdata(mem_if_rdata),
@@ -96,8 +97,6 @@ module core_top
     .pc_1(fetch_pc_1),
     .valid_1(fetch_valid_1)
   );
-  
-  assign current_pc = fetch_pc_0;
   
   // ==========================================================================
   // IF/ID Pipeline Register
@@ -242,6 +241,7 @@ module core_top
     .inst0_mem_read(decode_mem_read_0),
     .inst0_mem_write(decode_mem_write_0),
     .inst0_is_branch(decode_is_branch_0),
+    .inst0_is_halt(decode_is_halt_0),
     .inst0_rd_addr(decode_rd_addr_0),
     .inst0_rd_we(decode_rd_we_0),
     .inst0_rd2_addr(decode_rd2_addr_0),
@@ -251,6 +251,7 @@ module core_top
     .inst1_mem_read(decode_mem_read_1),
     .inst1_mem_write(decode_mem_write_1),
     .inst1_is_branch(decode_is_branch_1),
+    .inst1_is_halt(decode_is_halt_1),
     .inst1_rs1_addr(decode_rs1_addr_1),
     .inst1_rs2_addr(decode_rs2_addr_1),
     .inst1_rd_addr(decode_rd_addr_1),
@@ -544,6 +545,42 @@ module core_top
   // Pipeline Stall Control
   // ==========================================================================
   
+  // Detect HLT in pipeline to stop fetching new instructions
+  // But allow pipeline to continue draining until HLT reaches WB
+  logic halt_in_pipeline;
+  assign halt_in_pipeline = (id_ex_out_0.valid && id_ex_out_0.is_halt) ||
+                            (id_ex_out_1.valid && id_ex_out_1.is_halt) ||
+                            (ex_mem_out_0.valid && ex_mem_out_0.is_halt) ||
+                            (ex_mem_out_1.valid && ex_mem_out_1.is_halt);
+  
+  // Stall entire pipeline only for hazards, memory stalls, or once fully halted
   assign stall_pipeline = hazard_stall || mem_stall || halted;
+  
+  // ==========================================================================
+  // Current PC Reporting
+  // ==========================================================================
+  
+  // When halted or halt in pipeline, report PC of the halt instruction, not fetch PC
+  // Find the halt instruction PC from the pipeline
+  logic [31:0] halt_pc;
+  always_comb begin
+    if (mem_wb_out_0.valid && mem_wb_out_0.is_halt) begin
+      halt_pc = mem_wb_out_0.pc;
+    end else if (mem_wb_out_1.valid && mem_wb_out_1.is_halt) begin
+      halt_pc = mem_wb_out_1.pc;
+    end else if (ex_mem_out_0.valid && ex_mem_out_0.is_halt) begin
+      halt_pc = ex_mem_out_0.pc;
+    end else if (ex_mem_out_1.valid && ex_mem_out_1.is_halt) begin
+      halt_pc = ex_mem_out_1.pc;
+    end else if (id_ex_out_0.valid && id_ex_out_0.is_halt) begin
+      halt_pc = id_ex_out_0.pc;
+    end else if (id_ex_out_1.valid && id_ex_out_1.is_halt) begin
+      halt_pc = id_ex_out_1.pc;
+    end else begin
+      halt_pc = fetch_pc_0;
+    end
+  end
+  
+  assign current_pc = (halt_in_pipeline || halted) ? halt_pc : fetch_pc_0;
 
 endmodule : core_top
