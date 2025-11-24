@@ -1,0 +1,3 @@
+[submodule "sv"]
+	path = sv
+	url = git@github.com:dulatello08/cpu-v01.git
